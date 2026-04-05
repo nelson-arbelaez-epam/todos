@@ -1,11 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { GlobalExceptionFilter } from '@todos/shared';
+import { GlobalExceptionFilter, getSharedFaviconDataUri } from '@todos/shared';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalFilters(new GlobalExceptionFilter());
+  app.setGlobalPrefix('api/v1');
 
   const config = new DocumentBuilder()
     .setTitle('Todos API')
@@ -13,7 +14,10 @@ async function bootstrap() {
     .setVersion('1.0')
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  const sharedFavicon = getSharedFaviconDataUri();
+  SwaggerModule.setup('api', app, document, {
+    customfavIcon: sharedFavicon,
+  });
 
   await app.listen(process.env.PORT ?? 3000);
 }
