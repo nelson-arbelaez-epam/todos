@@ -22,7 +22,10 @@ const defaultFirebaseOptionsProvider = {
   provide: FIREBASE_MODULE_OPTIONS,
   useFactory: (): FirebaseModuleOptions => ({
     appName: process.env.FIREBASE_APP_NAME,
-    todosCollectionPath: process.env.FIRESTORE_TODOS_COLLECTION ?? 'todos',
+    todosCollectionPath:
+      process.env.FIREBASE_TODOS_COLLECTION ??
+      process.env.FIRESTORE_TODOS_COLLECTION ??
+      'todos',
     appOptions: {
       projectId: process.env.FIREBASE_PROJECT_ID,
       databaseURL: process.env.FIREBASE_DATABASE_URL,
@@ -48,13 +51,42 @@ const firebaseAdminAppProvider = {
     }
 
     const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+    const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+    const privateKey = process.env.FIREBASE_PRIVATE_KEY;
+    const projectId = process.env.FIREBASE_PROJECT_ID;
     const appOptions = {
       ...(options.appOptions ?? {}),
     };
 
     if (serviceAccountJson) {
-      const serviceAccount = JSON.parse(serviceAccountJson) as ServiceAccount;
+      let serviceAccount: ServiceAccount;
+
+      try {
+        serviceAccount = JSON.parse(serviceAccountJson) as ServiceAccount;
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : String(error);
+        throw new Error(`Invalid FIREBASE_SERVICE_ACCOUNT_JSON: ${reason}`);
+      }
+
       appOptions.credential = cert(serviceAccount);
+    } else if (clientEmail || privateKey) {
+      if (!clientEmail || !privateKey) {
+        throw new Error(
+          'FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY must both be provided when using explicit Firebase credentials.',
+        );
+      }
+
+      if (!projectId) {
+        throw new Error(
+          'FIREBASE_PROJECT_ID is required when using FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY.',
+        );
+      }
+
+      appOptions.credential = cert({
+        clientEmail,
+        projectId,
+        privateKey: privateKey.replace(/\\n/g, '\n'),
+      });
     } else {
       appOptions.credential = appOptions.credential ?? applicationDefault();
     }

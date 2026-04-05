@@ -110,6 +110,18 @@ describe('FirebaseTodoRepository', () => {
     expect(result.completed).toBe(false);
   });
 
+  it('omits undefined description on create payload', async () => {
+    const { repository, store } = createRepository();
+
+    const created = await repository.create('owner-1', {
+      title: 'No description',
+    });
+
+    const persisted = store.get(created.id);
+    expect(persisted).toBeDefined();
+    expect(persisted).not.toHaveProperty('description');
+  });
+
   it('finds todo by id only for owner', async () => {
     const { repository } = createRepository();
     const created = await repository.create('owner-1', { title: 'Task' });
@@ -171,6 +183,25 @@ describe('FirebaseTodoRepository', () => {
     ).resolves.toMatchObject({
       id: created.id,
       title: 'B',
+    });
+  });
+
+  it('does not overwrite existing fields with undefined on update', async () => {
+    const { repository } = createRepository();
+    const created = await repository.create('owner-1', {
+      title: 'A',
+      description: 'keep-me',
+    });
+
+    const updated = await repository.update('owner-1', created.id, {
+      title: 'B',
+      description: undefined,
+    });
+
+    expect(updated).toMatchObject({
+      id: created.id,
+      title: 'B',
+      description: 'keep-me',
     });
   });
 

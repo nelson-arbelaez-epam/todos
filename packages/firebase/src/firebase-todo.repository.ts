@@ -44,11 +44,13 @@ export class FirebaseTodoRepository implements TodoRepository {
     const document: FirestoreTodoDocument = {
       ownerId,
       title: input.title,
-      description: input.description,
       completed: input.completed ?? false,
       archivedAt: null,
       createdAt: now,
       updatedAt: now,
+      ...(input.description !== undefined
+        ? { description: input.description }
+        : {}),
     };
 
     await ref.set(document);
@@ -120,10 +122,16 @@ export class FirebaseTodoRepository implements TodoRepository {
       return null;
     }
 
-    await documentRef.update({
+    const payload = {
       ...input,
       updatedAt: new Date(),
-    });
+    };
+
+    const safePayload = Object.fromEntries(
+      Object.entries(payload).filter(([, value]) => value !== undefined),
+    ) as Partial<FirestoreTodoDocument>;
+
+    await documentRef.update(safePayload);
 
     const updatedDocument = await documentRef.get();
     if (!updatedDocument.exists) {
