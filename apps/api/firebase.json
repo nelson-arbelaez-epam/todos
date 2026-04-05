@@ -7,7 +7,6 @@
   },
   "auth": {
     "providers": {
-      "anonymous": true,
       "emailPassword": true,
       "googleSignIn": {
         "oAuthBrandDisplayName": "Todos",
