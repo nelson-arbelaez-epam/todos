@@ -6,6 +6,7 @@ export interface TodoEntity {
   title: string;
   description?: string;
   completed?: boolean;
+  archivedAt?: Date | string;
   createdAt?: Date | string;
   updatedAt?: Date | string;
 }

@@ -56,6 +56,10 @@ export class TodoDto {
   @IsBoolean()
   completed!: boolean;
 
+  @IsOptional()
+  @Type(() => Date)
+  archivedAt?: Date;
+
   @Type(() => Date)
   createdAt!: Date;
 
