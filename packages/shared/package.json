@@ -1,0 +1,43 @@
+{
+  "name": "@todos/shared",
+  "version": "0.0.1",
+  "description": "Shared utilities and modules for Todos applications",
+  "main": "dist/index.js",
+  "type": "commonjs",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "yarn build",
+    "test": "vitest run",
+    "lint": "biome lint .",
+    "format": "biome format . --write"
+  },
+  "keywords": [
+    "nestjs",
+    "shared",
+    "utilities"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@biomejs/biome": "latest",
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/platform-express": "^11.0.0",
+    "@nestjs/terminus": "^11.0.0",
+    "@types/express": "^4.17.17",
+    "@types/node": "^20.0.0",
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^7.8.1",
+    "typescript": "^5.0.0",
+    "vitest": "latest"
+  },
+  "peerDependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/platform-express": "^11.0.0",
+    "@nestjs/terminus": "^11.0.0"
+  }
+}
