@@ -8,7 +8,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import type { CreateTodoDto, TodoDto, UpdateTodoDto } from '@todos/dtos';
+import type { CreateTodoDto, TodoDto, UpdateTodoDto } from '@todos/core';
 import { TodosService } from './todos.service';
 
 @ApiTags('todos')
