@@ -1,0 +1,25 @@
+{
+  "name": "@todos/mobile",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "expo": "~54.0.33",
+    "expo-status-bar": "~3.0.9",
+    "react": "19.1.0",
+    "react-native": "0.81.5"
+  },
+  "devDependencies": {
+    "@testing-library/react-native": "~12.4.3",
+    "@types/react": "~18.2.45",
+    "@types/react-native": "~0.73.0",
+    "react-test-renderer": "19.1.0",
+    "typescript": "~5.3.3"
+  },
+  "private": true
+}
