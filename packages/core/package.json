@@ -1,0 +1,36 @@
+{
+  "name": "@todos/core",
+  "version": "0.0.1",
+  "description": "Core domain contracts and DTOs for todos application",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./http": "./dist/http/index.js",
+    "./mcp": "./dist/mcp/index.js",
+    "./transformers": "./dist/transformers/index.js",
+    "./validators": "./dist/validators/index.js",
+    "./todo": "./dist/todo/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "build:dev": "tsc --watch",
+    "test": "vitest run --config vitest.config.ts",
+    "test:watch": "vitest --config vitest.config.ts --watch"
+  },
+  "keywords": [
+    "todos",
+    "core"
+  ],
+  "private": true,
+  "license": "UNLICENSED",
+  "dependencies": {
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
+    "reflect-metadata": "^0.2.2",
+    "vitest": "^4.1.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}
