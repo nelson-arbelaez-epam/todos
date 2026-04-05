@@ -30,7 +30,7 @@ vi.mock('firebase-admin/firestore', () => ({
 
 describe('FirebaseModule', () => {
   it('auto-configures firebase options and providers', async () => {
-    process.env.FIREBASE_TODOS_COLLECTION = 'todos';
+    process.env.FIRESTORE_TODOS_COLLECTION = 'todos';
 
     const moduleRef = await Test.createTestingModule({
       imports: [FirebaseModule],
@@ -47,6 +47,6 @@ describe('FirebaseModule', () => {
       todosCollectionPath: 'todos',
     });
 
-    delete process.env.FIREBASE_TODOS_COLLECTION;
+    delete process.env.FIRESTORE_TODOS_COLLECTION;
   });
 });

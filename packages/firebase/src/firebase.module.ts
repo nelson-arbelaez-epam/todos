@@ -22,7 +22,7 @@ const defaultFirebaseOptionsProvider = {
   provide: FIREBASE_MODULE_OPTIONS,
   useFactory: (): FirebaseModuleOptions => ({
     appName: process.env.FIREBASE_APP_NAME,
-    todosCollectionPath: process.env.FIREBASE_TODOS_COLLECTION ?? 'todos',
+    todosCollectionPath: process.env.FIRESTORE_TODOS_COLLECTION ?? 'todos',
     appOptions: {
       projectId: process.env.FIREBASE_PROJECT_ID,
       databaseURL: process.env.FIREBASE_DATABASE_URL,

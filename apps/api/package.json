@@ -31,7 +31,6 @@
     "@todos/firebase": "workspace:*",
     "@todos/shared": "workspace:*",
     "@todos/store": "workspace:*",
-    "dotenv": "^16.6.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },

@@ -2,11 +2,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { GlobalExceptionFilter, getSharedFaviconDataUri } from '@todos/shared';
-import { config as loadEnv } from 'dotenv';
 import { AppModule } from './app.module';
-
-loadEnv();
-loadEnv({ path: '.env.local', override: true });
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
