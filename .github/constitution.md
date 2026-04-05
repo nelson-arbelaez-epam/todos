@@ -7,6 +7,7 @@ This document outlines the core principles, standards, and guidelines for the To
 - **Monorepo Structure**: The project uses a monorepo with apps and shared packages.
 - **Modular Design**: Separate concerns into distinct packages (e.g., DTOs, transformers, validators).
 - **API Consistency**: All APIs follow RESTful principles with consistent error handling and response formats.
+- **API Documentation**: All API applications must integrate Swagger/OpenAPI for automatic documentation generation and endpoint exposure.
 
 ## Coding Standards
 
