@@ -1,7 +1,6 @@
 import 'reflect-metadata';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller';
-import { AppModule } from './app.module';
 import { AppService } from './app.service';
 
 describe('AppController', () => {
@@ -9,7 +8,8 @@ describe('AppController', () => {
 
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
+      controllers: [AppController],
+      providers: [AppService],
     }).compile();
 
     appController = app.get<AppController>(AppController);
