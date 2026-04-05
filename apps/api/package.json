@@ -29,6 +29,7 @@
     "@nestjs/swagger": "^8.0.0",
     "@todos/dtos": "workspace:*",
     "@todos/shared": "workspace:*",
+    "dotenv": "^16.6.1",
     "firebase-admin": "^13.4.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"

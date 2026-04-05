@@ -10,6 +10,12 @@ This app uses Firebase Admin SDK for Firestore access. The datasource is configu
 
 Copy the values from `.env.example` into your local environment.
 
+Recommended local setup:
+
+1. `cp apps/api/.env.example apps/api/.env`
+2. Optionally create `apps/api/.env.local` for machine-specific overrides.
+3. Fill in one credential strategy.
+
 Supported credential strategies:
 
 1. `FIREBASE_SERVICE_ACCOUNT_JSON`
@@ -33,6 +39,8 @@ Relevant variables:
 4. Start the API with `yarn workspace @todos/api start:dev`.
 
 If you are using a local Google credentials file, point `GOOGLE_APPLICATION_CREDENTIALS` to that path before starting the server.
+
+The API loads both `.env` and `.env.local` on startup, with `.env.local` values taking precedence.
 
 If you are iterating on shared DTOs, run `yarn workspace @todos/dtos build:watch` in a second terminal.
 

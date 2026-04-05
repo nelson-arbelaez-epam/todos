@@ -23,3 +23,6 @@ firebase-debug.log
 
 #!.yarn/cache
 .pnp.*
+
+# Service key files
+*key*.json
