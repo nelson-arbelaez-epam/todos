@@ -40,6 +40,26 @@ describe('MCP Todo Validators', () => {
       const result = await validator.validate(data);
       expect(result.title).toBe('Test Todo');
     });
+
+    it('should return true for valid data', async () => {
+      const data = {
+        title: 'Test Todo',
+        description: 'Test description',
+        completed: false,
+      };
+
+      const result = await validator.isValid(data);
+      expect(result).toBe(true);
+    });
+
+    it('should return false for invalid data', async () => {
+      const data = {
+        title: '',
+      };
+
+      const result = await validator.isValid(data);
+      expect(result).toBe(false);
+    });
   });
 
   describe('MCPUpdateTodoDtoValidator', () => {
@@ -76,6 +96,26 @@ describe('MCP Todo Validators', () => {
       expect(result.id).toBe('123');
       expect(result.completed).toBe(true);
       expect(result.title).toBeUndefined();
+    });
+
+    it('should return true for valid data', async () => {
+      const data = {
+        id: '123',
+        title: 'Updated Todo',
+        completed: true,
+      };
+
+      const result = await validator.isValid(data);
+      expect(result).toBe(true);
+    });
+
+    it('should return false for invalid data', async () => {
+      const data = {
+        title: 'Updated Todo',
+      };
+
+      const result = await validator.isValid(data);
+      expect(result).toBe(false);
     });
   });
 });

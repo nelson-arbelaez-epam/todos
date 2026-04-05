@@ -71,6 +71,26 @@ describe('HTTP Todo Validators', () => {
       expect(result.description).toBeUndefined();
       expect(result.completed).toBeUndefined();
     });
+
+    it('should return true for valid data', async () => {
+      const data = {
+        title: 'Test Todo',
+        description: 'Test description',
+        completed: false,
+      };
+
+      const result = await validator.isValid(data);
+      expect(result).toBe(true);
+    });
+
+    it('should return false for invalid data', async () => {
+      const data = {
+        title: '',
+      };
+
+      const result = await validator.isValid(data);
+      expect(result).toBe(false);
+    });
   });
 
   describe('UpdateTodoDtoValidator', () => {
@@ -106,6 +126,25 @@ describe('HTTP Todo Validators', () => {
         expect((error as ValidationError).errors.title).toBeDefined();
         expect((error as ValidationError).name).toBe('ValidationError');
       }
+    });
+
+    it('should return true for valid data', async () => {
+      const data = {
+        title: 'Updated Todo',
+        completed: true,
+      };
+
+      const result = await validator.isValid(data);
+      expect(result).toBe(true);
+    });
+
+    it('should return false for invalid data', async () => {
+      const data = {
+        title: '',
+      };
+
+      const result = await validator.isValid(data);
+      expect(result).toBe(false);
     });
   });
 });
