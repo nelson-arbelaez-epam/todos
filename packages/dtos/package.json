@@ -1,0 +1,31 @@
+{
+  "name": "@todos/dtos",
+  "version": "0.0.1",
+  "description": "Shared DTOs for todos application",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./http": "./dist/http/index.js",
+    "./mcp": "./dist/mcp/index.js",
+    "./transformers": "./dist/transformers/index.js",
+    "./validators": "./dist/validators/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run --config vitest.config.ts",
+    "test:watch": "vitest --config vitest.config.ts --watch"
+  },
+  "keywords": [
+    "todos",
+    "dtos"
+  ],
+  "private": true,
+  "license": "UNLICENSED",
+  "dependencies": {
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
+    "reflect-metadata": "^0.2.2",
+    "vitest": "^4.1.2"
+  }
+}
