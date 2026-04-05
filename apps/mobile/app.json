@@ -21,9 +21,6 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true
-    },
-    "web": {
-      "favicon": "../../packages/shared/assets/todos-favicon.svg"
     }
   }
 }

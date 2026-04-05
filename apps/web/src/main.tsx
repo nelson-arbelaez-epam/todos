@@ -5,7 +5,8 @@ import sharedFaviconUrl from '../../../packages/shared/assets/todos-favicon.svg?
 import './index.css';
 import App from './App.tsx';
 
-const existingFavicon = document.querySelector<HTMLLinkElement>("link[rel='icon']");
+const existingFavicon =
+  document.querySelector<HTMLLinkElement>("link[rel='icon']");
 if (existingFavicon) {
   existingFavicon.href = sharedFaviconUrl;
 } else {
