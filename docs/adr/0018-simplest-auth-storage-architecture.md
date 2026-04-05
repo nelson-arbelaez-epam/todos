@@ -51,7 +51,7 @@ Scores are 1 (worst) to 5 (best).
 
 - Firebase configuration exists at `apps/api/firebase.json`:
   - Firestore database configured with rules and indexes files.
-  - Auth providers enabled: anonymous, email/password, and Google Sign-In.
+  - Auth providers enabled: email/password and Google Sign-In.
 - Firestore rules file exists at `apps/api/firestore.rules` and now denies all client reads/writes.
 - API application does not yet include Firebase runtime SDK dependencies or auth token verification wiring, so implementation work remains for next sprint.
 
