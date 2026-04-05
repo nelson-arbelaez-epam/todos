@@ -42,8 +42,8 @@ export class FirestoreTodoRepository implements TodoRepository {
 
   async create(input: CreateTodoRecord): Promise<TodoEntity> {
     const documentReference = this.collection.doc();
-    const now = new Date();
 
+    const now = new Date();
     const document = omitUndefined({
       title: input.title,
       description: input.description,
@@ -55,7 +55,10 @@ export class FirestoreTodoRepository implements TodoRepository {
 
     await documentReference.set(document);
 
-    return this.mapEntity(documentReference.id, document);
+    return this.mapEntity(
+      documentReference.id,
+      document as FirestoreTodoDocument,
+    );
   }
 
   async update(

@@ -50,7 +50,7 @@ class MockDocumentReference {
 
 class MockQuery {
   constructor(
-    private readonly store: Map<string, StoredTodo>,
+    protected readonly store: Map<string, StoredTodo>,
     private readonly archivedOnlyNull = false,
   ) {}
 
@@ -84,7 +84,7 @@ class MockQuery {
 class MockCollectionReference extends MockQuery {
   private nextId = 0;
 
-  constructor(private readonly store: Map<string, StoredTodo>) {
+  constructor(protected readonly store: Map<string, StoredTodo>) {
     super(store);
   }
 
