@@ -3394,13 +3394,14 @@ __metadata:
     "@nestjs/swagger": "npm:^8.0.0"
     "@nestjs/testing": "npm:^11.0.1"
     "@todos/core": "workspace:*"
+    "@todos/firebase": "workspace:*"
     "@todos/shared": "workspace:*"
+    "@todos/store": "workspace:*"
     "@types/express": "npm:^5.0.0"
     "@types/node": "npm:^24.0.0"
     "@types/supertest": "npm:^7.0.0"
     "@vitest/ui": "npm:latest"
     dotenv: "npm:^16.6.1"
-    firebase-admin: "npm:^13.4.0"
     reflect-metadata: "npm:^0.2.2"
     rxjs: "npm:^7.8.1"
     source-map-support: "npm:^0.5.21"
@@ -3426,7 +3427,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@todos/firebase@workspace:packages/firebase":
+"@todos/firebase@workspace:*, @todos/firebase@workspace:packages/firebase":
   version: 0.0.0-use.local
   resolution: "@todos/firebase@workspace:packages/firebase"
   dependencies:
@@ -3482,7 +3483,7 @@ __metadata:
     react: "npm:19.1.0"
     react-native: "npm:0.81.5"
     react-test-renderer: "npm:19.1.0"
-    typescript: "npm:~5.3.3"
+    typescript: "npm:^5.7.3"
   languageName: unknown
   linkType: soft
 
@@ -3507,7 +3508,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@todos/store@workspace:packages/store":
+"@todos/store@workspace:*, @todos/store@workspace:packages/store":
   version: 0.0.0-use.local
   resolution: "@todos/store@workspace:packages/store"
   dependencies:
@@ -11316,16 +11317,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:~5.3.3":
-  version: 5.3.3
-  resolution: "typescript@npm:5.3.3"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 10c0/e33cef99d82573624fc0f854a2980322714986bc35b9cb4d1ce736ed182aeab78e2cb32b385efa493b2a976ef52c53e20d6c6918312353a91850e2b76f1ea44f
-  languageName: node
-  linkType: hard
-
 "typescript@patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.0.0#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.7.3#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A~5.9.3#optional!builtin<compat/typescript>":
   version: 5.9.3
   resolution: "typescript@patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"
@@ -11333,16 +11324,6 @@ __metadata:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: 10c0/ad09fdf7a756814dce65bc60c1657b40d44451346858eea230e10f2e95a289d9183b6e32e5c11e95acc0ccc214b4f36289dcad4bf1886b0adb84d711d336a430
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@npm%3A~5.3.3#optional!builtin<compat/typescript>":
-  version: 5.3.3
-  resolution: "typescript@patch:typescript@npm%3A5.3.3#optional!builtin<compat/typescript>::version=5.3.3&hash=e012d7"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 10c0/1d0a5f4ce496c42caa9a30e659c467c5686eae15d54b027ee7866744952547f1be1262f2d40de911618c242b510029d51d43ff605dba8fb740ec85ca2d3f9500
   languageName: node
   linkType: hard
 
