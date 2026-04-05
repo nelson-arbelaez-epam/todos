@@ -4,12 +4,19 @@ These instructions guide GitHub Copilot's behavior across the Todos project to e
 
 ## General Guidelines
 
-- Always adhere to the [Project Constitution](constitution.md).
+- Always adhere to the [Project Constitution](constitution.md)
+- Consult existing [ADRs](docs/adr/**) for architectural decisions.
 - Use TypeScript with strict type checking.
 - Follow NestJS patterns for API development.
 - Leverage shared packages (dtos) for data structures and validation.
 - Write comprehensive tests using Vitest.
 - Use Biome for code formatting.
+
+## Bounded Domains 
+- When planning new features or code additions, ensure changes are currently bounded by constitutional documentation and ADRs.
+- If a new domain or significant architectural change is needed, first [askQuestions] to bound the scope 
+- then create an ADR to document the decision and update [Project Constitution](constitution.md) before implementing code.
+- Wait for ADR approval before writing code that depends on the new domain or architectural change.
 
 ## Code Generation Rules
 
