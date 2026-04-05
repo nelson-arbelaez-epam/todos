@@ -1,4 +1,22 @@
 {
   "name": "todos",
-  "packageManager": "yarn@4.12.0"
+  "packageManager": "yarn@4.12.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "lint": "biome lint .",
+    "format": "biome format . --write",
+    "test": "vitest run --config vitest.workspace.config.ts",
+    "test:ui": "vitest --config vitest.workspace.config.ts --ui"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "latest",
+    "@swc/core": "^1.15.21",
+    "@vitest/ui": "latest",
+    "unplugin-swc": "^1.5.9",
+    "vitest": "latest"
+  }
 }
