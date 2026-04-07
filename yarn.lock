@@ -3401,6 +3401,9 @@ __metadata:
     "@types/node": "npm:^24.0.0"
     "@types/supertest": "npm:^7.0.0"
     "@vitest/ui": "npm:latest"
+    class-transformer: "npm:^0.5.1"
+    class-validator: "npm:^0.15.1"
+    firebase-admin: "npm:^13.7.0"
     reflect-metadata: "npm:^0.2.2"
     rxjs: "npm:^7.8.1"
     source-map-support: "npm:^0.5.21"
@@ -5360,6 +5363,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"class-validator@npm:^0.15.1":
+  version: 0.15.1
+  resolution: "class-validator@npm:0.15.1"
+  dependencies:
+    "@types/validator": "npm:^13.15.3"
+    libphonenumber-js: "npm:^1.11.1"
+    validator: "npm:^13.15.22"
+  checksum: 10c0/bc030e0118d79a5fc2d053dfd4c7475092dd159222eafe946c2b01d7ff22a0a8075c8713a96239a3db536ff2a18e18d791c3a6bfabd66dbac077f7d3fd950402
+  languageName: node
+  linkType: hard
+
 "cli-cursor@npm:^2.1.0":
   version: 2.1.0
   resolution: "cli-cursor@npm:2.1.0"
@@ -6502,7 +6516,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"firebase-admin@npm:^13.4.0":
+"firebase-admin@npm:^13.4.0, firebase-admin@npm:^13.7.0":
   version: 13.7.0
   resolution: "firebase-admin@npm:13.7.0"
   dependencies:
