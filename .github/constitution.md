@@ -5,14 +5,24 @@ This document outlines the core principles, standards, and guidelines for the To
 ## Architecture Principles
 
 - **Monorepo Structure**: The project uses a monorepo with apps and shared packages.
-- **Modular Design**: Separate concerns into distinct packages (e.g., DTOs, transformers, validators).
+- **Modular Design**: Separate concerns into bounded packages (`@todos/core`, `@todos/store`, `@todos/firebase`, `@todos/shared`) with contracts in core and adapters at the edges.
 - **API Consistency**: All APIs follow RESTful principles with consistent error handling and response formats.
 - **API Documentation**: All API applications must integrate Swagger/OpenAPI for automatic documentation generation and endpoint exposure.
+
+## Package Responsibilities
+
+- **Apps are Composition-Only**: Code under `apps/**` must wire modules, expose transport endpoints, and host runtime configuration only. Business logic must live in packages.
+- **@todos/core Owns Domain Contracts**: `@todos/core` is the source of truth for business objects, repository contracts, and shared domain DTO primitives.
+- **@todos/store Owns Store Layer Logic**: `@todos/store` provides store services and module wiring for repository-backed business operations and depends only on domain contracts.
+- **@todos/firebase Owns Firebase Infrastructure**: `@todos/firebase` owns Firebase app setup, auth/firestore services, and Firebase repository adapters that implement `@todos/core` contracts.
+- **@todos/shared Owns Cross-App Infrastructure**: `@todos/shared` provides cross-cutting app utilities (for example health checks, global filters, shared assets) that are not business-domain ownership.
+- **No Circular Dependencies**: `@todos/store` and `@todos/firebase` must not depend on each other directly. Integration must happen through `@todos/core` repository tokens/contracts.
+- **ADR Compliance**: Storage/auth implementations must respect accepted ADR decisions, especially backend-only Firestore access and API-enforced authorization.
 
 ## Coding Standards
 
 - **Language**: TypeScript for all code.
-- **Framework**: NestJS for backend applications.
+- **Framework**: NestJS for backend applications; preserve existing framework choices in non-backend apps.
 - **Linting**: Use Biome for code formatting and linting.
 - **Testing**: Vitest for unit and integration tests. Aim for high coverage.
 - **Naming Conventions**:
@@ -41,7 +51,7 @@ This document outlines the core principles, standards, and guidelines for the To
 **When using AI assistance:**
 
 - Always follow the established patterns in the codebase.
-- Use the shared DTOs and transformers from packages.
+- Use `@todos/core` for shared business DTOs/contracts.
 - Ensure code is type-safe and well-tested.
 - Follow the coding standards outlined above.
 - Prefer existing utilities over reinventing functionality.

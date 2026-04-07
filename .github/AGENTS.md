@@ -12,6 +12,13 @@ All agents working on this project should:
 4. Ensure changes are tested and documented
 5. Maintain backward compatibility where possible
 
+## Bounded Domains
+
+- When planning new features or code additions, ensure changes are currently bounded by constitutional documentation and ADRs.
+- If a new domain or significant architectural change is needed, first [askQuestions] to bound the scope
+- then create an ADR to document the decision and update [Project Constitution](constitution.md) before implementing code.
+- Wait for ADR approval before writing code that depends on the new domain or architectural change.
+
 ## Custom Agents
 
 ### Code Review Agent
@@ -19,6 +26,7 @@ All agents working on this project should:
 **Purpose**: Automated code review for pull requests.
 
 **Instructions**:
+
 - Check adherence to coding standards
 - Verify test coverage
 - Ensure proper error handling
@@ -30,6 +38,7 @@ All agents working on this project should:
 **Purpose**: Focused on test creation and validation.
 
 **Instructions**:
+
 - Write comprehensive unit tests
 - Use Vitest framework
 - Mock dependencies properly
@@ -41,6 +50,7 @@ All agents working on this project should:
 **Purpose**: Maintain and update project documentation.
 
 **Instructions**:
+
 - Update READMEs for new features
 - Add JSDoc comments to public APIs
 - Keep constitution and instructions current

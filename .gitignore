@@ -23,3 +23,13 @@ firebase-debug.log
 
 #!.yarn/cache
 .pnp.*
+
+# dotenv environment variable files
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+
+# Service key files
+*key*.json

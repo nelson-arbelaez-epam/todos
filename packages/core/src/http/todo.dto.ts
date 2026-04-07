@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
@@ -8,15 +9,18 @@ export class CreateTodoDto {
   @IsString()
   @IsNotEmpty()
   @Transform(({ value }) => value?.trim())
+  @ApiProperty()
   title!: string;
 
   @IsOptional()
   @IsString()
+  @ApiProperty({ required: false })
   description?: string;
 
   @IsOptional()
   @IsBoolean()
   @Transform(({ value }) => value ?? false)
+  @ApiProperty({ required: false })
   completed?: boolean;
 }
 
@@ -55,6 +59,10 @@ export class TodoDto {
 
   @IsBoolean()
   completed!: boolean;
+
+  @IsOptional()
+  @Type(() => Date)
+  archivedAt?: Date;
 
   @Type(() => Date)
   createdAt!: Date;

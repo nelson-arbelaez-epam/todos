@@ -158,6 +158,7 @@ describe('HTTP Todo Transformer', () => {
       title: 'Test Todo',
       description: 'Test description',
       completed: true,
+      archivedAt: new Date('2024-01-03'),
       createdAt: new Date('2024-01-01'),
       updatedAt: new Date('2024-01-02'),
     };
@@ -167,6 +168,7 @@ describe('HTTP Todo Transformer', () => {
     expect(result.title).toBe('Test Todo');
     expect(result.description).toBe('Test description');
     expect(result.completed).toBe(true);
+    expect(result.archivedAt).toBeInstanceOf(Date);
   });
 
   it('should transform many entities', () => {
