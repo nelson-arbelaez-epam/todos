@@ -1,8 +1,8 @@
+import { type App, deleteApp, initializeApp } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
+import { afterEach, describe, expect, it } from 'vitest';
 import type { FirebaseFirestoreService } from './firebase-firestore.service';
 import { FirebaseTodoRepository } from './firebase-todo.repository';
-import { afterEach, describe, expect, it } from 'vitest';
-import { deleteApp, initializeApp, type App } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
 
 const describeIfEmulator = process.env.FIRESTORE_EMULATOR_HOST
   ? describe
@@ -19,9 +19,12 @@ describeIfEmulator('FirebaseTodoRepository (emulator)', () => {
   });
 
   it('documents why repository strips undefined fields', async () => {
-    app = initializeApp({
-      projectId: process.env.FIREBASE_PROJECT_ID ?? 'todos-emulator',
-    }, `todos-emulator-${Date.now()}`);
+    app = initializeApp(
+      {
+        projectId: process.env.FIREBASE_PROJECT_ID ?? 'todos-emulator',
+      },
+      `todos-emulator-${Date.now()}`,
+    );
 
     const firestore = getFirestore(app);
     const collectionPath = `todos-emulator-${Date.now()}`;
@@ -34,9 +37,7 @@ describeIfEmulator('FirebaseTodoRepository (emulator)', () => {
       }),
     ).rejects.toThrow();
 
-    const firestoreService = {
-      getCollection: (path: string) => firestore.collection(path) as never,
-    } as FirebaseFirestoreService;
+    const firestoreService = firestore as unknown as FirebaseFirestoreService;
 
     const repository = new FirebaseTodoRepository(firestoreService, {
       todosCollectionPath: collectionPath,
