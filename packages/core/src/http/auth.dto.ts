@@ -16,9 +16,7 @@ export class RegisterUserDto {
  * Register User Response DTO - safe response without sensitive credentials
  */
 export class RegisterUserResponseDto {
-  @IsString()
   uid!: string;
 
-  @IsEmail()
   email!: string;
 }
