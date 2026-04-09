@@ -3469,7 +3469,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@todos/core@workspace:*, @todos/core@workspace:packages/core":
+"@todos/core@workspace:*, @todos/core@workspace:^, @todos/core@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@todos/core@workspace:packages/core"
   dependencies:
@@ -3510,6 +3510,8 @@ __metadata:
     "@nestjs/schematics": "npm:^11.0.0"
     "@nestjs/swagger": "npm:^8.0.0"
     "@nestjs/testing": "npm:^11.0.1"
+    "@todos/core": "workspace:^"
+    "@todos/shared": "workspace:^"
     "@types/express": "npm:^5.0.0"
     "@types/node": "npm:^24.0.0"
     "@types/supertest": "npm:^7.0.0"
@@ -3542,7 +3544,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@todos/shared@workspace:*, @todos/shared@workspace:packages/shared":
+"@todos/shared@workspace:*, @todos/shared@workspace:^, @todos/shared@workspace:packages/shared":
   version: 0.0.0-use.local
   resolution: "@todos/shared@workspace:packages/shared"
   dependencies:
