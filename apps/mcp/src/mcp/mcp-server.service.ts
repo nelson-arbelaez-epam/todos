@@ -1,5 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { TodosApiService } from '../todos/todos.service';
 
@@ -23,7 +23,7 @@ export class McpServerService {
    * Creates a new {@link McpServer} configured with all registered MCP tools.
    * Call this once per incoming request; do not share instances across requests.
    */
-  createServer(): McpServer {
+  createServer(apiToken: string): McpServer {
     const server = new McpServer({
       name: 'todos-mcp-server',
       version: '1.0.0',
@@ -32,15 +32,8 @@ export class McpServerService {
     server.registerTool(
       'create_todo',
       {
-        description:
-          'Create a new todo item in the Todos API. Pass a valid Firebase ID token in apiToken.',
+        description: 'Create a new todo item in the Todos API.',
         inputSchema: {
-          apiToken: z
-            .string()
-            .min(1)
-            .describe(
-              'Firebase ID token for authentication (x-api-token equivalent)',
-            ),
           title: z.string().min(1).describe('Title of the todo'),
           description: z
             .string()
@@ -52,7 +45,7 @@ export class McpServerService {
             .describe('Initial completion status (default: false)'),
         },
       },
-      async ({ apiToken, title, description, completed }) => {
+      async ({ title, description, completed }) => {
         try {
           const todo = await this.todosApiService.createTodo(apiToken, {
             title,

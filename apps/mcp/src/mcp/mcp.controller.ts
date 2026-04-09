@@ -1,6 +1,14 @@
-import { Controller, Delete, Get, Logger, Post, Req, Res } from '@nestjs/common';
-import type { Request, Response } from 'express';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import {
+  Controller,
+  Delete,
+  Get,
+  Logger,
+  Post,
+  Req,
+  Res,
+} from '@nestjs/common';
+import type { Request, Response } from 'express';
 import { McpServerService } from './mcp-server.service';
 
 /**
@@ -29,7 +37,11 @@ export class McpController {
    */
   @Post()
   async handle(@Req() req: Request, @Res() res: Response): Promise<void> {
-    const server = this.mcpServerService.createServer();
+    const headerValue = req.headers?.['x-api-key'];
+    const apiToken = Array.isArray(headerValue)
+      ? (headerValue[0] ?? '')
+      : (headerValue ?? '');
+    const server = this.mcpServerService.createServer(apiToken);
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: undefined,
     });

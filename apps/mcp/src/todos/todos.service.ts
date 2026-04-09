@@ -10,7 +10,7 @@ export class TodosApiService {
   private readonly apiBaseUrl: string;
 
   constructor() {
-    this.apiBaseUrl = process.env.TODOS_API_URL ?? 'http://localhost:3001';
+    this.apiBaseUrl = process.env.TODOS_API_URL ?? 'http://localhost:3000';
   }
 
   /**
