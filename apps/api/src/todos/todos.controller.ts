@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Param,
@@ -25,6 +26,22 @@ import { TodosService } from './todos.service';
 @Controller('todos')
 export class TodosController {
   constructor(private readonly todosService: TodosService) {}
+
+  /**
+   * Lists all active (non-archived) todos for the authenticated user.
+   */
+  @Get()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'List active todos' })
+  @ApiResponse({
+    status: 200,
+    description: 'Active todos retrieved successfully',
+    type: [TodoDto],
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async list(@CurrentUser() user: DecodedIdToken): Promise<TodoDto[]> {
+    return this.todosService.list(user.uid);
+  }
 
   /**
    * Creates a new todo for the authenticated user.

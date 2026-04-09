@@ -7,6 +7,7 @@ import { TodosService } from './todos.service';
 const mockTodosService = {
   create: vi.fn(),
   update: vi.fn(),
+  list: vi.fn(),
 };
 
 const mockUser: Partial<DecodedIdToken> = { uid: 'user-123' };
@@ -109,6 +110,43 @@ describe('TodosController', () => {
           title: '',
         } as never),
       ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('list', () => {
+    it('should return an array of TodoDtos', async () => {
+      const todoDtos = [
+        {
+          id: 'todo-1',
+          title: 'Buy groceries',
+          completed: false,
+          createdAt: new Date('2024-01-01'),
+          updatedAt: new Date('2024-01-01'),
+        },
+        {
+          id: 'todo-2',
+          title: 'Read a book',
+          completed: true,
+          createdAt: new Date('2024-01-02'),
+          updatedAt: new Date('2024-01-02'),
+        },
+      ];
+
+      mockTodosService.list.mockResolvedValue(todoDtos);
+
+      const result = await controller.list(mockUser as DecodedIdToken);
+
+      expect(result).toEqual(todoDtos);
+      expect(mockTodosService.list).toHaveBeenCalledWith('user-123');
+    });
+
+    it('should return an empty array when there are no active todos', async () => {
+      mockTodosService.list.mockResolvedValue([]);
+
+      const result = await controller.list(mockUser as DecodedIdToken);
+
+      expect(result).toEqual([]);
+      expect(mockTodosService.list).toHaveBeenCalledWith('user-123');
     });
   });
 });

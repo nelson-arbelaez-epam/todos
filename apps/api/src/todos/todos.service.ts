@@ -13,6 +13,17 @@ export class TodosService {
   constructor(private readonly todoStore: TodoStoreService) {}
 
   /**
+   * Returns all active (non-archived) todos owned by the authenticated user.
+   */
+  async list(ownerId: string): Promise<TodoDto[]> {
+    const entities = await this.todoStore.findAll(ownerId, {
+      includeArchived: false,
+    });
+
+    return this.transformer.transformMany(entities);
+  }
+
+  /**
    * Creates a new todo owned by the authenticated user.
    */
   async create(ownerId: string, dto: CreateTodoDto): Promise<TodoDto> {
