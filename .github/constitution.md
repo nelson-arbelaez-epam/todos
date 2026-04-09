@@ -5,18 +5,17 @@ This document outlines the core principles, standards, and guidelines for the To
 ## Architecture Principles
 
 - **Monorepo Structure**: The project uses a monorepo with apps and shared packages.
-- **Modular Design**: Separate concerns into bounded packages (`@todos/core`, `@todos/store`, `@todos/firebase`, `@todos/shared`) with contracts in core and adapters at the edges.
+- **Modular Design**: Separate concerns into bounded packages (`@todos/core`, `@todos/store`, `@todos/firebase`) with contracts in core and adapters at the edges.
 - **API Consistency**: All APIs follow RESTful principles with consistent error handling and response formats.
 - **API Documentation**: All API applications must integrate Swagger/OpenAPI for automatic documentation generation and endpoint exposure.
 - **DTO Documentation Contract**: API transport DTOs (request/response models exposed by endpoints) must use Swagger decorators to produce complete OpenAPI schemas. Keep domain DTO primitives in `@todos/core` framework-agnostic.
 
 ## Package Responsibilities
 
-- **Apps are Composition-Only**: Code under `apps/**` must wire modules, expose transport endpoints, and host runtime configuration only. Business logic and infrastructure adapters must live in packages. Temporary deviations must be tracked in ADRs and issues, not embedded as standing exceptions in this constitution.
+- **Apps are Composition-Only**: Code under `apps/**` must wire modules, expose transport endpoints, and host runtime configuration only. Business logic and infrastructure adapters must live in packages. Each app owns its cross-cutting infrastructure (health checks, global filters, assets) explicitly. Temporary deviations must be tracked in ADRs and issues, not embedded as standing exceptions in this constitution.
 - **@todos/core Owns Domain Contracts**: `@todos/core` is the source of truth for business objects, repository contracts, and shared domain DTO primitives.
 - **@todos/store Owns Store Layer Logic**: `@todos/store` provides store services and module wiring for repository-backed business operations and depends only on domain contracts.
 - **@todos/firebase Owns Firebase Infrastructure**: `@todos/firebase` owns Firebase app setup, auth/firestore services (including user creation, login proxy coordination, token verification, and user lookups), and Firebase repository adapters that implement `@todos/core` contracts. All Firebase auth integration and Firebase Admin SDK operations must go through this package; `apps/**` must not initialise or import the SDK directly nor host Firebase-specific auth coordination.
-- **@todos/shared Owns Cross-App Infrastructure**: `@todos/shared` provides cross-cutting app utilities (for example health checks, global filters, shared assets) that are not business-domain ownership.
 - **No Circular Dependencies**: `@todos/store` and `@todos/firebase` must not depend on each other directly. Integration must happen through `@todos/core` repository tokens/contracts.
 - **ADR Compliance**: Storage/auth implementations must respect accepted ADR decisions, especially backend-only Firestore access, API-enforced authorization, and the package boundary for Firebase Admin-backed capabilities. Sign-in is API-mediated via the Firebase Identity Toolkit REST API proxy (ADR 0019); Firebase Admin wiring lives in `@todos/firebase` (ADR 0020); token refresh remains client-side.
 

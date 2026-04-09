@@ -1,7 +1,8 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { GlobalExceptionFilter, getSharedFaviconDataUri } from '@todos/shared';
+import { GlobalExceptionFilter } from './global-exception.filter';
+import { getSharedFaviconDataUri } from './swagger-favicon';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
