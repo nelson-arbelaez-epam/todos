@@ -6,6 +6,14 @@
       "headers": {
         "Authorization": "Bearer ${input:github_mcp_pat}"
       }
+    },
+    "todos": {
+      "type": "http",
+      "url": "http://localhost:3010/mcp/",
+      "headers": {
+        "Content-Type": "application/json",
+        "x-api-key": "${input:todos_api_key}"
+      }
     }
   },
   "inputs": [
@@ -13,6 +21,12 @@
       "type": "promptString",
       "id": "github_mcp_pat",
       "description": "GitHub Personal Access Token",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "todos_api_key",
+      "description": "Todos API Key",
       "password": true
     }
   ]
