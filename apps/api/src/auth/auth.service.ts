@@ -4,7 +4,10 @@ import {
   Injectable,
   Logger,
 } from '@nestjs/common';
-import type { RegisterUserDto, RegisterUserResponseDto } from '@todos/dtos/http';
+import type {
+  RegisterUserDto,
+  RegisterUserResponseDto,
+} from '@todos/core/http';
 import { FirebaseAdminService } from '../firebase/firebase-admin.service';
 
 interface FirebaseError {
