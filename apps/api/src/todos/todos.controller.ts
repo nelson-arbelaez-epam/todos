@@ -1,12 +1,21 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
   ApiOperation,
+  ApiParam,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { CreateTodoDto, TodoDto } from '@todos/core/http';
+import { CreateTodoDto, TodoDto, UpdateTodoDto } from '@todos/core/http';
 import type { DecodedIdToken } from 'firebase-admin/auth';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { TodosService } from './todos.service';
@@ -36,5 +45,29 @@ export class TodosController {
     @Body() dto: CreateTodoDto,
   ): Promise<TodoDto> {
     return this.todosService.create(user.uid, dto);
+  }
+
+  /**
+   * Updates an existing todo for the authenticated user.
+   */
+  @Patch(':id')
+  @HttpCode(HttpStatus.OK)
+  @ApiParam({ name: 'id', description: 'Todo identifier' })
+  @ApiBody({ type: UpdateTodoDto })
+  @ApiOperation({ summary: 'Update an existing todo' })
+  @ApiResponse({
+    status: 200,
+    description: 'Todo updated successfully',
+    type: TodoDto,
+  })
+  @ApiResponse({ status: 400, description: 'Invalid input' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Todo not found' })
+  async update(
+    @CurrentUser() user: DecodedIdToken,
+    @Param('id') id: string,
+    @Body() dto: UpdateTodoDto,
+  ): Promise<TodoDto> {
+    return this.todosService.update(user.uid, id, dto);
   }
 }

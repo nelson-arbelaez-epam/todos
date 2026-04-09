@@ -1,3 +1,4 @@
+import { NotFoundException } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import type { TodoEntity } from '@todos/core';
 import { TodoStoreService } from '@todos/store';
@@ -5,6 +6,7 @@ import { TodosService } from './todos.service';
 
 const mockTodoStoreService = {
   create: vi.fn(),
+  update: vi.fn(),
 };
 
 describe('TodosService', () => {
@@ -73,6 +75,82 @@ describe('TodosService', () => {
 
       await expect(
         service.create('owner-1', { title: 'Fail' }),
+      ).rejects.toThrow('Storage failure');
+    });
+  });
+
+  describe('update', () => {
+    it('should update a todo and return a TodoDto', async () => {
+      const entity: TodoEntity = {
+        id: 'todo-1',
+        title: 'Updated title',
+        description: 'Updated description',
+        completed: true,
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-02'),
+      };
+
+      mockTodoStoreService.update.mockResolvedValue(entity);
+
+      const dto = {
+        title: 'Updated title',
+        description: 'Updated description',
+        completed: true,
+      };
+      const result = await service.update('owner-1', 'todo-1', dto);
+
+      expect(result.id).toBe('todo-1');
+      expect(result.title).toBe('Updated title');
+      expect(result.description).toBe('Updated description');
+      expect(result.completed).toBe(true);
+      expect(mockTodoStoreService.update).toHaveBeenCalledWith(
+        'owner-1',
+        'todo-1',
+        {
+          title: 'Updated title',
+          description: 'Updated description',
+          completed: true,
+        },
+      );
+    });
+
+    it('should update only the completion status', async () => {
+      const entity: TodoEntity = {
+        id: 'todo-2',
+        title: 'Read a book',
+        completed: true,
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-02'),
+      };
+
+      mockTodoStoreService.update.mockResolvedValue(entity);
+
+      const result = await service.update('owner-1', 'todo-2', {
+        completed: true,
+      });
+
+      expect(result.completed).toBe(true);
+    });
+
+    it('should throw NotFoundException when todo is not found', async () => {
+      mockTodoStoreService.update.mockResolvedValue(null);
+
+      await expect(
+        service.update('owner-1', 'todo-999', { title: 'x' }),
+      ).rejects.toThrow(NotFoundException);
+
+      await expect(
+        service.update('owner-1', 'todo-999', { title: 'x' }),
+      ).rejects.toThrow('Todo with id "todo-999" not found');
+    });
+
+    it('should propagate errors from the store', async () => {
+      mockTodoStoreService.update.mockRejectedValue(
+        new Error('Storage failure'),
+      );
+
+      await expect(
+        service.update('owner-1', 'todo-1', { title: 'Fail' }),
       ).rejects.toThrow('Storage failure');
     });
   });
