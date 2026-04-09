@@ -11,9 +11,9 @@ This app uses Firebase Admin SDK for Firestore access. The datasource is configu
 1. Install dependencies with `yarn install`.
 2. Build shared workspace packages with `yarn workspace @todos/api deps:build`.
 3. Provide one credential strategy:
- - `FIREBASE_SERVICE_ACCOUNT_JSON` with raw service account JSON.
- - `FIREBASE_CLIENT_EMAIL` + `FIREBASE_PRIVATE_KEY` + `FIREBASE_PROJECT_ID`.
- - Application Default Credentials via `GOOGLE_APPLICATION_CREDENTIALS`.
+    - `FIREBASE_SERVICE_ACCOUNT_JSON` with raw service account JSON.
+    - `FIREBASE_CLIENT_EMAIL` + `FIREBASE_PRIVATE_KEY` + `FIREBASE_PROJECT_ID`.
+    - Application Default Credentials via `GOOGLE_APPLICATION_CREDENTIALS`.
 4. Set `FIREBASE_WEB_API_KEY` to your Firebase project's Web API key (found in the Firebase console under Project Settings → General). This is required for the login endpoint.
 5. Start the API with `yarn workspace @todos/api start:dev`.
 

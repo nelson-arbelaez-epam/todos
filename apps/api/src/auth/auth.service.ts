@@ -95,7 +95,9 @@ export class AuthService {
     const apiKey = process.env.FIREBASE_WEB_API_KEY;
     if (!apiKey) {
       this.logger.error('FIREBASE_WEB_API_KEY is not configured');
-      throw new InternalServerErrorException('Firebase Web API key is not configured');
+      throw new InternalServerErrorException(
+        'Firebase Web API key is not configured',
+      );
     }
 
     const url = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`;
@@ -130,6 +132,7 @@ export class AuthService {
         throw new UnauthorizedException('Invalid credentials');
       }
 
+      this.logger.error('Unexpected Firebase Auth error:', errorBody);
       throw new UnauthorizedException('Authentication failed');
     }
 
