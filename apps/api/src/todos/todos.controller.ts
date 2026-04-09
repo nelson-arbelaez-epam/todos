@@ -7,16 +7,26 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { CreateTodoDto, TodoDto, UpdateTodoDto } from '@todos/core/http';
+import {
+  CreateTodoDto,
+  ListTodosQueryDto,
+  OrderDir,
+  TodoDto,
+  TodoListDto,
+  TodoOrderBy,
+  UpdateTodoDto,
+} from '@todos/core/http';
 import type { DecodedIdToken } from 'firebase-admin/auth';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { TodosService } from './todos.service';
@@ -33,14 +43,21 @@ export class TodosController {
   @Get()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'List active todos' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'orderBy', required: false, enum: TodoOrderBy })
+  @ApiQuery({ name: 'orderDir', required: false, enum: OrderDir })
   @ApiResponse({
     status: 200,
     description: 'Active todos retrieved successfully',
-    type: [TodoDto],
+    type: TodoListDto,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async list(@CurrentUser() user: DecodedIdToken): Promise<TodoDto[]> {
-    return this.todosService.list(user.uid);
+  async list(
+    @CurrentUser() user: DecodedIdToken,
+    @Query() query: ListTodosQueryDto,
+  ): Promise<TodoListDto> {
+    return this.todosService.list(user.uid, query);
   }
 
   /**
