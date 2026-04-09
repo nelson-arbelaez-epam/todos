@@ -1,9 +1,9 @@
 import 'reflect-metadata';
-import { Test, type TestingModule } from '@nestjs/testing';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { McpServerService } from './mcp-server.service';
+import { Test, type TestingModule } from '@nestjs/testing';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TodosApiService } from '../todos/todos.service';
+import { McpServerService } from './mcp-server.service';
 
 const _mockTodo = {
   id: 'todo-1',

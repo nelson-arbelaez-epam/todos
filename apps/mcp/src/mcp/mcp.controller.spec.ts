@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { Test, type TestingModule } from '@nestjs/testing';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { McpController } from './mcp.controller';
 import { McpServerService } from './mcp-server.service';
 
@@ -25,7 +25,10 @@ describe('McpController', () => {
   let controller: McpController;
   let mockClose: ReturnType<typeof vi.fn>;
   let mockConnect: ReturnType<typeof vi.fn>;
-  let mockServer: { close: ReturnType<typeof vi.fn>; connect: ReturnType<typeof vi.fn> };
+  let mockServer: {
+    close: ReturnType<typeof vi.fn>;
+    connect: ReturnType<typeof vi.fn>;
+  };
   let mockMcpServerService: { createServer: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
@@ -35,7 +38,9 @@ describe('McpController', () => {
     mockClose = vi.fn().mockResolvedValue(undefined);
     mockConnect = vi.fn().mockResolvedValue(undefined);
     mockServer = { close: mockClose, connect: mockConnect };
-    mockMcpServerService = { createServer: vi.fn().mockReturnValue(mockServer) };
+    mockMcpServerService = {
+      createServer: vi.fn().mockReturnValue(mockServer),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [McpController],
