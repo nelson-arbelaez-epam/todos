@@ -8,6 +8,7 @@ This document outlines the core principles, standards, and guidelines for the To
 - **Modular Design**: Separate concerns into bounded packages (`@todos/core`, `@todos/store`, `@todos/firebase`, `@todos/shared`) with contracts in core and adapters at the edges.
 - **API Consistency**: All APIs follow RESTful principles with consistent error handling and response formats.
 - **API Documentation**: All API applications must integrate Swagger/OpenAPI for automatic documentation generation and endpoint exposure.
+- **DTO Documentation Contract**: API transport DTOs (request/response models exposed by endpoints) must use Swagger decorators to produce complete OpenAPI schemas. Keep domain DTO primitives in `@todos/core` framework-agnostic.
 
 ## Package Responsibilities
 
