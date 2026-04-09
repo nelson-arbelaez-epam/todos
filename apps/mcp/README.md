@@ -23,7 +23,69 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+MCP (Model Context Protocol) API server for managing todos. This server acts as
+an authenticated proxy to the Todos API — callers must supply a valid Firebase
+ID token via the `x-api-token` header.
+
+## Configuration
+
+| Variable | Description | Default |
+|---|---|---|
+| `PORT` | Port the MCP server listens on | `3000` |
+| `TODOS_API_URL` | Base URL of the Todos backend API | `http://localhost:3001` |
+
+Copy `.env.example` to `.env` and set the values before starting the server.
+
+## API Token Authentication
+
+All `/todos` endpoints require a Firebase ID token. Obtain a token from the
+Firebase Authentication service (e.g. via the `/auth/login` endpoint of the
+Todos API) and pass it in the `x-api-token` request header.
+
+### Example – Create a Todo
+
+```bash
+curl -X POST http://localhost:3000/api/v1/todos \
+  -H "Content-Type: application/json" \
+  -H "x-api-token: <your-firebase-id-token>" \
+  -d '{"title": "Buy groceries", "description": "Milk, eggs, bread"}'
+```
+
+**Success response (201)**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "abc123",
+    "title": "Buy groceries",
+    "description": "Milk, eggs, bread",
+    "completed": false,
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  }
+}
+```
+
+**Missing token response (401)**
+
+```json
+{
+  "statusCode": 401,
+  "message": "Missing api-token: provide a valid Firebase ID token via the x-api-token header",
+  "error": "Unauthorized"
+}
+```
+
+**Invalid/expired token response (401)**
+
+```json
+{
+  "statusCode": 401,
+  "message": "Invalid or expired api-token: the provided token was rejected by the API",
+  "error": "Unauthorized"
+}
+```
 
 ## Project setup
 
@@ -50,49 +112,6 @@ $ yarn run start:prod
 # unit tests
 $ yarn run test
 
-# e2e tests
-$ yarn run test:e2e
-
 # test coverage
 $ yarn run test:cov
 ```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ yarn install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).

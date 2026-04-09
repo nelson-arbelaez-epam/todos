@@ -19,12 +19,16 @@
     "test:ui": "vitest --config vitest.config.ts --ui"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "1.29.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/swagger": "^8.0.0",
+    "@todos/core": "workspace:^",
+    "@todos/shared": "workspace:^",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "zod": "4.3.6"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.0",
