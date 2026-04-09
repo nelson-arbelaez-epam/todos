@@ -1,8 +1,8 @@
 import { UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Test, type TestingModule } from '@nestjs/testing';
-import { IS_PUBLIC_KEY } from '@todos/shared';
 import { FirebaseAuthService } from '@todos/firebase';
+import { IS_PUBLIC_KEY } from '@todos/shared';
 import { FirebaseAuthGuard } from './firebase-auth.guard';
 
 const mockVerifyIdToken = vi.fn();

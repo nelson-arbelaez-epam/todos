@@ -6,10 +6,10 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { FirebaseAuthService } from '@todos/firebase';
 import { IS_PUBLIC_KEY } from '@todos/shared';
 import type { Request } from 'express';
 import type { DecodedIdToken } from 'firebase-admin/auth';
-import { FirebaseAuthService } from '@todos/firebase';
 
 /**
  * Extends Express Request to carry the decoded Firebase token as the
