@@ -42,7 +42,9 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiBody({ type: LoginUserDto })
-  @ApiOperation({ summary: 'Sign in with email/password and receive a Firebase ID token' })
+  @ApiOperation({
+    summary: 'Sign in with email/password and receive a Firebase ID token',
+  })
   @ApiResponse({
     status: 200,
     description: 'Authentication successful – returns Firebase ID token',

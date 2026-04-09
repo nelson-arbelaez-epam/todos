@@ -115,4 +115,3 @@ Project Constitution. This was an expedient MVP choice.
 proxy logic must be extracted from `apps/api` and moved into the appropriate package
 boundary (likely `@todos/firebase` as an auth adapter, or a new dedicated auth package)
 so that `apps/api` is reduced back to pure composition and transport wiring.
-

@@ -1,7 +1,11 @@
-import { BadRequestException, ConflictException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
-import { AuthService } from './auth.service';
 import { FirebaseAdminService } from '../firebase/firebase-admin.service';
+import { AuthService } from './auth.service';
 
 const mockCreateUser = vi.fn();
 
@@ -37,7 +41,10 @@ describe('AuthService', () => {
 
       const result = await authService.register(dto);
 
-      expect(result).toEqual({ uid: 'firebase-uid-123', email: 'test@example.com' });
+      expect(result).toEqual({
+        uid: 'firebase-uid-123',
+        email: 'test@example.com',
+      });
       expect(mockCreateUser).toHaveBeenCalledWith({
         email: 'test@example.com',
         password: 'securePass1',
@@ -85,7 +92,9 @@ describe('AuthService', () => {
       const unknownError = new Error('Network failure');
       mockCreateUser.mockRejectedValue(unknownError);
 
-      await expect(authService.register(dto)).rejects.toThrow('Network failure');
+      await expect(authService.register(dto)).rejects.toThrow(
+        'Network failure',
+      );
     });
   });
 
@@ -138,7 +147,9 @@ describe('AuthService', () => {
       };
       vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse));
 
-      await expect(authService.login(dto)).rejects.toThrow(UnauthorizedException);
+      await expect(authService.login(dto)).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('should throw UnauthorizedException for EMAIL_NOT_FOUND', async () => {
@@ -150,7 +161,9 @@ describe('AuthService', () => {
       };
       vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse));
 
-      await expect(authService.login(dto)).rejects.toThrow(UnauthorizedException);
+      await expect(authService.login(dto)).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('should throw UnauthorizedException for INVALID_LOGIN_CREDENTIALS', async () => {
@@ -162,7 +175,9 @@ describe('AuthService', () => {
       };
       vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse));
 
-      await expect(authService.login(dto)).rejects.toThrow(UnauthorizedException);
+      await expect(authService.login(dto)).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('should throw UnauthorizedException for USER_DISABLED', async () => {
@@ -174,7 +189,9 @@ describe('AuthService', () => {
       };
       vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse));
 
-      await expect(authService.login(dto)).rejects.toThrow(UnauthorizedException);
+      await expect(authService.login(dto)).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('should throw UnauthorizedException for unknown Firebase error codes', async () => {
@@ -186,7 +203,9 @@ describe('AuthService', () => {
       };
       vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse));
 
-      await expect(authService.login(dto)).rejects.toThrow(UnauthorizedException);
+      await expect(authService.login(dto)).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('should throw InternalServerErrorException when FIREBASE_WEB_API_KEY is not set', async () => {
@@ -198,7 +217,10 @@ describe('AuthService', () => {
     });
 
     it('should re-throw network errors', async () => {
-      vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network failure')));
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockRejectedValue(new Error('Network failure')),
+      );
 
       await expect(authService.login(dto)).rejects.toThrow('Network failure');
     });

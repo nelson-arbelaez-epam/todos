@@ -63,7 +63,8 @@ export class LoginUserDto {
  */
 export class LoginUserResponseDto {
   @ApiProperty({
-    description: 'Firebase ID token (JWT) to be sent in subsequent API requests',
+    description:
+      'Firebase ID token (JWT) to be sent in subsequent API requests',
     example: 'eyJhbGciOiJSUzI1NiIsImtpZCI6Ii...',
   })
   idToken!: string;
