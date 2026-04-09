@@ -93,4 +93,18 @@ export class TodosService {
 
     return this.transformer.transform(entity);
   }
+
+  /**
+   * Archives a todo owned by the authenticated user (soft-delete).
+   * Throws NotFoundException if the todo does not exist.
+   */
+  async archive(ownerId: string, id: string): Promise<TodoDto> {
+    const entity = await this.todoStore.archive(ownerId, id);
+
+    if (!entity) {
+      throw new NotFoundException(`Todo with id "${id}" not found`);
+    }
+
+    return this.transformer.transform(entity);
+  }
 }

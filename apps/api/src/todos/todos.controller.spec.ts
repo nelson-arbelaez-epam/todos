@@ -8,6 +8,7 @@ const mockTodosService = {
   create: vi.fn(),
   update: vi.fn(),
   list: vi.fn(),
+  archive: vi.fn(),
 };
 
 const mockUser: Partial<DecodedIdToken> = { uid: 'user-123' };
@@ -178,6 +179,42 @@ describe('TodosController', () => {
       expect(result.items).toEqual([]);
       expect(result.total).toBe(0);
       expect(mockTodosService.list).toHaveBeenCalledWith('user-123', {});
+    });
+  });
+
+  describe('archive', () => {
+    it('should archive a todo and return the TodoDto', async () => {
+      const todoDto = {
+        id: 'todo-1',
+        title: 'Buy groceries',
+        completed: false,
+        archivedAt: new Date('2024-02-01'),
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-02-01'),
+      };
+
+      mockTodosService.archive.mockResolvedValue(todoDto);
+
+      const result = await controller.archive(
+        mockUser as DecodedIdToken,
+        'todo-1',
+      );
+
+      expect(result).toEqual(todoDto);
+      expect(mockTodosService.archive).toHaveBeenCalledWith(
+        'user-123',
+        'todo-1',
+      );
+    });
+
+    it('should propagate NotFoundException when todo does not exist', async () => {
+      mockTodosService.archive.mockRejectedValue(
+        new NotFoundException('Todo with id "todo-999" not found'),
+      );
+
+      await expect(
+        controller.archive(mockUser as DecodedIdToken, 'todo-999'),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 });

@@ -104,4 +104,25 @@ export class TodosController {
   ): Promise<TodoDto> {
     return this.todosService.update(user.uid, id, dto);
   }
+
+  /**
+   * Archives (soft-deletes) an existing todo for the authenticated user.
+   */
+  @Patch(':id/archive')
+  @HttpCode(HttpStatus.OK)
+  @ApiParam({ name: 'id', description: 'Todo identifier' })
+  @ApiOperation({ summary: 'Archive (soft-delete) a todo' })
+  @ApiResponse({
+    status: 200,
+    description: 'Todo archived successfully',
+    type: TodoDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Todo not found' })
+  async archive(
+    @CurrentUser() user: DecodedIdToken,
+    @Param('id') id: string,
+  ): Promise<TodoDto> {
+    return this.todosService.archive(user.uid, id);
+  }
 }
