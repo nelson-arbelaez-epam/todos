@@ -12,13 +12,13 @@ This document outlines the core principles, standards, and guidelines for the To
 
 ## Package Responsibilities
 
-- **Apps are Composition-Only**: Code under `apps/**` must wire modules, expose transport endpoints, and host runtime configuration only. Business logic must live in packages.
+- **Apps are Composition-Only**: Code under `apps/**` must wire modules, expose transport endpoints, and host runtime configuration only. Business logic must live in packages. Exception: thin auth-proxy coordination (e.g., forwarding credentials to an upstream identity provider and normalising the response) may live in the app layer when the sole purpose is transport mediation, as documented in ADR 0019.
 - **@todos/core Owns Domain Contracts**: `@todos/core` is the source of truth for business objects, repository contracts, and shared domain DTO primitives.
 - **@todos/store Owns Store Layer Logic**: `@todos/store` provides store services and module wiring for repository-backed business operations and depends only on domain contracts.
 - **@todos/firebase Owns Firebase Infrastructure**: `@todos/firebase` owns Firebase app setup, auth/firestore services, and Firebase repository adapters that implement `@todos/core` contracts.
 - **@todos/shared Owns Cross-App Infrastructure**: `@todos/shared` provides cross-cutting app utilities (for example health checks, global filters, shared assets) that are not business-domain ownership.
 - **No Circular Dependencies**: `@todos/store` and `@todos/firebase` must not depend on each other directly. Integration must happen through `@todos/core` repository tokens/contracts.
-- **ADR Compliance**: Storage/auth implementations must respect accepted ADR decisions, especially backend-only Firestore access and API-enforced authorization.
+- **ADR Compliance**: Storage/auth implementations must respect accepted ADR decisions, especially backend-only Firestore access and API-enforced authorization. Sign-in is API-mediated via the Firebase Identity Toolkit REST API proxy (ADR 0019); token refresh remains client-side.
 
 ## Coding Standards
 
