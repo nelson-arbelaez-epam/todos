@@ -67,7 +67,7 @@ Pull requests and pushes to `main` are automatically tested by the **CI** GitHub
 To enforce the CI quality gate, configure branch protection on the `main` branch in **Settings → Branches → Branch protection rules**:
 
 - Enable **Require status checks to pass before merging**.
-- Add **`CI / Run Tests`** as a required status check.
+- Add **`CI / test`** as a required status check.
 - Enable **Require branches to be up to date before merging** (recommended).
 
 This ensures no PR can be merged unless all automated tests pass.
