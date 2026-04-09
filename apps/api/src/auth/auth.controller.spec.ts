@@ -1,10 +1,11 @@
-import { ConflictException, BadRequestException } from '@nestjs/common';
+import { ConflictException, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 
 const mockAuthService = {
   register: vi.fn(),
+  login: vi.fn(),
 };
 
 describe('AuthController', () => {
@@ -54,6 +55,49 @@ describe('AuthController', () => {
       );
 
       await expect(authController.register(dto)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+  });
+
+  describe('login', () => {
+    it('should return token payload on successful login', async () => {
+      const dto = { email: 'test@example.com', password: 'securePass1' };
+      const expected = {
+        idToken: 'firebase-id-token',
+        email: 'test@example.com',
+        expiresIn: '3600',
+        uid: 'firebase-uid-123',
+      };
+
+      mockAuthService.login.mockResolvedValue(expected);
+
+      const result = await authController.login(dto);
+
+      expect(result).toEqual(expected);
+      expect(mockAuthService.login).toHaveBeenCalledWith(dto);
+    });
+
+    it('should propagate UnauthorizedException for invalid credentials', async () => {
+      const dto = { email: 'test@example.com', password: 'wrongPass' };
+
+      mockAuthService.login.mockRejectedValue(
+        new UnauthorizedException('Invalid credentials'),
+      );
+
+      await expect(authController.login(dto)).rejects.toThrow(
+        UnauthorizedException,
+      );
+    });
+
+    it('should propagate BadRequestException for invalid payload', async () => {
+      const dto = { email: 'not-an-email', password: '123' };
+
+      mockAuthService.login.mockRejectedValue(
+        new BadRequestException('Validation failed'),
+      );
+
+      await expect(authController.login(dto)).rejects.toThrow(
         BadRequestException,
       );
     });
