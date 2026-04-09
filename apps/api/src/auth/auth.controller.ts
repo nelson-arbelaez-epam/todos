@@ -1,6 +1,11 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { RegisterUserDto, RegisterUserResponseDto } from '@todos/core/http';
+import {
+  LoginUserDto,
+  LoginUserResponseDto,
+  RegisterUserDto,
+  RegisterUserResponseDto,
+} from '@todos/core/http';
 import { AuthService } from './auth.service';
 
 @ApiTags('auth')
@@ -29,5 +34,31 @@ export class AuthController {
     @Body() dto: RegisterUserDto,
   ): Promise<RegisterUserResponseDto> {
     return this.authService.register(dto);
+  }
+
+  /**
+   * Authenticate a user with email and password, returning a Firebase ID token.
+   */
+  @Post('login')
+  @HttpCode(HttpStatus.OK)
+  @ApiBody({ type: LoginUserDto })
+  @ApiOperation({
+    summary: 'Sign in with email/password and receive a Firebase ID token',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Authentication successful – returns Firebase ID token',
+    type: LoginUserResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid request payload',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Invalid credentials',
+  })
+  async login(@Body() dto: LoginUserDto): Promise<LoginUserResponseDto> {
+    return this.authService.login(dto);
   }
 }
