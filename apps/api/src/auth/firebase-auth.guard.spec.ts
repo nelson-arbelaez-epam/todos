@@ -1,9 +1,9 @@
+import { UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Test, type TestingModule } from '@nestjs/testing';
-import { UnauthorizedException } from '@nestjs/common';
 import { IS_PUBLIC_KEY } from '@todos/shared';
-import { FirebaseAuthGuard } from './firebase-auth.guard';
 import { FirebaseAdminService } from '../firebase/firebase-admin.service';
+import { FirebaseAuthGuard } from './firebase-auth.guard';
 
 const mockVerifyIdToken = vi.fn();
 
@@ -29,14 +29,19 @@ function buildContext({
     user: undefined,
   });
 
-  const reflectorGetAllAndOverride = vi.fn().mockImplementation(
-    (key: string, targets: [ReturnType<typeof getHandler>, ReturnType<typeof getClass>]) => {
-      const [handler, cls] = targets;
-      if (handler === getHandler()) return handlerMetadata?.[key];
-      if (cls === getClass()) return classMetadata?.[key];
-      return undefined;
-    },
-  );
+  const reflectorGetAllAndOverride = vi
+    .fn()
+    .mockImplementation(
+      (
+        key: string,
+        targets: [ReturnType<typeof getHandler>, ReturnType<typeof getClass>],
+      ) => {
+        const [handler, cls] = targets;
+        if (handler === getHandler()) return handlerMetadata?.[key];
+        if (cls === getClass()) return classMetadata?.[key];
+        return undefined;
+      },
+    );
 
   return {
     getRequest,
@@ -134,7 +139,10 @@ describe('FirebaseAuthGuard', () => {
 
       mockVerifyIdToken.mockResolvedValue(decodedToken);
 
-      const requestObj = { headers: { authorization: 'Bearer valid-token' }, user: undefined };
+      const requestObj = {
+        headers: { authorization: 'Bearer valid-token' },
+        user: undefined,
+      };
       const context = {
         switchToHttp: () => ({ getRequest: () => requestObj }),
         getHandler: vi.fn(),
@@ -154,10 +162,14 @@ describe('FirebaseAuthGuard', () => {
       vi.spyOn(reflector, 'getAllAndOverride').mockReturnValueOnce(false);
 
       mockVerifyIdToken.mockRejectedValue(
-        new Error('Firebase ID token has expired. Get a fresh token from your client app.'),
+        new Error(
+          'Firebase ID token has expired. Get a fresh token from your client app.',
+        ),
       );
 
-      const { context } = buildContext({ authorization: 'Bearer expired-token' });
+      const { context } = buildContext({
+        authorization: 'Bearer expired-token',
+      });
 
       await expect(guard.canActivate(context as never)).rejects.toThrow(
         UnauthorizedException,
@@ -168,7 +180,9 @@ describe('FirebaseAuthGuard', () => {
       vi.spyOn(reflector, 'getAllAndOverride').mockReturnValueOnce(false);
 
       mockVerifyIdToken.mockRejectedValue(
-        new Error('Decoding Firebase ID token failed. Make sure you passed a string.'),
+        new Error(
+          'Decoding Firebase ID token failed. Make sure you passed a string.',
+        ),
       );
 
       const { context } = buildContext({ authorization: 'Bearer bad-token' });
