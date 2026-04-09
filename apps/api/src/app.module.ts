@@ -6,9 +6,10 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { FirebaseAuthGuard } from './auth/firebase-auth.guard';
+import { TodosModule } from './todos/todos.module';
 
 @Module({
-  imports: [FirebaseModule, HealthModule, AuthModule],
+  imports: [FirebaseModule, HealthModule, AuthModule, TodosModule],
   controllers: [AppController],
   providers: [
     AppService,

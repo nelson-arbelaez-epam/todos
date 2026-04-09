@@ -34,6 +34,8 @@ jobs:
       - name: Build workspace packages
         run: |
           yarn workspace @todos/core build
+          yarn workspace @todos/store build
+          yarn workspace @todos/firebase build
           yarn workspace @todos/shared build
 
       - name: Run tests
