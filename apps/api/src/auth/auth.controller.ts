@@ -41,6 +41,7 @@ export class AuthController {
   /**
    * Authenticate a user with email and password, returning a Firebase ID token.
    */
+  @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiBody({ type: LoginUserDto })
