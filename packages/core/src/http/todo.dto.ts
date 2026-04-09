@@ -69,7 +69,10 @@ export class TodoDto {
 
   @IsOptional()
   @Type(() => Date)
-  @ApiProperty({ required: false, description: 'Timestamp when the todo was archived' })
+  @ApiProperty({
+    required: false,
+    description: 'Timestamp when the todo was archived',
+  })
   archivedAt?: Date;
 
   @Type(() => Date)

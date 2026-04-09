@@ -1,10 +1,4 @@
-import {
-  Body,
-  Controller,
-  HttpCode,
-  HttpStatus,
-  Post,
-} from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -18,7 +12,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import { TodosService } from './todos.service';
 
 @ApiTags('todos')
-@ApiBearerAuth()
+@ApiBearerAuth('firebase-jwt')
 @Controller('todos')
 export class TodosController {
   constructor(private readonly todosService: TodosService) {}
