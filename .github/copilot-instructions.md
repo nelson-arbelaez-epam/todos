@@ -41,6 +41,22 @@ These instructions guide GitHub Copilot's behavior across the Todos project to e
 - Keep functions small and focused.
 - Follow DRY principle but don't over-abstract.
 
+## UI Components (TSX / JSX files)
+
+When generating or modifying any `.tsx` or `.jsx` file, **always** apply the rules in
+[`.github/instructions/ui-components.instructions.md`](instructions/ui-components.instructions.md).
+That file uses an `applyTo: "**/*.{tsx,jsx}"` frontmatter which GitHub Copilot uses to automatically
+scope the instructions to TSX/JSX files in Copilot Chat and code-completion contexts.
+
+Key requirements (non-exhaustive — see the instructions file for the full checklist):
+
+- Place the component in the correct **Atomic Design** level: `atoms/` → `molecules/` → `organisms/` → `templates/` → `pages/`.
+- **Presentational components** receive all data via props and contain no side-effect hooks, store calls, or API fetches.
+- **Container/page components** stay thin — delegate rendering to presentational components; put logic in `src/hooks/`.
+- Scope styles with **CSS Modules** or **Tailwind utility classes**; reference CSS custom properties for design tokens.
+- Write a **unit test** for every new or significantly changed component.
+- A presentational component must never import a container component.
+
 ## When in Doubt
 
 Refer to existing code in the project for patterns and examples. If something is unclear, check the constitution or ask for clarification.
