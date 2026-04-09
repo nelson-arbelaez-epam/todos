@@ -1,5 +1,7 @@
-import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { UnauthorizedException } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { Test, type TestingModule } from '@nestjs/testing';
+import { IS_PUBLIC_KEY } from '@todos/shared';
 import { FirebaseAdminService } from '../firebase/firebase-admin.service';
 import { FirebaseAuthGuard } from './firebase-auth.guard';
 
@@ -11,18 +13,50 @@ const mockFirebaseAdminService = {
   },
 };
 
-function buildContext(authHeader?: string): ExecutionContext {
-  const request = {
-    headers: authHeader ? { authorization: authHeader } : {},
-  } as unknown;
+function buildContext({
+  authorization,
+  handlerMetadata,
+  classMetadata,
+}: {
+  authorization?: string;
+  handlerMetadata?: Record<string, unknown>;
+  classMetadata?: Record<string, unknown>;
+}) {
+  const getHandler = vi.fn();
+  const getClass = vi.fn();
+  const getRequest = vi.fn().mockReturnValue({
+    headers: authorization ? { authorization } : {},
+    user: undefined,
+  });
+
+  const reflectorGetAllAndOverride = vi
+    .fn()
+    .mockImplementation(
+      (
+        key: string,
+        targets: [ReturnType<typeof getHandler>, ReturnType<typeof getClass>],
+      ) => {
+        const [handler, cls] = targets;
+        if (handler === getHandler()) return handlerMetadata?.[key];
+        if (cls === getClass()) return classMetadata?.[key];
+        return undefined;
+      },
+    );
 
   return {
-    switchToHttp: () => ({ getRequest: () => request }),
-  } as ExecutionContext;
+    getRequest,
+    reflectorGetAllAndOverride,
+    context: {
+      switchToHttp: () => ({ getRequest }),
+      getHandler,
+      getClass,
+    },
+  };
 }
 
 describe('FirebaseAuthGuard', () => {
   let guard: FirebaseAuthGuard;
+  let reflector: Reflector;
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -30,50 +64,150 @@ describe('FirebaseAuthGuard', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         FirebaseAuthGuard,
-        { provide: FirebaseAdminService, useValue: mockFirebaseAdminService },
+        Reflector,
+        {
+          provide: FirebaseAdminService,
+          useValue: mockFirebaseAdminService,
+        },
       ],
     }).compile();
 
     guard = module.get<FirebaseAuthGuard>(FirebaseAuthGuard);
+    reflector = module.get<Reflector>(Reflector);
   });
 
-  it('should attach user and return true for a valid token', async () => {
-    mockVerifyIdToken.mockResolvedValue({ uid: 'user-123' });
+  describe('public routes', () => {
+    it('should allow access to routes marked with @Public()', async () => {
+      vi.spyOn(reflector, 'getAllAndOverride').mockReturnValueOnce(true);
 
-    const ctx = buildContext('Bearer valid-token');
-    const result = await guard.canActivate(ctx);
+      const { context } = buildContext({});
+      const result = await guard.canActivate(context as never);
 
-    expect(result).toBe(true);
-    expect(mockVerifyIdToken).toHaveBeenCalledWith('valid-token');
-    const req = ctx.switchToHttp().getRequest<{ user: { uid: string } }>();
-    expect(req.user).toEqual({ uid: 'user-123' });
+      expect(result).toBe(true);
+      expect(mockVerifyIdToken).not.toHaveBeenCalled();
+    });
   });
 
-  it('should throw UnauthorizedException when Authorization header is missing', async () => {
-    const ctx = buildContext();
+  describe('protected routes - missing token', () => {
+    it('should throw UnauthorizedException when Authorization header is absent', async () => {
+      vi.spyOn(reflector, 'getAllAndOverride').mockReturnValueOnce(false);
 
-    await expect(guard.canActivate(ctx)).rejects.toThrow(
-      UnauthorizedException,
-    );
-    expect(mockVerifyIdToken).not.toHaveBeenCalled();
+      const { context } = buildContext({});
+
+      await expect(guard.canActivate(context as never)).rejects.toThrow(
+        UnauthorizedException,
+      );
+      expect(mockVerifyIdToken).not.toHaveBeenCalled();
+    });
+
+    it('should throw UnauthorizedException when Authorization header has wrong scheme', async () => {
+      vi.spyOn(reflector, 'getAllAndOverride').mockReturnValueOnce(false);
+
+      const { context } = buildContext({ authorization: 'Basic dXNlcjpwYXNz' });
+
+      await expect(guard.canActivate(context as never)).rejects.toThrow(
+        UnauthorizedException,
+      );
+    });
+
+    it('should throw UnauthorizedException when Bearer token is empty', async () => {
+      vi.spyOn(reflector, 'getAllAndOverride').mockReturnValueOnce(false);
+
+      const { context } = buildContext({ authorization: 'Bearer ' });
+
+      await expect(guard.canActivate(context as never)).rejects.toThrow(
+        UnauthorizedException,
+      );
+    });
   });
 
-  it('should throw UnauthorizedException when Authorization header has wrong scheme', async () => {
-    const ctx = buildContext('Basic some-credentials');
+  describe('protected routes - valid token', () => {
+    it('should allow access and attach decoded token to request.user', async () => {
+      vi.spyOn(reflector, 'getAllAndOverride').mockReturnValueOnce(false);
 
-    await expect(guard.canActivate(ctx)).rejects.toThrow(
-      UnauthorizedException,
-    );
-    expect(mockVerifyIdToken).not.toHaveBeenCalled();
+      const decodedToken = {
+        uid: 'user-123',
+        email: 'user@example.com',
+        aud: 'project-id',
+        iss: 'https://securetoken.google.com/project-id',
+        sub: 'user-123',
+        iat: 1000,
+        exp: 2000,
+        auth_time: 1000,
+        firebase: { identities: {}, sign_in_provider: 'password' },
+      };
+
+      mockVerifyIdToken.mockResolvedValue(decodedToken);
+
+      const requestObj = {
+        headers: { authorization: 'Bearer valid-token' },
+        user: undefined,
+      };
+      const context = {
+        switchToHttp: () => ({ getRequest: () => requestObj }),
+        getHandler: vi.fn(),
+        getClass: vi.fn(),
+      };
+
+      const result = await guard.canActivate(context as never);
+
+      expect(result).toBe(true);
+      expect(requestObj.user).toEqual(decodedToken);
+      expect(mockVerifyIdToken).toHaveBeenCalledWith('valid-token');
+    });
   });
 
-  it('should throw UnauthorizedException when token is invalid', async () => {
-    mockVerifyIdToken.mockRejectedValue(new Error('Token expired'));
+  describe('protected routes - invalid/expired token', () => {
+    it('should throw UnauthorizedException when token verification fails', async () => {
+      vi.spyOn(reflector, 'getAllAndOverride').mockReturnValueOnce(false);
 
-    const ctx = buildContext('Bearer expired-token');
+      mockVerifyIdToken.mockRejectedValue(
+        new Error(
+          'Firebase ID token has expired. Get a fresh token from your client app.',
+        ),
+      );
 
-    await expect(guard.canActivate(ctx)).rejects.toThrow(
-      UnauthorizedException,
-    );
+      const { context } = buildContext({
+        authorization: 'Bearer expired-token',
+      });
+
+      await expect(guard.canActivate(context as never)).rejects.toThrow(
+        UnauthorizedException,
+      );
+    });
+
+    it('should throw UnauthorizedException when token is malformed', async () => {
+      vi.spyOn(reflector, 'getAllAndOverride').mockReturnValueOnce(false);
+
+      mockVerifyIdToken.mockRejectedValue(
+        new Error(
+          'Decoding Firebase ID token failed. Make sure you passed a string.',
+        ),
+      );
+
+      const { context } = buildContext({ authorization: 'Bearer bad-token' });
+
+      await expect(guard.canActivate(context as never)).rejects.toThrow(
+        UnauthorizedException,
+      );
+    });
+
+    it('should not expose internal error details in the UnauthorizedException message', async () => {
+      vi.spyOn(reflector, 'getAllAndOverride').mockReturnValueOnce(false);
+
+      mockVerifyIdToken.mockRejectedValue(new Error('internal details'));
+
+      const { context } = buildContext({ authorization: 'Bearer some-token' });
+
+      await expect(guard.canActivate(context as never)).rejects.toThrow(
+        'Invalid or expired authentication token',
+      );
+    });
+  });
+
+  describe('IS_PUBLIC_KEY metadata check', () => {
+    it('uses IS_PUBLIC_KEY constant from @todos/shared', () => {
+      expect(IS_PUBLIC_KEY).toBe('isPublic');
+    });
   });
 });

@@ -1,14 +1,24 @@
 import { Module } from '@nestjs/common';
-import { FirebaseModule as FirebaseInfraModule } from '@todos/firebase';
+import { APP_GUARD } from '@nestjs/core';
+import { FirebaseModule } from '@todos/firebase';
 import { HealthModule } from '@todos/shared';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
+import { FirebaseAuthGuard } from './auth/firebase-auth.guard';
+import { FirebaseAdminService } from './firebase/firebase-admin.service';
 import { TodosModule } from './todos/todos.module';
 
 @Module({
-  imports: [HealthModule, FirebaseInfraModule, AuthModule, TodosModule],
+  imports: [FirebaseModule, HealthModule, AuthModule, TodosModule],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    FirebaseAdminService,
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: FirebaseAuthGuard,
+    },
+  ],
 })
 export class AppModule {}

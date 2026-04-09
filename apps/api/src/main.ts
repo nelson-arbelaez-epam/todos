@@ -20,6 +20,15 @@ async function bootstrap() {
     .setTitle('Todos API')
     .setDescription('API for managing todos')
     .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        description: 'Firebase ID token obtained from the /auth/login endpoint',
+      },
+      'firebase-jwt',
+    )
     .build();
   const document = SwaggerModule.createDocument(app, config);
   const sharedFavicon = getSharedFaviconDataUri();

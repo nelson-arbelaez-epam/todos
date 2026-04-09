@@ -1,11 +1,14 @@
 import { BadRequestException } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
+import type { DecodedIdToken } from 'firebase-admin/auth';
 import { TodosController } from './todos.controller';
 import { TodosService } from './todos.service';
 
 const mockTodosService = {
   create: vi.fn(),
 };
+
+const mockUser: Partial<DecodedIdToken> = { uid: 'user-123' };
 
 describe('TodosController', () => {
   let controller: TodosController;
@@ -16,12 +19,7 @@ describe('TodosController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [TodosController],
       providers: [{ provide: TodosService, useValue: mockTodosService }],
-    })
-      .overrideGuard(
-        (await import('../auth/firebase-auth.guard')).FirebaseAuthGuard,
-      )
-      .useValue({ canActivate: () => true })
-      .compile();
+    }).compile();
 
     controller = module.get<TodosController>(TodosController);
   });
@@ -39,10 +37,11 @@ describe('TodosController', () => {
 
       mockTodosService.create.mockResolvedValue(todoDto);
 
-      const fakeRequest = { user: { uid: 'user-123' } };
       const dto = { title: 'Buy groceries', description: 'Milk and eggs' };
-
-      const result = await controller.create(fakeRequest as never, dto as never);
+      const result = await controller.create(
+        mockUser as DecodedIdToken,
+        dto as never,
+      );
 
       expect(result).toEqual(todoDto);
       expect(mockTodosService.create).toHaveBeenCalledWith('user-123', dto);
@@ -53,10 +52,8 @@ describe('TodosController', () => {
         new BadRequestException('Validation failed'),
       );
 
-      const fakeRequest = { user: { uid: 'user-123' } };
-
       await expect(
-        controller.create(fakeRequest as never, { title: '' } as never),
+        controller.create(mockUser as DecodedIdToken, { title: '' } as never),
       ).rejects.toThrow(BadRequestException);
     });
   });

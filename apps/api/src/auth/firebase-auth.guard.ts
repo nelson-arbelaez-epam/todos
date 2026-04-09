@@ -2,41 +2,79 @@ import {
   type CanActivate,
   type ExecutionContext,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { IS_PUBLIC_KEY } from '@todos/shared';
 import type { Request } from 'express';
+import type { DecodedIdToken } from 'firebase-admin/auth';
 import { FirebaseAdminService } from '../firebase/firebase-admin.service';
 
+/**
+ * Extends Express Request to carry the decoded Firebase token as the
+ * authenticated user identity.
+ */
 export interface AuthenticatedRequest extends Request {
-  user: { uid: string };
+  user: DecodedIdToken;
 }
 
 /**
- * Guard that verifies a Firebase ID token from the Authorization header.
- * Attaches `{ uid }` to `request.user` on success.
+ * Guard that validates a Firebase JWT bearer token on every incoming request.
+ *
+ * Routes decorated with `@Public()` bypass this guard entirely.
+ * On success the decoded token is attached to `request.user` so downstream
+ * handlers can read the caller's uid and claims without re-verifying.
  */
 @Injectable()
 export class FirebaseAuthGuard implements CanActivate {
-  constructor(private readonly firebaseAdmin: FirebaseAdminService) {}
+  private readonly logger = new Logger(FirebaseAuthGuard.name);
+
+  constructor(
+    private readonly reflector: Reflector,
+    private readonly firebaseAdmin: FirebaseAdminService,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<Request>();
-    const authHeader = request.headers.authorization;
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
 
-    if (!authHeader?.startsWith('Bearer ')) {
-      throw new UnauthorizedException(
-        'Missing or invalid Authorization header',
-      );
+    if (isPublic) {
+      return true;
     }
 
-    const token = authHeader.substring(7);
+    const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
+    const token = this.extractBearerToken(request);
+
+    if (!token) {
+      throw new UnauthorizedException('Missing authentication token');
+    }
 
     try {
-      const decoded = await this.firebaseAdmin.auth.verifyIdToken(token);
-      (request as AuthenticatedRequest).user = { uid: decoded.uid };
+      const decodedToken = await this.firebaseAdmin.auth.verifyIdToken(token);
+      request.user = decodedToken;
       return true;
-    } catch {
-      throw new UnauthorizedException('Invalid or expired Firebase ID token');
+    } catch (err: unknown) {
+      this.logger.warn(
+        `Token verification failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
+      throw new UnauthorizedException(
+        'Invalid or expired authentication token',
+      );
     }
+  }
+
+  private extractBearerToken(request: Request): string | undefined {
+    const authorization = request.headers.authorization;
+    if (!authorization) {
+      return undefined;
+    }
+    const [scheme, token] = authorization.split(' ');
+    if (scheme?.toLowerCase() !== 'bearer' || !token) {
+      return undefined;
+    }
+    return token;
   }
 }

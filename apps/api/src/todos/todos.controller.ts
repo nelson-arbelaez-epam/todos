@@ -4,8 +4,6 @@ import {
   HttpCode,
   HttpStatus,
   Post,
-  Req,
-  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -15,12 +13,12 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { CreateTodoDto, TodoDto } from '@todos/core/http';
-import { type AuthenticatedRequest, FirebaseAuthGuard } from '../auth/firebase-auth.guard';
+import type { DecodedIdToken } from 'firebase-admin/auth';
+import { CurrentUser } from '../auth/current-user.decorator';
 import { TodosService } from './todos.service';
 
 @ApiTags('todos')
 @ApiBearerAuth()
-@UseGuards(FirebaseAuthGuard)
 @Controller('todos')
 export class TodosController {
   constructor(private readonly todosService: TodosService) {}
@@ -40,9 +38,9 @@ export class TodosController {
   @ApiResponse({ status: 400, description: 'Invalid input' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async create(
-    @Req() request: AuthenticatedRequest,
+    @CurrentUser() user: DecodedIdToken,
     @Body() dto: CreateTodoDto,
   ): Promise<TodoDto> {
-    return this.todosService.create(request.user.uid, dto);
+    return this.todosService.create(user.uid, dto);
   }
 }
