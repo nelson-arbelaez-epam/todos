@@ -18,7 +18,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
-    let message = 'Internal server error';
+    let message: string | string[] = 'Internal server error';
     let error = 'Internal Server Error';
 
     if (exception instanceof HttpException) {
@@ -31,15 +31,26 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         exceptionResponse !== null
       ) {
         const responseObj = exceptionResponse as {
-          message?: string;
+          message?: string | string[];
           error?: string;
         };
-        message = responseObj.message || message;
-        error = responseObj.error || error;
+        message = responseObj.message ?? message;
+        error = responseObj.error ?? error;
+      }
+
+      if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
+        this.logger.error(
+          `HTTP ${status} Error: ${message} - ${request.method} ${request.url}`,
+          exception instanceof Error ? exception.stack : '',
+        );
+      } else {
+        this.logger.warn(
+          `HTTP ${status} Error: ${message} - ${request.method} ${request.url}`,
+        );
       }
     } else {
       this.logger.error(
-        `Unhandled exception: ${exception}`,
+        `Unhandled exception on ${request.method} ${request.url}: ${exception}`,
         exception instanceof Error ? exception.stack : '',
       );
     }
@@ -52,11 +63,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       error,
       message,
     };
-
-    this.logger.error(
-      `HTTP ${status} Error: ${message} - ${request.method} ${request.url}`,
-      exception instanceof Error ? exception.stack : '',
-    );
 
     response.status(status).json(errorResponse);
   }
