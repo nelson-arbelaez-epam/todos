@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-04-09
-- Related: GitHub Issue #25, ADR 0018
+- Related: GitHub Issues #22, #25; ADR 0018, ADR 0020
 
 ## Context
 
@@ -105,13 +105,12 @@ the Admin SDK key and its exposure is bounded to the server environment.
   the Secure Token REST API. If this creates friction, a `/auth/refresh` proxy endpoint can
   be added under a follow-up ADR.
 
-## Tech Debt
+## Implementation Note
 
-The current implementation places `AuthService.login()` (the auth-proxy coordination logic)
-directly in `apps/api`, which violates the **Apps are Composition-Only** rule in the
-Project Constitution. This was an expedient MVP choice.
+Issue [#25](https://github.com/nelson-arbelaez-epam/todos/issues/25) now covers the full
+auth app-layer refactor context: both the Firebase Admin extraction and the relocation of
+the Identity Toolkit login proxy out of `apps/api`.
 
-**Tracked in [#25](https://github.com/nelson-arbelaez-epam/todos/issues/25)**: the login
-proxy logic must be extracted from `apps/api` and moved into the appropriate package
-boundary (likely `@todos/firebase` as an auth adapter, or a new dedicated auth package)
-so that `apps/api` is reduced back to pure composition and transport wiring.
+The login proxy coordination now lives in `@todos/firebase/FirebaseAuthService`, keeping
+`apps/api` focused on transport wiring while preserving the API-mediated login decision
+described in this ADR.

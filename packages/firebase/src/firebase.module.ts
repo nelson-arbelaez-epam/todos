@@ -17,6 +17,7 @@ import { FirebaseAuthService } from './firebase-auth.service';
 import { FirebaseFirestoreService } from './firebase-firestore.service';
 import type { FirebaseModuleOptions } from './firebase-module-options';
 import { FirebaseTodoRepository } from './firebase-todo.repository';
+import { FirebaseWebProxyService } from './firebase-web-proxy.service';
 
 const defaultFirebaseOptionsProvider = {
   provide: FIREBASE_MODULE_OPTIONS,
@@ -100,6 +101,7 @@ const firebaseAdminAppProvider = {
   providers: [
     defaultFirebaseOptionsProvider,
     firebaseAdminAppProvider,
+    FirebaseWebProxyService,
     FirebaseAuthService,
     FirebaseFirestoreService,
     FirebaseTodoRepository,
@@ -111,6 +113,7 @@ const firebaseAdminAppProvider = {
   exports: [
     FIREBASE_MODULE_OPTIONS,
     FIREBASE_ADMIN_APP,
+    FirebaseWebProxyService,
     FirebaseAuthService,
     FirebaseFirestoreService,
     FirebaseTodoRepository,

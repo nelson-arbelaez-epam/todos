@@ -1,32 +1,41 @@
-# ADR 0020: Firebase Auth Adapter Extracted to @todos/firebase Package
+# ADR 0020 - Firebase Admin Auth Adapter in @todos/firebase
 
-## Status
-
-Accepted
+- Status: Accepted
+- Date: 2026-04-09
+- Related: GitHub Issues #21, #25; ADR 0019
 
 ## Context
 
-Issue [#21](https://github.com/nelson-arbelaez-epam/todos/issues/21) introduced a direct Firebase Admin integration inside `apps/api` (via `FirebaseAdminService` and a local `firebase.module.ts`) to unblock delivery of the auth endpoints. This violated the constitution's **Apps are Composition-Only** principle, which requires that business and infrastructure logic lives in packages.
+Issue [#25](https://github.com/nelson-arbelaez-epam/todos/issues/25) tracks the refactor to move Firebase auth integration out of `apps/api` and back behind a package boundary.
 
-The `apps/api` layer was responsible for:
-- Initialising the Firebase Admin SDK (`FirebaseAdminService`)
-- Verifying Firebase ID tokens (inside `FirebaseAuthGuard`)
-- Creating Firebase users (inside `AuthService`)
+That refactor exists because issue [#21](https://github.com/nelson-arbelaez-epam/todos/issues/21) originally introduced Firebase-backed auth endpoints quickly by placing Firebase Admin wiring directly inside `apps/api`.
+
+That temporary shape added two application-layer responsibilities that do not belong in an app module under the project constitution:
+
+- Initialising the Firebase Admin SDK in `apps/api`
+- Hosting Firebase Admin-backed auth operations such as user creation and ID token verification inside application-local services/modules
+
+This created a package-boundary violation because Admin SDK infrastructure is reusable platform capability, not transport composition.
+
+ADR 0019 remains separately responsible for the login decision: the API proxies email/password sign-in through the Firebase Identity Toolkit REST API. This ADR covers where that Firebase auth coordination lives inside the codebase.
 
 ## Decision
 
-Extract all Firebase auth infrastructure from `apps/api` into the `@todos/firebase` package:
+Move Firebase auth infrastructure out of `apps/api` and into `@todos/firebase`.
 
-1. **`@todos/firebase` `FirebaseAuthService`** is extended with a `createUser()` method and the `verifyIdToken()` return type is tightened to `DecodedIdToken` (from `firebase-admin/auth`).
-2. **`apps/api/src/auth/AuthService`** now injects `FirebaseAuthService` from `@todos/firebase` instead of the local `FirebaseAdminService`.
-3. **`apps/api/src/auth/FirebaseAuthGuard`** now injects `FirebaseAuthService` from `@todos/firebase` instead of the local `FirebaseAdminService`.
-4. **`apps/api/src/auth/AuthModule`** no longer imports a local `FirebaseModule`; it relies on the globally-registered `@todos/firebase` `FirebaseModule` wired in `AppModule`.
-5. The `apps/api/src/firebase/` directory (`FirebaseAdminService`, local `FirebaseModule`) is deleted entirely.
+Concretely:
+
+1. `@todos/firebase` owns Firebase Admin bootstrapping and the Nest module that exposes it.
+2. `@todos/firebase/FirebaseAuthService` owns Firebase auth capabilities used by the API boundary, including `createUser()`, login proxy coordination, `getUser()`, and `verifyIdToken()`.
+3. `apps/api` consumes `FirebaseAuthService` from `@todos/firebase` for registration, login, and token verification rather than creating local Firebase wrappers.
+4. The local `apps/api/src/firebase/` implementation is removed.
+5. `apps/api` remains responsible only for HTTP transport wiring, request/response mapping, and guard/controller composition.
 
 ## Consequences
 
-- `apps/api` is now composition-only with respect to Firebase auth: it wires NestJS modules and HTTP transport but owns no Firebase SDK initialisation.
-- `@todos/firebase` is the single source of truth for Firebase auth operations (`createUser`, `verifyIdToken`, `getUser`).
-- Adding future auth operations (e.g. `deleteUser`, `setCustomClaims`) requires changes only in `@todos/firebase`, not in application code.
-- All existing auth endpoint contracts (`POST /auth/register`, `POST /auth/login`) and their response shapes are preserved.
-- Tests in `apps/api/src/auth/` mock `FirebaseAuthService` (from `@todos/firebase`) directly, validating the package boundary.
+- `apps/api` no longer owns Firebase auth coordination or local Firebase adapters.
+- `@todos/firebase` becomes the single source of truth for Firebase auth operations used by the API.
+- Future Admin capabilities such as `deleteUser()` or `setCustomClaims()` can be added in one place without reintroducing app-layer SDK wiring.
+- The constitution no longer needs an exception for auth-specific app-layer Firebase coordination; the standing rule remains generic and ADR-backed.
+- Existing auth endpoint contracts remain unchanged while the internal package boundary is improved.
+- Tests in `apps/api/src/auth/` should mock `FirebaseAuthService` from `@todos/firebase`, validating the dependency direction.

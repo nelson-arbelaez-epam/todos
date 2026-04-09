@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
@@ -8,9 +9,11 @@ import { FirebaseAuthService } from '@todos/firebase';
 import { AuthService } from './auth.service';
 
 const mockCreateUser = vi.fn();
+const mockLogin = vi.fn();
 
 const mockFirebaseAuthService = {
   createUser: mockCreateUser,
+  login: mockLogin,
 };
 
 describe('AuthService', () => {
@@ -99,28 +102,17 @@ describe('AuthService', () => {
   describe('login', () => {
     const dto = { email: 'test@example.com', password: 'securePass1' };
 
-    beforeEach(() => {
-      process.env.FIREBASE_WEB_API_KEY = 'test-api-key';
-    });
-
     afterEach(() => {
-      delete process.env.FIREBASE_WEB_API_KEY;
-      vi.restoreAllMocks();
+      vi.clearAllMocks();
     });
 
-    it('should return idToken and metadata on successful login', async () => {
-      const mockResponse = {
-        ok: true,
-        json: vi.fn().mockResolvedValue({
-          idToken: 'firebase-id-token',
-          email: 'test@example.com',
-          expiresIn: '3600',
-          localId: 'firebase-uid-123',
-          refreshToken: 'refresh-token',
-          registered: true,
-        }),
-      };
-      vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse));
+    it('should delegate login to FirebaseAuthService', async () => {
+      mockLogin.mockResolvedValue({
+        idToken: 'firebase-id-token',
+        email: 'test@example.com',
+        expiresIn: '3600',
+        uid: 'firebase-uid-123',
+      });
 
       const result = await authService.login(dto);
 
@@ -130,95 +122,33 @@ describe('AuthService', () => {
         expiresIn: '3600',
         uid: 'firebase-uid-123',
       });
-      expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining('identitytoolkit.googleapis.com'),
-        expect.objectContaining({ method: 'POST' }),
-      );
+      expect(mockLogin).toHaveBeenCalledWith(dto);
     });
 
-    it('should throw UnauthorizedException for INVALID_PASSWORD', async () => {
-      const mockResponse = {
-        ok: false,
-        json: vi.fn().mockResolvedValue({
-          error: { message: 'INVALID_PASSWORD' },
-        }),
-      };
-      vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse));
+    it('should rethrow UnauthorizedException from FirebaseAuthService', async () => {
+      mockLogin.mockRejectedValue(
+        new UnauthorizedException('Invalid credentials'),
+      );
 
       await expect(authService.login(dto)).rejects.toThrow(
         UnauthorizedException,
       );
     });
 
-    it('should throw UnauthorizedException for EMAIL_NOT_FOUND', async () => {
-      const mockResponse = {
-        ok: false,
-        json: vi.fn().mockResolvedValue({
-          error: { message: 'EMAIL_NOT_FOUND' },
-        }),
-      };
-      vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse));
+    it('should rethrow InternalServerErrorException from FirebaseAuthService', async () => {
+      mockLogin.mockRejectedValue(
+        new InternalServerErrorException(
+          'Firebase Web API key is not configured',
+        ),
+      );
 
       await expect(authService.login(dto)).rejects.toThrow(
-        UnauthorizedException,
+        InternalServerErrorException,
       );
     });
 
-    it('should throw UnauthorizedException for INVALID_LOGIN_CREDENTIALS', async () => {
-      const mockResponse = {
-        ok: false,
-        json: vi.fn().mockResolvedValue({
-          error: { message: 'INVALID_LOGIN_CREDENTIALS' },
-        }),
-      };
-      vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse));
-
-      await expect(authService.login(dto)).rejects.toThrow(
-        UnauthorizedException,
-      );
-    });
-
-    it('should throw UnauthorizedException for USER_DISABLED', async () => {
-      const mockResponse = {
-        ok: false,
-        json: vi.fn().mockResolvedValue({
-          error: { message: 'USER_DISABLED' },
-        }),
-      };
-      vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse));
-
-      await expect(authService.login(dto)).rejects.toThrow(
-        UnauthorizedException,
-      );
-    });
-
-    it('should throw UnauthorizedException for unknown Firebase error codes', async () => {
-      const mockResponse = {
-        ok: false,
-        json: vi.fn().mockResolvedValue({
-          error: { message: 'SOME_UNKNOWN_ERROR' },
-        }),
-      };
-      vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse));
-
-      await expect(authService.login(dto)).rejects.toThrow(
-        UnauthorizedException,
-      );
-    });
-
-    it('should throw InternalServerErrorException when FIREBASE_WEB_API_KEY is not set', async () => {
-      delete process.env.FIREBASE_WEB_API_KEY;
-
-      await expect(authService.login(dto)).rejects.toThrow(
-        'Firebase Web API key is not configured',
-      );
-    });
-
-    it('should re-throw network errors', async () => {
-      vi.stubGlobal(
-        'fetch',
-        vi.fn().mockRejectedValue(new Error('Network failure')),
-      );
+    it('should rethrow network errors from FirebaseAuthService', async () => {
+      mockLogin.mockRejectedValue(new Error('Network failure'));
 
       await expect(authService.login(dto)).rejects.toThrow('Network failure');
     });

@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import type { LoginUserDto, LoginUserResponseDto } from '@todos/core';
 import type { App } from 'firebase-admin/app';
 import {
   type Auth,
@@ -8,12 +9,16 @@ import {
   type UserRecord,
 } from 'firebase-admin/auth';
 import { FIREBASE_ADMIN_APP } from './firebase.constants';
+import { FirebaseWebProxyService } from './firebase-web-proxy.service';
 
 @Injectable()
 export class FirebaseAuthService {
   private readonly authClient: Auth;
 
-  constructor(@Inject(FIREBASE_ADMIN_APP) app: App) {
+  constructor(
+    @Inject(FIREBASE_ADMIN_APP) app: App,
+    private readonly firebaseWebProxy: FirebaseWebProxyService,
+  ) {
     this.authClient = getAuth(app);
   }
 
@@ -22,6 +27,13 @@ export class FirebaseAuthService {
    */
   async createUser(properties: CreateRequest): Promise<UserRecord> {
     return this.authClient.createUser(properties);
+  }
+
+  /**
+   * Signs in a user through the Firebase Identity Toolkit REST API.
+   */
+  async login(dto: LoginUserDto): Promise<LoginUserResponseDto> {
+    return this.firebaseWebProxy.login(dto);
   }
 
   /**
