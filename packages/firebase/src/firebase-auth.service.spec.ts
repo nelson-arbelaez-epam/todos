@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FirebaseAuthService } from './firebase-auth.service';
 
 const authMock = {
+  createUser: vi.fn(),
   verifyIdToken: vi.fn(),
   getUser: vi.fn(),
 };
@@ -14,6 +15,23 @@ vi.mock('firebase-admin/auth', () => ({
 describe('FirebaseAuthService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it('creates a new user with provided properties', async () => {
+    const userRecord = { uid: 'new-user-1', email: 'new@example.com' };
+    authMock.createUser.mockResolvedValue(userRecord);
+
+    const service = new FirebaseAuthService({} as App);
+    const result = await service.createUser({
+      email: 'new@example.com',
+      password: 'password123',
+    });
+
+    expect(result).toEqual(userRecord);
+    expect(authMock.createUser).toHaveBeenCalledWith({
+      email: 'new@example.com',
+      password: 'password123',
+    });
   });
 
   it('verifies ID token with revocation flag', async () => {

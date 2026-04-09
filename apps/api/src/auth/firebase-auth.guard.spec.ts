@@ -2,15 +2,13 @@ import { UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { IS_PUBLIC_KEY } from '@todos/shared';
-import { FirebaseAdminService } from '../firebase/firebase-admin.service';
+import { FirebaseAuthService } from '@todos/firebase';
 import { FirebaseAuthGuard } from './firebase-auth.guard';
 
 const mockVerifyIdToken = vi.fn();
 
-const mockFirebaseAdminService = {
-  auth: {
-    verifyIdToken: mockVerifyIdToken,
-  },
+const mockFirebaseAuthService = {
+  verifyIdToken: mockVerifyIdToken,
 };
 
 function buildContext({
@@ -66,8 +64,8 @@ describe('FirebaseAuthGuard', () => {
         FirebaseAuthGuard,
         Reflector,
         {
-          provide: FirebaseAdminService,
-          useValue: mockFirebaseAdminService,
+          provide: FirebaseAuthService,
+          useValue: mockFirebaseAuthService,
         },
       ],
     }).compile();

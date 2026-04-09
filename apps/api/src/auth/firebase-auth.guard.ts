@@ -9,7 +9,7 @@ import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '@todos/shared';
 import type { Request } from 'express';
 import type { DecodedIdToken } from 'firebase-admin/auth';
-import { FirebaseAdminService } from '../firebase/firebase-admin.service';
+import { FirebaseAuthService } from '@todos/firebase';
 
 /**
  * Extends Express Request to carry the decoded Firebase token as the
@@ -32,7 +32,7 @@ export class FirebaseAuthGuard implements CanActivate {
 
   constructor(
     private readonly reflector: Reflector,
-    private readonly firebaseAdmin: FirebaseAdminService,
+    private readonly firebaseAuth: FirebaseAuthService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -53,7 +53,7 @@ export class FirebaseAuthGuard implements CanActivate {
     }
 
     try {
-      const decodedToken = await this.firebaseAdmin.auth.verifyIdToken(token);
+      const decodedToken = await this.firebaseAuth.verifyIdToken(token);
       request.user = decodedToken;
       return true;
     } catch (err: unknown) {

@@ -4,15 +4,13 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
-import { FirebaseAdminService } from '../firebase/firebase-admin.service';
+import { FirebaseAuthService } from '@todos/firebase';
 import { AuthService } from './auth.service';
 
 const mockCreateUser = vi.fn();
 
-const mockFirebaseAdminService = {
-  auth: {
-    createUser: mockCreateUser,
-  },
+const mockFirebaseAuthService = {
+  createUser: mockCreateUser,
 };
 
 describe('AuthService', () => {
@@ -24,7 +22,7 @@ describe('AuthService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
-        { provide: FirebaseAdminService, useValue: mockFirebaseAdminService },
+        { provide: FirebaseAuthService, useValue: mockFirebaseAuthService },
       ],
     }).compile();
 

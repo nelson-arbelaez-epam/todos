@@ -6,13 +6,11 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { FirebaseAuthGuard } from './auth/firebase-auth.guard';
-import { FirebaseAdminService } from './firebase/firebase-admin.service';
 
 @Module({
   imports: [FirebaseModule, HealthModule, AuthModule],
   controllers: [AppController],
   providers: [
-    FirebaseAdminService,
     AppService,
     {
       provide: APP_GUARD,

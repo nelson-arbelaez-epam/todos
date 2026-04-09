@@ -12,7 +12,7 @@ import type {
   RegisterUserDto,
   RegisterUserResponseDto,
 } from '@todos/core/http';
-import { FirebaseAdminService } from '../firebase/firebase-admin.service';
+import { FirebaseAuthService } from '@todos/firebase';
 
 interface FirebaseError {
   code: string;
@@ -50,7 +50,7 @@ function isFirebaseError(err: unknown): err is FirebaseError {
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
-  constructor(private readonly firebaseAdmin: FirebaseAdminService) {}
+  constructor(private readonly firebaseAuth: FirebaseAuthService) {}
 
   /**
    * Creates a new Firebase user with the provided email and password.
@@ -58,7 +58,7 @@ export class AuthService {
    */
   async register(dto: RegisterUserDto): Promise<RegisterUserResponseDto> {
     try {
-      const userRecord = await this.firebaseAdmin.auth.createUser({
+      const userRecord = await this.firebaseAuth.createUser({
         email: dto.email,
         password: dto.password,
       });
