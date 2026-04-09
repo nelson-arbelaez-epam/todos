@@ -1,6 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import type { CreateTodoDto, TodoDto, UpdateTodoDto } from '@todos/core/http';
-import { TodoDtoTransformer } from '@todos/core/http';
+import type {
+  CreateTodoDto,
+  ListTodosQueryDto,
+  TodoDto,
+  TodoListDto,
+  UpdateTodoDto,
+} from '@todos/core/http';
+import { OrderDir, TodoDtoTransformer, TodoOrderBy } from '@todos/core/http';
 import { TodoStoreService } from '@todos/store';
 
 /**
@@ -11,6 +17,47 @@ export class TodosService {
   private readonly transformer = new TodoDtoTransformer();
 
   constructor(private readonly todoStore: TodoStoreService) {}
+
+  /**
+   * Returns a paginated list of active (non-archived) todos owned by the
+   * authenticated user, sorted by the requested field and direction.
+   */
+  async list(
+    ownerId: string,
+    query: ListTodosQueryDto = {},
+  ): Promise<TodoListDto> {
+    const {
+      page = 1,
+      limit = 20,
+      orderBy = TodoOrderBy.CreatedAt,
+      orderDir = OrderDir.Desc,
+    } = query;
+
+    const entities = await this.todoStore.findAll(ownerId, {
+      includeArchived: false,
+    });
+
+    // Apply ordering
+    const toMs = (val: Date | string | undefined): number =>
+      val instanceof Date ? val.getTime() : val ? new Date(val).getTime() : 0;
+
+    const sorted = [...entities].sort((a, b) => {
+      const aVal = toMs(a[orderBy]);
+      const bVal = toMs(b[orderBy]);
+      return orderDir === OrderDir.Asc ? aVal - bVal : bVal - aVal;
+    });
+
+    const total = sorted.length;
+    const offset = (page - 1) * limit;
+    const pageItems = sorted.slice(offset, offset + limit);
+
+    return {
+      items: this.transformer.transformMany(pageItems),
+      total,
+      page,
+      limit,
+    };
+  }
 
   /**
    * Creates a new todo owned by the authenticated user.

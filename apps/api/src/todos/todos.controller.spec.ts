@@ -7,6 +7,7 @@ import { TodosService } from './todos.service';
 const mockTodosService = {
   create: vi.fn(),
   update: vi.fn(),
+  list: vi.fn(),
 };
 
 const mockUser: Partial<DecodedIdToken> = { uid: 'user-123' };
@@ -109,6 +110,74 @@ describe('TodosController', () => {
           title: '',
         } as never),
       ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('list', () => {
+    it('should return a paginated TodoListDto', async () => {
+      const todoListDto = {
+        items: [
+          {
+            id: 'todo-1',
+            title: 'Buy groceries',
+            completed: false,
+            createdAt: new Date('2024-01-01'),
+            updatedAt: new Date('2024-01-01'),
+          },
+          {
+            id: 'todo-2',
+            title: 'Read a book',
+            completed: true,
+            createdAt: new Date('2024-01-02'),
+            updatedAt: new Date('2024-01-02'),
+          },
+        ],
+        total: 2,
+        page: 1,
+        limit: 20,
+      };
+
+      mockTodosService.list.mockResolvedValue(todoListDto);
+
+      const result = await controller.list(
+        mockUser as DecodedIdToken,
+        {} as never,
+      );
+
+      expect(result).toEqual(todoListDto);
+      expect(mockTodosService.list).toHaveBeenCalledWith('user-123', {});
+    });
+
+    it('should forward query params to the service', async () => {
+      const todoListDto = {
+        items: [],
+        total: 0,
+        page: 2,
+        limit: 5,
+      };
+
+      mockTodosService.list.mockResolvedValue(todoListDto);
+
+      const query = { page: 2, limit: 5 } as never;
+      const result = await controller.list(mockUser as DecodedIdToken, query);
+
+      expect(result).toEqual(todoListDto);
+      expect(mockTodosService.list).toHaveBeenCalledWith('user-123', query);
+    });
+
+    it('should return empty items when there are no active todos', async () => {
+      const todoListDto = { items: [], total: 0, page: 1, limit: 20 };
+
+      mockTodosService.list.mockResolvedValue(todoListDto);
+
+      const result = await controller.list(
+        mockUser as DecodedIdToken,
+        {} as never,
+      );
+
+      expect(result.items).toEqual([]);
+      expect(result.total).toBe(0);
+      expect(mockTodosService.list).toHaveBeenCalledWith('user-123', {});
     });
   });
 });
