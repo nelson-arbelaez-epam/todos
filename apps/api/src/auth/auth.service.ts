@@ -2,9 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
-  InternalServerErrorException,
   Logger,
-  UnauthorizedException,
 } from '@nestjs/common';
 import type {
   LoginUserDto,
@@ -12,26 +10,11 @@ import type {
   RegisterUserDto,
   RegisterUserResponseDto,
 } from '@todos/core/http';
-import { FirebaseAdminService } from '../firebase/firebase-admin.service';
+import { FirebaseAuthService } from '@todos/firebase';
 
 interface FirebaseError {
   code: string;
   message: string;
-}
-
-interface FirebaseRestSignInResponse {
-  idToken: string;
-  email: string;
-  refreshToken: string;
-  expiresIn: string;
-  localId: string;
-  registered: boolean;
-}
-
-interface FirebaseRestErrorResponse {
-  error?: {
-    message?: string;
-  };
 }
 
 function isFirebaseError(err: unknown): err is FirebaseError {
@@ -50,7 +33,7 @@ function isFirebaseError(err: unknown): err is FirebaseError {
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
-  constructor(private readonly firebaseAdmin: FirebaseAdminService) {}
+  constructor(private readonly firebaseAuth: FirebaseAuthService) {}
 
   /**
    * Creates a new Firebase user with the provided email and password.
@@ -58,7 +41,7 @@ export class AuthService {
    */
   async register(dto: RegisterUserDto): Promise<RegisterUserResponseDto> {
     try {
-      const userRecord = await this.firebaseAdmin.auth.createUser({
+      const userRecord = await this.firebaseAuth.createUser({
         email: dto.email,
         password: dto.password,
       });
@@ -92,58 +75,6 @@ export class AuthService {
    * Returns the Firebase ID token and relevant metadata.
    */
   async login(dto: LoginUserDto): Promise<LoginUserResponseDto> {
-    const apiKey = process.env.FIREBASE_WEB_API_KEY;
-    if (!apiKey) {
-      this.logger.error('FIREBASE_WEB_API_KEY is not configured');
-      throw new InternalServerErrorException(
-        'Firebase Web API key is not configured',
-      );
-    }
-
-    const url = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`;
-
-    let response: Response;
-    try {
-      response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: dto.email,
-          password: dto.password,
-          returnSecureToken: true,
-        }),
-      });
-    } catch (err: unknown) {
-      this.logger.error('Network error calling Firebase Auth REST API', err);
-      throw err;
-    }
-
-    if (!response.ok) {
-      const errorBody = (await response.json()) as FirebaseRestErrorResponse;
-      const errorCode = errorBody?.error?.message ?? '';
-      this.logger.warn(`Firebase sign-in failed: ${errorCode}`);
-
-      if (
-        errorCode === 'EMAIL_NOT_FOUND' ||
-        errorCode === 'INVALID_PASSWORD' ||
-        errorCode === 'INVALID_LOGIN_CREDENTIALS' ||
-        errorCode === 'USER_DISABLED'
-      ) {
-        throw new UnauthorizedException('Invalid credentials');
-      }
-
-      this.logger.error('Unexpected Firebase Auth error:', errorBody);
-      throw new UnauthorizedException('Authentication failed');
-    }
-
-    const data = (await response.json()) as FirebaseRestSignInResponse;
-    this.logger.log(`User signed in: ${data.localId}`);
-
-    return {
-      idToken: data.idToken,
-      email: data.email,
-      expiresIn: data.expiresIn,
-      uid: data.localId,
-    };
+    return this.firebaseAuth.login(dto);
   }
 }
