@@ -22,6 +22,7 @@ import {
   MCPCreateTodoRequest,
   MCPTodoResponse,
 } from '@todos/core/mcp';
+import { ValidationError } from '@todos/core/validators';
 import { TodosApiService } from './todos.service';
 
 @ApiTags('todos')
@@ -74,7 +75,13 @@ export class TodosController {
     let dto: MCPCreateTodoRequest;
     try {
       dto = await this.validator.validate(body);
-    } catch {
+    } catch (err: unknown) {
+      if (err instanceof ValidationError) {
+        throw new BadRequestException({
+          message: err.message,
+          errors: err.errors,
+        });
+      }
       throw new BadRequestException('Invalid request body');
     }
 

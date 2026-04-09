@@ -87,6 +87,21 @@ describe('TodosController', () => {
       expect(mockTodosApiService.createTodo).not.toHaveBeenCalled();
     });
 
+    it('should include field-level validation errors in BadRequestException', async () => {
+      try {
+        await controller.create('valid-token', { title: '' } as never);
+        expect.fail('Should have thrown');
+      } catch (err) {
+        expect(err).toBeInstanceOf(BadRequestException);
+        const response = (err as BadRequestException).getResponse() as {
+          errors: Record<string, string[]>;
+        };
+        expect(response.errors).toHaveProperty('title');
+      }
+
+      expect(mockTodosApiService.createTodo).not.toHaveBeenCalled();
+    });
+
     it('should throw UnauthorizedException when API returns 401', async () => {
       const err = Object.assign(new Error('Invalid or expired authentication token'), { status: 401 });
       mockTodosApiService.createTodo.mockRejectedValue(err);
