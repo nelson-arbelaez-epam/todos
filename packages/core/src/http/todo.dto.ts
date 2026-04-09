@@ -32,14 +32,17 @@ export class UpdateTodoDto {
   @IsString()
   @IsNotEmpty()
   @Transform(({ value }) => value?.trim())
+  @ApiProperty({ required: false })
   title?: string;
 
   @IsOptional()
   @IsString()
+  @ApiProperty({ required: false })
   description?: string;
 
   @IsOptional()
   @IsBoolean()
+  @ApiProperty({ required: false })
   completed?: boolean;
 }
 
@@ -48,25 +51,32 @@ export class UpdateTodoDto {
  */
 export class TodoDto {
   @IsString()
+  @ApiProperty({ description: 'Unique identifier of the todo' })
   id!: string;
 
   @IsString()
+  @ApiProperty({ description: 'Title of the todo' })
   title!: string;
 
   @IsOptional()
   @IsString()
+  @ApiProperty({ required: false, description: 'Optional description' })
   description?: string;
 
   @IsBoolean()
+  @ApiProperty({ description: 'Whether the todo is completed' })
   completed!: boolean;
 
   @IsOptional()
   @Type(() => Date)
+  @ApiProperty({ required: false, description: 'Timestamp when the todo was archived' })
   archivedAt?: Date;
 
   @Type(() => Date)
+  @ApiProperty({ description: 'Timestamp when the todo was created' })
   createdAt!: Date;
 
   @Type(() => Date)
+  @ApiProperty({ description: 'Timestamp when the todo was last updated' })
   updatedAt!: Date;
 }
