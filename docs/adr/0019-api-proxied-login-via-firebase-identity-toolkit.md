@@ -104,3 +104,15 @@ the Admin SDK key and its exposure is bounded to the server environment.
 - **Token refresh not proxied**: Clients must refresh tokens directly via Firebase SDK or
   the Secure Token REST API. If this creates friction, a `/auth/refresh` proxy endpoint can
   be added under a follow-up ADR.
+
+## Tech Debt
+
+The current implementation places `AuthService.login()` (the auth-proxy coordination logic)
+directly in `apps/api`, which violates the **Apps are Composition-Only** rule in the
+Project Constitution. This was an expedient MVP choice.
+
+**Tracked in [#25](https://github.com/nelson-arbelaez-epam/todos/issues/25)**: the login
+proxy logic must be extracted from `apps/api` and moved into the appropriate package
+boundary (likely `@todos/firebase` as an auth adapter, or a new dedicated auth package)
+so that `apps/api` is reduced back to pure composition and transport wiring.
+
