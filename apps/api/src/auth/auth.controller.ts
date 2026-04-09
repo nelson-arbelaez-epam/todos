@@ -6,6 +6,7 @@ import {
   RegisterUserDto,
   RegisterUserResponseDto,
 } from '@todos/core/http';
+import { Public } from '@todos/shared';
 import { AuthService } from './auth.service';
 
 @ApiTags('auth')
@@ -16,6 +17,7 @@ export class AuthController {
   /**
    * Register a new user with email and password.
    */
+  @Public()
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
   @ApiBody({ type: RegisterUserDto })
