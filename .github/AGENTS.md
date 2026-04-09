@@ -8,9 +8,10 @@ All agents working on this project should:
 
 1. Follow the [Project Constitution](constitution.md)
 2. Adhere to the [Copilot Instructions](copilot-instructions.md)
-3. Use the monorepo structure appropriately
-4. Ensure changes are tested and documented
-5. Maintain backward compatibility where possible
+3. For any `.tsx` or `.jsx` file, enforce the rules in [UI Component Guidelines](instructions/ui-components.instructions.md)
+4. Use the monorepo structure appropriately
+5. Ensure changes are tested and documented
+6. Maintain backward compatibility where possible
 
 ## Bounded Domains
 
