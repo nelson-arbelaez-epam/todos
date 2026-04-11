@@ -7,9 +7,9 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { FirebaseAuthService } from '@todos/firebase';
-import { IS_PUBLIC_KEY } from './public.decorator';
 import type { Request } from 'express';
 import type { DecodedIdToken } from 'firebase-admin/auth';
+import { IS_PUBLIC_KEY } from './public.decorator';
 
 /**
  * Extends Express Request to carry the decoded Firebase token as the
