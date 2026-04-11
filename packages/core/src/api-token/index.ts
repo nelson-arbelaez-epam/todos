@@ -63,6 +63,11 @@ export interface ApiTokenRepository {
    * or belongs to a different owner.
    */
   revoke(ownerUid: string, tokenId: string): Promise<ApiTokenEntity | null>;
+
+  /**
+   * Updates the lastUsedAt timestamp to now (best-effort; failures are ignored by callers).
+   */
+  updateLastUsedAt(tokenId: string): Promise<void>;
 }
 
 export const API_TOKEN_REPOSITORY = Symbol('API_TOKEN_REPOSITORY');

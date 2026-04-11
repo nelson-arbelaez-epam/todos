@@ -9,6 +9,7 @@ const mockApiTokenStore = {
   findByHash: vi.fn(),
   findAllByOwner: vi.fn(),
   revoke: vi.fn(),
+  updateLastUsedAt: vi.fn(),
 };
 
 const ownerUid = 'firebase-uid-123';

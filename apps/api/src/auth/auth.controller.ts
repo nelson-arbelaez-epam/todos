@@ -14,10 +14,10 @@ import {
   RegisterUserDto,
   RegisterUserResponseDto,
 } from '@todos/core/http';
-import type { DecodedIdToken } from 'firebase-admin/auth';
 import { ApiTokenService } from './api-token.service';
 import { AuthService } from './auth.service';
 import { CurrentUser } from './current-user.decorator';
+import type { AuthenticatedPrincipal } from './firebase-auth.guard';
 import { Public } from './public.decorator';
 
 @ApiTags('auth')
@@ -106,7 +106,7 @@ export class AuthController {
     description: 'Missing or invalid Firebase JWT',
   })
   async createToken(
-    @CurrentUser() user: DecodedIdToken,
+    @CurrentUser() user: AuthenticatedPrincipal,
     @Body() dto: CreateApiTokenDto,
   ): Promise<ApiTokenResponseDto> {
     return this.apiTokenService.createToken(user.uid, dto);

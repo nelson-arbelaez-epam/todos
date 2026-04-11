@@ -42,6 +42,13 @@ export class ApiTokenStoreService {
     return this.getRepository().revoke(ownerUid, tokenId);
   }
 
+  /**
+   * Updates the lastUsedAt timestamp (best-effort).
+   */
+  updateLastUsedAt(tokenId: string): Promise<void> {
+    return this.getRepository().updateLastUsedAt(tokenId);
+  }
+
   private getRepository(): ApiTokenRepository {
     if (!this.apiTokenRepository) {
       throw new Error(

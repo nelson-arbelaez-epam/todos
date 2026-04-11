@@ -118,6 +118,15 @@ export class FirebaseApiTokenRepository implements ApiTokenRepository {
     return this.toEntity({ ...data, revokedAt });
   }
 
+  async updateLastUsedAt(tokenId: string): Promise<void> {
+    const collection =
+      this.firestoreService.getCollection<FirestoreApiTokenDocument>(
+        this.collectionPath,
+      );
+
+    await collection.doc(tokenId).update({ lastUsedAt: new Date() });
+  }
+
   private toEntity(data: FirestoreApiTokenDocument): ApiTokenEntity {
     return {
       tokenId: data.tokenId,

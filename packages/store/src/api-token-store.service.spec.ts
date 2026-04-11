@@ -24,6 +24,7 @@ describe('ApiTokenStoreService', () => {
       findByHash: vi.fn(),
       findAllByOwner: vi.fn(),
       revoke: vi.fn(),
+      updateLastUsedAt: vi.fn(),
     };
 
     const service = new ApiTokenStoreService(repository);
@@ -47,6 +48,7 @@ describe('ApiTokenStoreService', () => {
       findByHash: vi.fn().mockResolvedValue(mockEntity),
       findAllByOwner: vi.fn(),
       revoke: vi.fn(),
+      updateLastUsedAt: vi.fn(),
     };
 
     const service = new ApiTokenStoreService(repository);
@@ -62,6 +64,7 @@ describe('ApiTokenStoreService', () => {
       findByHash: vi.fn(),
       findAllByOwner: vi.fn().mockResolvedValue([mockEntity]),
       revoke: vi.fn(),
+      updateLastUsedAt: vi.fn(),
     };
 
     const service = new ApiTokenStoreService(repository);
@@ -81,6 +84,7 @@ describe('ApiTokenStoreService', () => {
       findByHash: vi.fn(),
       findAllByOwner: vi.fn(),
       revoke: vi.fn().mockResolvedValue(revokedEntity),
+      updateLastUsedAt: vi.fn(),
     };
 
     const service = new ApiTokenStoreService(repository);
@@ -88,6 +92,21 @@ describe('ApiTokenStoreService', () => {
 
     expect(result).toEqual(revokedEntity);
     expect(repository.revoke).toHaveBeenCalledWith(ownerUid, tokenId);
+  });
+
+  it('delegates updateLastUsedAt to repository', async () => {
+    const repository: ApiTokenRepository = {
+      create: vi.fn(),
+      findByHash: vi.fn(),
+      findAllByOwner: vi.fn(),
+      revoke: vi.fn(),
+      updateLastUsedAt: vi.fn().mockResolvedValue(undefined),
+    };
+
+    const service = new ApiTokenStoreService(repository);
+    await service.updateLastUsedAt(tokenId);
+
+    expect(repository.updateLastUsedAt).toHaveBeenCalledWith(tokenId);
   });
 
   it('throws when repository is not configured', () => {
