@@ -4,12 +4,19 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
+import type { ApiTokenResponseDto } from '@todos/core/http';
+import type { DecodedIdToken } from 'firebase-admin/auth';
+import { ApiTokenService } from './api-token.service';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 
 const mockAuthService = {
   register: vi.fn(),
   login: vi.fn(),
+};
+
+const mockApiTokenService = {
+  createToken: vi.fn(),
 };
 
 describe('AuthController', () => {
@@ -20,7 +27,10 @@ describe('AuthController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
-      providers: [{ provide: AuthService, useValue: mockAuthService }],
+      providers: [
+        { provide: AuthService, useValue: mockAuthService },
+        { provide: ApiTokenService, useValue: mockApiTokenService },
+      ],
     }).compile();
 
     authController = module.get<AuthController>(AuthController);
@@ -103,6 +113,50 @@ describe('AuthController', () => {
 
       await expect(authController.login(dto)).rejects.toThrow(
         BadRequestException,
+      );
+    });
+  });
+
+  describe('createToken', () => {
+    const mockUser = { uid: 'firebase-uid-123' } as DecodedIdToken;
+
+    it('should return the token response on successful creation', async () => {
+      const dto = {
+        label: 'MCP server – production',
+        scopes: ['todos:read' as const, 'todos:write' as const],
+      };
+      const expected: ApiTokenResponseDto = {
+        tokenId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+        token: 'todos_abc123',
+        label: 'MCP server – production',
+        scopes: ['todos:read', 'todos:write'],
+        createdAt: '2026-04-11T13:00:00.000Z',
+        expiresAt: '2027-04-11T13:00:00.000Z',
+      };
+
+      mockApiTokenService.createToken.mockResolvedValue(expected);
+
+      const result = await authController.createToken(mockUser, dto);
+
+      expect(result).toEqual(expected);
+      expect(mockApiTokenService.createToken).toHaveBeenCalledWith(
+        mockUser.uid,
+        dto,
+      );
+    });
+
+    it('should propagate errors from ApiTokenService', async () => {
+      const dto = {
+        label: 'Test token',
+        scopes: ['todos:read' as const],
+      };
+
+      mockApiTokenService.createToken.mockRejectedValue(
+        new Error('Firestore unavailable'),
+      );
+
+      await expect(authController.createToken(mockUser, dto)).rejects.toThrow(
+        'Firestore unavailable',
       );
     });
   });

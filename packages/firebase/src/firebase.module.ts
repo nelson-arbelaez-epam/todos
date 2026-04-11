@@ -1,5 +1,5 @@
 import { Global, Module } from '@nestjs/common';
-import { TODO_REPOSITORY } from '@todos/core';
+import { API_TOKEN_REPOSITORY, TODO_REPOSITORY } from '@todos/core';
 import {
   App,
   applicationDefault,
@@ -13,6 +13,7 @@ import {
   FIREBASE_ADMIN_APP,
   FIREBASE_MODULE_OPTIONS,
 } from './firebase.constants';
+import { FirebaseApiTokenRepository } from './firebase-api-token.repository';
 import { FirebaseAuthService } from './firebase-auth.service';
 import { FirebaseFirestoreService } from './firebase-firestore.service';
 import type { FirebaseModuleOptions } from './firebase-module-options';
@@ -27,6 +28,8 @@ const defaultFirebaseOptionsProvider = {
       process.env.FIREBASE_TODOS_COLLECTION ??
       process.env.FIRESTORE_TODOS_COLLECTION ??
       'todos',
+    apiTokensCollectionPath:
+      process.env.FIREBASE_API_TOKENS_COLLECTION ?? 'api_tokens',
     appOptions: {
       projectId: process.env.FIREBASE_PROJECT_ID,
       databaseURL: process.env.FIREBASE_DATABASE_URL,
@@ -109,6 +112,11 @@ const firebaseAdminAppProvider = {
       provide: TODO_REPOSITORY,
       useExisting: FirebaseTodoRepository,
     },
+    FirebaseApiTokenRepository,
+    {
+      provide: API_TOKEN_REPOSITORY,
+      useExisting: FirebaseApiTokenRepository,
+    },
   ],
   exports: [
     FIREBASE_MODULE_OPTIONS,
@@ -118,6 +126,8 @@ const firebaseAdminAppProvider = {
     FirebaseFirestoreService,
     FirebaseTodoRepository,
     TODO_REPOSITORY,
+    FirebaseApiTokenRepository,
+    API_TOKEN_REPOSITORY,
   ],
 })
 export class FirebaseModule {}

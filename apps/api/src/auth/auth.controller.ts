@@ -1,18 +1,32 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import {
+  ApiTokenResponseDto,
+  CreateApiTokenDto,
   LoginUserDto,
   LoginUserResponseDto,
   RegisterUserDto,
   RegisterUserResponseDto,
 } from '@todos/core/http';
+import type { DecodedIdToken } from 'firebase-admin/auth';
+import { ApiTokenService } from './api-token.service';
 import { AuthService } from './auth.service';
+import { CurrentUser } from './current-user.decorator';
 import { Public } from './public.decorator';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly apiTokenService: ApiTokenService,
+  ) {}
 
   /**
    * Register a new user with email and password.
@@ -63,5 +77,38 @@ export class AuthController {
   })
   async login(@Body() dto: LoginUserDto): Promise<LoginUserResponseDto> {
     return this.authService.login(dto);
+  }
+
+  /**
+   * Issue a new long-lived API token for the authenticated user.
+   * The raw token value is returned exactly once in the response body.
+   */
+  @ApiBearerAuth('firebase-jwt')
+  @Post('tokens')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiBody({ type: CreateApiTokenDto })
+  @ApiOperation({
+    summary: 'Issue a new long-lived API token (requires Firebase JWT)',
+  })
+  @ApiResponse({
+    status: 201,
+    description:
+      'Token issued successfully. The raw token is returned once – store it securely.',
+    type: ApiTokenResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description:
+      'Invalid request payload (missing label, invalid scopes, etc.)',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Missing or invalid Firebase JWT',
+  })
+  async createToken(
+    @CurrentUser() user: DecodedIdToken,
+    @Body() dto: CreateApiTokenDto,
+  ): Promise<ApiTokenResponseDto> {
+    return this.apiTokenService.createToken(user.uid, dto);
   }
 }

@@ -26,6 +26,8 @@ export interface ApiTokenEntity {
 }
 
 export interface CreateApiTokenInput {
+  /** UUID v4; used as the Firestore document ID */
+  tokenId: string;
   ownerUid: string;
   label: string;
   scopes: ApiTokenScope[];
