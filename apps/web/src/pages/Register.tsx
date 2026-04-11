@@ -1,21 +1,24 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RegisterForm } from '../components/organisms/RegisterForm/RegisterForm';
-import { useRegister } from '../hooks/useRegister';
+import { useSessionStore } from '../store/session-store';
 
 /**
- * Register page – container component that wires useRegister hook to RegisterForm.
- * On successful registration, redirects to the login page.
+ * Register page – container component that wires session-store state/actions to RegisterForm.
+ * On successful registration, redirects to the app home.
  */
 const Register = () => {
-  const { isLoading, error, registeredUser, register } = useRegister();
+  const isLoading = useSessionStore((state) => state.isLoading);
+  const error = useSessionStore((state) => state.error);
+  const currentUser = useSessionStore((state) => state.currentUser);
+  const register = useSessionStore((state) => state.register);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (registeredUser) {
-      navigate('/login?registered=true', { replace: true });
+    if (currentUser) {
+      navigate('/', { replace: true });
     }
-  }, [registeredUser, navigate]);
+  }, [currentUser, navigate]);
 
   return (
     <div style={{ padding: '48px 16px' }}>

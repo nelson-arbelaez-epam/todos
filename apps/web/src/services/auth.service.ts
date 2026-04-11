@@ -4,17 +4,8 @@ import type {
 } from '@todos/core/http';
 
 // VITE_ prefix is required for Vite to expose the variable in the browser bundle.
-// The semantic name TODOS_API_URL matches the convention used by other consumers
-// (e.g. apps/mcp uses process.env.TODOS_API_URL).
 const API_BASE_URL =
   import.meta.env.VITE_TODOS_API_URL ?? 'http://localhost:3000';
-
-/** Mirrors Pick<RegisterUserDto, 'email' | 'password'> so the web layer stays
- *  in sync with the server-side DTO contract at compile time. */
-export type RegisterPayload = Pick<RegisterUserDto, 'email' | 'password'>;
-
-/** Alias for the canonical server-side response shape from @todos/core. */
-export type RegisterResponse = RegisterUserResponseDto;
 
 /**
  * Minimal subset of the NestJS global-exception-filter response envelope.
@@ -31,8 +22,8 @@ interface ApiError {
  * Throws an error with a user-friendly message on failure.
  */
 export async function registerUser(
-  payload: RegisterPayload,
-): Promise<RegisterResponse> {
+  payload: RegisterUserDto,
+): Promise<RegisterUserResponseDto> {
   const response = await fetch(`${API_BASE_URL}/api/v1/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -50,5 +41,5 @@ export async function registerUser(
     throw new Error(message);
   }
 
-  return response.json() as Promise<RegisterResponse>;
+  return response.json() as Promise<RegisterUserResponseDto>;
 }
