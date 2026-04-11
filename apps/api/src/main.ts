@@ -1,9 +1,9 @@
+import { readFileSync } from 'node:fs';
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './global-exception.filter';
-import { getSharedFaviconDataUri } from './swagger-favicon';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -32,7 +32,11 @@ async function bootstrap() {
     )
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  const sharedFavicon = getSharedFaviconDataUri();
+  const todosFaviconSvg = readFileSync(
+    require.resolve('@todos/core/branding/favicon.svg'),
+    'utf8',
+  );
+  const sharedFavicon = `data:image/svg+xml;utf8,${encodeURIComponent(todosFaviconSvg)}`;
   SwaggerModule.setup('api', app, document, {
     customfavIcon: sharedFavicon,
   });

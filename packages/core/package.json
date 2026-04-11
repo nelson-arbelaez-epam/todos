@@ -6,6 +6,7 @@
   "types": "dist/index.d.ts",
   "exports": {
     ".": "./dist/index.js",
+    "./branding/favicon.svg": "./src/branding/favicon.svg",
     "./http": "./dist/http/index.js",
     "./mcp": "./dist/mcp/index.js",
     "./transformers": "./dist/transformers/index.js",
