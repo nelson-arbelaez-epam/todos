@@ -9,6 +9,7 @@ This document outlines the core principles, standards, and guidelines for the To
 - **API Consistency**: All APIs follow RESTful principles with consistent error handling and response formats.
 - **API Documentation**: All API applications must integrate Swagger/OpenAPI for automatic documentation generation and endpoint exposure.
 - **DTO Documentation Contract**: API transport DTOs (request/response models exposed by endpoints) must use Swagger decorators to produce complete OpenAPI schemas. Keep domain DTO primitives in `@todos/core` framework-agnostic.
+- **Transport DTO Reuse Contract**: App and package boundaries that consume HTTP transport contracts must use DTOs exported by `@todos/core/http` directly. Do not redefine or derive transport payload types with `Pick`, `Omit`, `Partial`, or ad hoc interfaces when compile-time breakage on contract changes is desired. UI-only local form/view models may exist before mapping into canonical DTOs.
 
 ## Package Responsibilities
 
@@ -94,6 +95,8 @@ Rules:
 
 Formalised in [ADR 0021](../docs/adr/0021-ui-architecture-atomic-design-postcss-tailwind.md). The rules below apply to all UI code in `apps/web` and `apps/mobile`.
 
+Session context state management is formalised in [ADR 0024](../docs/adr/0024-session-state-management-for-ui-session-context.md).
+
 ### Component Isolation
 
 Components are split into two categories with strict boundaries:
@@ -131,6 +134,15 @@ Import direction is strictly top-down: atoms ← molecules ← organisms ← tem
 - The current `apps/web/src/pages/` directory maps to the *Pages* level. New shared components are placed in the appropriate `src/components/<level>/` subfolder.
 - PostCSS and CSS Modules are already available in the Vite setup; no additional tooling is required to start. Tailwind requires a one-time install (`tailwind`, `postcss`, `autoprefixer`) tracked in a dedicated PBI.
 
+### UI Session State Standard
+
+- **Zustand is the default for global UI session context** (auth status, session hydration, and current-user session snapshot).
+- **Session stores are the UI-facing auth API**; components should consume selector-based actions such as `register`, `login`, `logout`, and `hydrateSession` from the store.
+- **HTTP transport stays in service/client modules** called by the session store; do not collapse raw fetch logic into presentational components or make transport code the session source of truth.
+- **TanStack Query is for server-state management**, not the source of truth for local auth/session lifecycle transitions.
+- **Redux Toolkit requires an ADR-approved exception** when justified by cross-domain global-state complexity.
+- **The same session-state rule applies to `apps/web` and `apps/mobile`**; platform-specific persistence may differ, but the store boundary and direct DTO usage rules do not.
+
 ### UI Adoption Checklist
 
 Use this checklist when reviewing or creating UI code in PRs:
@@ -141,6 +153,7 @@ Use this checklist when reviewing or creating UI code in PRs:
 - [ ] Component styles use CSS Modules or Tailwind utility classes; no ad-hoc inline `style` props for layout/theme values.
 - [ ] New design token values are added to the `:root` CSS custom property block (and mirrored in `tailwind.config.js` once Tailwind is adopted).
 - [ ] Cross-app domain types go in `@todos/core`; UI-only types go in `src/types/`.
+- [ ] Service/store transport boundaries use canonical DTOs from `@todos/core/http` directly rather than `Pick`/`Omit`-derived aliases.
 - [ ] Each new component has a corresponding unit test (Vitest + React Testing Library for web; React Native Testing Library for mobile).
 
 ## AI Consistency Rules
