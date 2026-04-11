@@ -1,16 +1,27 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
+import type {
+  RegisterUserDto,
+  RegisterUserResponseDto,
+} from '@todos/core/http';
 
-export interface RegisterPayload {
-  email: string;
-  password: string;
-}
+// VITE_ prefix is required for Vite to expose the variable in the browser bundle.
+// The semantic name TODOS_API_URL matches the convention used by other consumers
+// (e.g. apps/mcp uses process.env.TODOS_API_URL).
+const API_BASE_URL =
+  import.meta.env.VITE_TODOS_API_URL ?? 'http://localhost:3000';
 
-export interface RegisterResponse {
-  uid: string;
-  email: string;
-}
+/** Mirrors Pick<RegisterUserDto, 'email' | 'password'> so the web layer stays
+ *  in sync with the server-side DTO contract at compile time. */
+export type RegisterPayload = Pick<RegisterUserDto, 'email' | 'password'>;
 
-export interface ApiError {
+/** Alias for the canonical server-side response shape from @todos/core. */
+export type RegisterResponse = RegisterUserResponseDto;
+
+/**
+ * Minimal subset of the NestJS global-exception-filter response envelope.
+ * Kept local because it is only used inside this module to parse error bodies.
+ * If more consumers need it, promote to @todos/core/http as a shared type.
+ */
+interface ApiError {
   message: string;
   statusCode: number;
 }
