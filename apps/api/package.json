@@ -28,6 +28,7 @@
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/swagger": "^8.0.0",
+    "@todos/branding": "workspace:*",
     "@todos/core": "workspace:*",
     "@todos/firebase": "workspace:*",
     "@todos/store": "workspace:*",

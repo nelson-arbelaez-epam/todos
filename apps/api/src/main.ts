@@ -33,7 +33,7 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
   const todosFaviconSvg = readFileSync(
-    require.resolve('@todos/core/branding/favicon.svg'),
+    require.resolve('@todos/branding/favicon.svg'),
     'utf8',
   );
   const sharedFavicon = `data:image/svg+xml;utf8,${encodeURIComponent(todosFaviconSvg)}`;

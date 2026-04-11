@@ -1,0 +1,15 @@
+{
+  "name": "@todos/branding",
+  "version": "0.0.1",
+  "description": "Shared branding assets and design tokens for Todos apps",
+  "private": true,
+  "license": "UNLICENSED",
+  "exports": {
+    "./favicon.svg": "./src/favicon.svg",
+    "./tokens.css": "./src/tokens.css"
+  },
+  "scripts": {
+    "build": "echo \"@todos/branding has no build step\"",
+    "dev": "echo \"@todos/branding has no dev watch\""
+  }
+}

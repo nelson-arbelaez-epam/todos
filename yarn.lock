@@ -3723,6 +3723,7 @@ __metadata:
     "@nestjs/schematics": "npm:^11.0.0"
     "@nestjs/swagger": "npm:^8.0.0"
     "@nestjs/testing": "npm:^11.0.1"
+    "@todos/branding": "workspace:*"
     "@todos/core": "workspace:*"
     "@todos/firebase": "workspace:*"
     "@todos/store": "workspace:*"
@@ -3743,6 +3744,12 @@ __metadata:
     typescript: "npm:^5.7.3"
     unplugin-swc: "npm:^1.5.9"
     vitest: "npm:latest"
+  languageName: unknown
+  linkType: soft
+
+"@todos/branding@workspace:*, @todos/branding@workspace:packages/branding":
+  version: 0.0.0-use.local
+  resolution: "@todos/branding@workspace:packages/branding"
   languageName: unknown
   linkType: soft
 
@@ -3811,6 +3818,7 @@ __metadata:
   resolution: "@todos/mobile@workspace:apps/mobile"
   dependencies:
     "@testing-library/react-native": "npm:~12.4.3"
+    "@todos/branding": "workspace:*"
     "@types/react": "npm:~18.2.45"
     "@types/react-native": "npm:~0.73.0"
     expo: "npm:~54.0.33"
@@ -3844,7 +3852,7 @@ __metadata:
   resolution: "@todos/web@workspace:apps/web"
   dependencies:
     "@biomejs/biome": "npm:latest"
-    "@todos/core": "workspace:*"
+    "@todos/branding": "workspace:*"
     "@types/node": "npm:^24.12.0"
     "@types/react": "npm:^19.2.14"
     "@types/react-dom": "npm:^19.2.3"

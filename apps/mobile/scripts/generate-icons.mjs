@@ -1,15 +1,14 @@
 import { mkdir } from 'node:fs/promises';
+import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+const require = createRequire(import.meta.url);
 
-const sourceSvgPath = resolve(
-  __dirname,
-  '../../../packages/core/src/branding/favicon.svg',
-);
+const sourceSvgPath = require.resolve('@todos/branding/favicon.svg');
 const assetsDir = resolve(__dirname, '../assets');
 
 const targets = [
@@ -32,7 +31,7 @@ async function generate() {
     }),
   );
 
-  console.log('Generated mobile icons from core branding SVG.');
+  console.log('Generated mobile icons from branding package SVG.');
 }
 
 generate().catch((error) => {

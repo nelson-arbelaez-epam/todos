@@ -1,4 +1,5 @@
-import sharedFaviconUrl from '@todos/core/branding/favicon.svg?url';
+import sharedFaviconUrl from '@todos/branding/favicon.svg?url';
+import '@todos/branding/tokens.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
