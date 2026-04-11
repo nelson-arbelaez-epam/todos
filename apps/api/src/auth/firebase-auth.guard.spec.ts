@@ -2,8 +2,8 @@ import { UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { FirebaseAuthService } from '@todos/firebase';
-import { IS_PUBLIC_KEY } from '@todos/shared';
 import { FirebaseAuthGuard } from './firebase-auth.guard';
+import { IS_PUBLIC_KEY } from './public.decorator';
 
 const mockVerifyIdToken = vi.fn();
 
@@ -204,7 +204,7 @@ describe('FirebaseAuthGuard', () => {
   });
 
   describe('IS_PUBLIC_KEY metadata check', () => {
-    it('uses IS_PUBLIC_KEY constant from @todos/shared', () => {
+    it('uses IS_PUBLIC_KEY constant', () => {
       expect(IS_PUBLIC_KEY).toBe('isPublic');
     });
   });

@@ -3,6 +3,12 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "generate:icons": "node ./scripts/generate-icons.mjs",
+    "prebuild": "yarn generate:icons",
+    "prestart": "yarn generate:icons",
+    "preandroid": "yarn generate:icons",
+    "preios": "yarn generate:icons",
+    "preweb": "yarn generate:icons",
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
@@ -16,9 +22,11 @@
   },
   "devDependencies": {
     "@testing-library/react-native": "~12.4.3",
+    "@todos/branding": "workspace:*",
     "@types/react": "~18.2.45",
     "@types/react-native": "~0.73.0",
     "react-test-renderer": "19.1.0",
+    "sharp": "^0.34.4",
     "typescript": "^5.7.3"
   },
   "private": true

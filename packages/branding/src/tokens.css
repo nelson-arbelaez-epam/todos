@@ -1,0 +1,17 @@
+:root {
+  --todos-color-brand-700: #155e75;
+  --todos-color-brand-600: #0f766e;
+  --todos-color-brand-100: #e6fffb;
+  --todos-color-surface: #f8fafc;
+  --todos-color-text: #0f172a;
+
+  --todos-radius-sm: 6px;
+  --todos-radius-md: 10px;
+  --todos-radius-lg: 14px;
+
+  --todos-space-1: 4px;
+  --todos-space-2: 8px;
+  --todos-space-3: 12px;
+  --todos-space-4: 16px;
+  --todos-space-6: 24px;
+}

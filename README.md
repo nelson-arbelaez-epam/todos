@@ -66,11 +66,10 @@ yarn workspace @todos/mcp test
 
 ### Build required packages before testing (if needed)
 
-Some packages (e.g. `@todos/api`) depend on built artifacts from `@todos/core` and `@todos/shared`:
+Some packages (e.g. `@todos/api`) depend on built artifacts from `@todos/core`:
 
 ```bash
 yarn workspace @todos/core build
-yarn workspace @todos/shared build
 ```
 
 ---
@@ -83,7 +82,7 @@ Pull requests and pushes to `main` are automatically tested by the **CI** GitHub
 
 1. Checks out the repository.
 2. Installs dependencies with `yarn install --immutable`.
-3. Builds `@todos/core` and `@todos/shared` (required by dependent packages).
+3. Builds `@todos/core` (required by dependent packages).
 4. Runs the full test suite with `yarn test`.
 
 ### Required Status Checks (Branch Protection)

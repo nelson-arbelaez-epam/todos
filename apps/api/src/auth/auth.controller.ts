@@ -6,8 +6,8 @@ import {
   RegisterUserDto,
   RegisterUserResponseDto,
 } from '@todos/core/http';
-import { Public } from '@todos/shared';
 import { AuthService } from './auth.service';
+import { Public } from './public.decorator';
 
 @ApiTags('auth')
 @Controller('auth')
