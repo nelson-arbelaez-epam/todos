@@ -15,6 +15,7 @@
   "scripts": {
     "build": "tsc",
     "build:dev": "tsc --watch",
+    "dev": "yarn build:dev",
     "test": "vitest run --config vitest.config.ts",
     "test:watch": "vitest --config vitest.config.ts --watch"
   },

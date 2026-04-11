@@ -11,6 +11,7 @@
     "prestart:dev": "yarn workspace @todos/core build",
     "prestart:debug": "yarn workspace @todos/core build",
     "build": "nest build",
+    "dev": "yarn start:dev",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
