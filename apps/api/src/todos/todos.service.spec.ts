@@ -9,6 +9,7 @@ const mockTodoStoreService = {
   create: vi.fn(),
   update: vi.fn(),
   findAll: vi.fn(),
+  archive: vi.fn(),
 };
 
 describe('TodosService', () => {
@@ -303,6 +304,53 @@ describe('TodosService', () => {
       );
 
       await expect(service.list('owner-1')).rejects.toThrow('Storage failure');
+    });
+  });
+
+  describe('archive', () => {
+    it('should archive a todo and return a TodoDto with archivedAt set', async () => {
+      const archivedAt = new Date('2024-02-01');
+      const entity: TodoEntity = {
+        id: 'todo-1',
+        title: 'Buy groceries',
+        completed: false,
+        archivedAt,
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-02-01'),
+      };
+
+      mockTodoStoreService.archive.mockResolvedValue(entity);
+
+      const result = await service.archive('owner-1', 'todo-1');
+
+      expect(result.id).toBe('todo-1');
+      expect(result.archivedAt).toEqual(archivedAt);
+      expect(mockTodoStoreService.archive).toHaveBeenCalledWith(
+        'owner-1',
+        'todo-1',
+      );
+    });
+
+    it('should throw NotFoundException when todo is not found', async () => {
+      mockTodoStoreService.archive.mockResolvedValue(null);
+
+      await expect(service.archive('owner-1', 'todo-999')).rejects.toThrow(
+        NotFoundException,
+      );
+
+      await expect(service.archive('owner-1', 'todo-999')).rejects.toThrow(
+        'Todo with id "todo-999" not found',
+      );
+    });
+
+    it('should propagate errors from the store', async () => {
+      mockTodoStoreService.archive.mockRejectedValue(
+        new Error('Storage failure'),
+      );
+
+      await expect(service.archive('owner-1', 'todo-1')).rejects.toThrow(
+        'Storage failure',
+      );
     });
   });
 });
