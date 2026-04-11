@@ -73,6 +73,12 @@ export class McpServerService {
         description:
           'List active (non-archived) todo items from the Todos API.',
         inputSchema: {
+          page: z
+            .number()
+            .int()
+            .positive()
+            .optional()
+            .describe('Page number for pagination (default: 1)'),
           limit: z
             .number()
             .int()
@@ -89,9 +95,10 @@ export class McpServerService {
             .describe('Sort direction (default: desc)'),
         },
       },
-      async ({ limit, orderBy, orderDir }) => {
+      async ({ page, limit, orderBy, orderDir }) => {
         try {
           const result = await this.todosApiService.listTodos(apiToken, {
+            page,
             limit,
             orderBy,
             orderDir,

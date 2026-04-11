@@ -57,13 +57,16 @@ export class TodosApiService {
    * Lists active (non-archived) todos via the Todos API, authenticated with the provided token.
    *
    * @param apiToken - Bearer token forwarded from the client (not logged in plain text)
-   * @param params - Optional query parameters (limit, orderBy, orderDir)
+   * @param params - Optional query parameters (page, limit, orderBy, orderDir)
    */
   async listTodos(
     apiToken: string,
-    params?: { limit?: number; orderBy?: string; orderDir?: string },
+    params?: { page?: number; limit?: number; orderBy?: string; orderDir?: string },
   ): Promise<MCPTodoListResponse> {
     const url = new URL(`${this.apiBaseUrl}/api/v1/todos`);
+    if (params?.page != null) {
+      url.searchParams.set('page', String(params.page));
+    }
     if (params?.limit != null) {
       url.searchParams.set('limit', String(params.limit));
     }

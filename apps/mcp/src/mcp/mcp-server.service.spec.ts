@@ -99,6 +99,7 @@ describe('McpServerService', () => {
       expect(result.content[0].type).toBe('text');
       expect(JSON.parse(result.content[0].text)).toEqual(mockListResult);
       expect(mockTodosApiService.listTodos).toHaveBeenCalledWith('test-token', {
+        page: undefined,
         limit: undefined,
         orderBy: undefined,
         orderDir: undefined,
@@ -124,9 +125,10 @@ describe('McpServerService', () => {
       mockTodosApiService.listTodos.mockResolvedValue(mockListResult);
 
       const handler = getListTodosHandler();
-      await handler({ limit: 5, orderBy: 'updatedAt', orderDir: 'asc' });
+      await handler({ page: 2, limit: 5, orderBy: 'updatedAt', orderDir: 'asc' });
 
       expect(mockTodosApiService.listTodos).toHaveBeenCalledWith('test-token', {
+        page: 2,
         limit: 5,
         orderBy: 'updatedAt',
         orderDir: 'asc',
