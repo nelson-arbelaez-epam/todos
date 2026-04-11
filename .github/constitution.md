@@ -47,6 +47,44 @@ This document outlines the core principles, standards, and guidelines for the To
 - **Performance**: Optimize for performance and scalability.
 - **Test Coverage**: Maintain 90% unit test coverage and at least 50% integration test coverage in all commits.
 
+## API Module Architecture
+
+Formalised in [ADR 0023](../docs/adr/0023-api-http-module-separation.md). The rules below apply to all feature modules inside `apps/api/src/`.
+
+### HTTP vs Application Logic Separation
+
+Each feature module separates HTTP-transport artefacts from application-logic artefacts using a dedicated `http/` subdirectory:
+
+```
+apps/api/src/<feature>/
+  <feature>.module.ts          ← NestJS module wiring
+  <feature>.service.ts         ← application logic
+  <feature>.service.spec.ts
+  http/
+    <feature>-http.module.ts   ← registers controllers for this feature
+    <feature>.controller.ts    ← HTTP route handlers, Swagger decorators, request/response mapping
+    <feature>.controller.spec.ts
+```
+
+HTTP transport artefacts (controllers, guards, parameter decorators) that are shared across multiple feature modules live in `apps/api/src/shared/http/`.
+
+### Naming Conventions for API Modules
+
+| Artefact | Convention | Example |
+| --- | --- | --- |
+| HTTP submodule | `<feature>-http.module.ts` | `auth-http.module.ts` |
+| Shared HTTP module | `shared-http.module.ts` | `shared-http.module.ts` |
+| Controller | `<resource>.controller.ts` | `auth.controller.ts` |
+| Guard | `<name>.guard.ts` | `firebase-auth.guard.ts` |
+| Decorator | `<name>.decorator.ts` | `current-user.decorator.ts` |
+| Application service | `<feature>.service.ts` | `auth.service.ts` |
+
+Rules:
+- Controllers, guards, and parameter decorators live in `http/` (feature-scoped) or `shared/http/` (cross-feature).
+- Application services live at the module root, not inside `http/`.
+- Module wiring files (`*.module.ts`) live at the module root.
+- New feature modules must follow this pattern from the outset; existing modules migrate incrementally per the plan in ADR 0023.
+
 ## UI Architecture
 
 Formalised in [ADR 0021](../docs/adr/0021-ui-architecture-atomic-design-postcss-tailwind.md). The rules below apply to all UI code in `apps/web` and `apps/mobile`.
