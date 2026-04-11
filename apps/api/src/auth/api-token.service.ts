@@ -1,8 +1,8 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import type { ApiTokenRepository, CreateApiTokenInput } from '@todos/core';
-import { API_TOKEN_REPOSITORY } from '@todos/core';
+import { Injectable, Logger } from '@nestjs/common';
+import type { CreateApiTokenInput } from '@todos/core';
 import type { ApiTokenResponseDto, CreateApiTokenDto } from '@todos/core/http';
+import { ApiTokenStoreService } from '@todos/store';
 
 /** Default token lifetime when the caller does not specify one. */
 const DEFAULT_EXPIRES_IN_DAYS = 365;
@@ -20,10 +20,7 @@ const TOKEN_PREFIX = 'todos_';
 export class ApiTokenService {
   private readonly logger = new Logger(ApiTokenService.name);
 
-  constructor(
-    @Inject(API_TOKEN_REPOSITORY)
-    private readonly tokenRepository: ApiTokenRepository,
-  ) {}
+  constructor(private readonly apiTokenStore: ApiTokenStoreService) {}
 
   /**
    * Issues a new long-lived API token for the authenticated user.
@@ -50,7 +47,7 @@ export class ApiTokenService {
       expiresAt,
     };
 
-    const entity = await this.tokenRepository.create(input);
+    const entity = await this.apiTokenStore.create(input);
 
     this.logger.log(
       `API token issued: tokenId=${entity.tokenId} ownerUid=${entity.ownerUid} label="${entity.label}" scopes=${JSON.stringify(entity.scopes)} expiresAt=${entity.expiresAt ?? 'never'}`,

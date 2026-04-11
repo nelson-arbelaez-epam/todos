@@ -1,10 +1,10 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 import type { ApiTokenEntity } from '@todos/core';
-import { API_TOKEN_REPOSITORY } from '@todos/core';
 import type { CreateApiTokenDto } from '@todos/core/http';
+import { ApiTokenStoreService } from '@todos/store';
 import { ApiTokenService } from './api-token.service';
 
-const mockTokenRepository = {
+const mockApiTokenStore = {
   create: vi.fn(),
   findByHash: vi.fn(),
   findAllByOwner: vi.fn(),
@@ -34,7 +34,7 @@ describe('ApiTokenService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ApiTokenService,
-        { provide: API_TOKEN_REPOSITORY, useValue: mockTokenRepository },
+        { provide: ApiTokenStoreService, useValue: mockApiTokenStore },
       ],
     }).compile();
 
@@ -43,7 +43,7 @@ describe('ApiTokenService', () => {
 
   describe('createToken', () => {
     it('should return an ApiTokenResponseDto with the raw token on success', async () => {
-      mockTokenRepository.create.mockResolvedValue(mockEntity);
+      mockApiTokenStore.create.mockResolvedValue(mockEntity);
 
       const dto: CreateApiTokenDto = {
         label: 'MCP server – production',
@@ -61,8 +61,8 @@ describe('ApiTokenService', () => {
       expect(result.token).toMatch(/^todos_/);
     });
 
-    it('should pass a tokenId, ownerUid, label, scopes, tokenHash, and expiresAt to the repository', async () => {
-      mockTokenRepository.create.mockResolvedValue(mockEntity);
+    it('should pass a tokenId, ownerUid, label, scopes, tokenHash, and expiresAt to the store', async () => {
+      mockApiTokenStore.create.mockResolvedValue(mockEntity);
 
       const dto: CreateApiTokenDto = {
         label: 'Test token',
@@ -72,8 +72,8 @@ describe('ApiTokenService', () => {
 
       await service.createToken(ownerUid, dto);
 
-      expect(mockTokenRepository.create).toHaveBeenCalledOnce();
-      const input = mockTokenRepository.create.mock.calls[0][0];
+      expect(mockApiTokenStore.create).toHaveBeenCalledOnce();
+      const input = mockApiTokenStore.create.mock.calls[0][0];
 
       expect(input.tokenId).toBeTruthy();
       expect(input.ownerUid).toBe(ownerUid);
@@ -87,7 +87,7 @@ describe('ApiTokenService', () => {
     });
 
     it('should store SHA-256 hash, not the raw token', async () => {
-      mockTokenRepository.create.mockResolvedValue(mockEntity);
+      mockApiTokenStore.create.mockResolvedValue(mockEntity);
 
       const dto: CreateApiTokenDto = {
         label: 'Test token',
@@ -96,12 +96,12 @@ describe('ApiTokenService', () => {
 
       const result = await service.createToken(ownerUid, dto);
 
-      const input = mockTokenRepository.create.mock.calls[0][0];
+      const input = mockApiTokenStore.create.mock.calls[0][0];
       expect(input.tokenHash).not.toBe(result.token);
     });
 
     it('should default to 365 days expiry when expiresInDays is omitted', async () => {
-      mockTokenRepository.create.mockResolvedValue(mockEntity);
+      mockApiTokenStore.create.mockResolvedValue(mockEntity);
 
       const dto: CreateApiTokenDto = {
         label: 'Test token',
@@ -110,7 +110,7 @@ describe('ApiTokenService', () => {
 
       await service.createToken(ownerUid, dto);
 
-      const input = mockTokenRepository.create.mock.calls[0][0];
+      const input = mockApiTokenStore.create.mock.calls[0][0];
       const expiresAt = new Date(input.expiresAt as string);
       const expectedMin = new Date();
       expectedMin.setDate(expectedMin.getDate() + 364);
@@ -126,7 +126,7 @@ describe('ApiTokenService', () => {
         ...mockEntity,
         expiresAt: null,
       };
-      mockTokenRepository.create.mockResolvedValue(nonExpiringEntity);
+      mockApiTokenStore.create.mockResolvedValue(nonExpiringEntity);
 
       const dto: CreateApiTokenDto = {
         label: 'Non-expiring token',
@@ -136,12 +136,12 @@ describe('ApiTokenService', () => {
 
       await service.createToken(ownerUid, dto);
 
-      const input = mockTokenRepository.create.mock.calls[0][0];
+      const input = mockApiTokenStore.create.mock.calls[0][0];
       expect(input.expiresAt).toBeNull();
     });
 
-    it('should propagate repository errors', async () => {
-      mockTokenRepository.create.mockRejectedValue(
+    it('should propagate store errors', async () => {
+      mockApiTokenStore.create.mockRejectedValue(
         new Error('Firestore unavailable'),
       );
 
@@ -156,7 +156,7 @@ describe('ApiTokenService', () => {
     });
 
     it('should generate a unique token on each call', async () => {
-      mockTokenRepository.create.mockResolvedValue(mockEntity);
+      mockApiTokenStore.create.mockResolvedValue(mockEntity);
 
       const dto: CreateApiTokenDto = {
         label: 'Test token',
