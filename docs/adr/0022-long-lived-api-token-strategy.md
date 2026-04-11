@@ -39,6 +39,7 @@ todos_<32 cryptographically random bytes encoded as base64url>
 Example: `todos_dGhpcyBpcyBhIHRlc3QgdG9rZW4gZm9yIHRlc3Q`
 
 Rationale for opaque over JWT:
+
 - Long-lived JWTs cannot be revoked without a server-side blocklist, effectively
   requiring the same server round-trip as opaque token lookup.
 - Opaque tokens make revocation a simple Firestore write (set `revokedAt`).
@@ -124,6 +125,14 @@ Scope validation during token lookup: the request-handling code checks that the 
 token's `scopes` array includes the required scope for the requested resource before
 permitting the action.
 
+Scope requirements are declared with a dedicated `@AuthScope(...)` route decorator.
+Conceptually, this behaves as a public-endpoint wrapper layer that executes
+post-authentication and pre-request-handler (after identity is resolved, before the
+controller/service method runs). The wrapper is evaluated only when the resolved auth
+provider is non-Firebase (currently long-lived API tokens). Firebase-authenticated
+requests are not blocked by `@AuthScope` and continue to rely on existing Firebase JWT
+validation.
+
 ### 6. Request Validation Flow
 
 The existing `FirebaseAuthGuard` is extended to recognise API tokens in the `Authorization:
@@ -148,6 +157,11 @@ Incoming request
 The guard change is additive: existing Firebase ID token flows are unaffected. The
 `request.user` interface is extended to carry an optional `apiTokenId` and `scopes` field
 alongside the existing `DecodedIdToken` shape.
+
+During request handling, the auth layer resolves `authProvider`, then applies the
+`@AuthScope` wrapper only when `authProvider !== 'firebase'`. For API-token requests,
+missing required scopes result in `403 Forbidden`; for Firebase requests, scope metadata
+is ignored by design in this ADR.
 
 ### 7. Listing Tokens
 
@@ -262,6 +276,7 @@ Composite index for listing: `(ownerUid ASC, createdAt DESC)`.
 | `GET /api/v1/auth/tokens` | **New** — list caller's active tokens, metadata only |
 | `DELETE /api/v1/auth/tokens/:tokenId` | **New** — revoke a token |
 | `FirebaseAuthGuard` | **Extended** — recognise `todos_` prefix and perform Firestore hash lookup before falling back to Firebase JWT verification |
+| `@AuthScope(...scopes)` decorator | **New** — declares route scope requirements enforced only for non-Firebase auth providers |
 | All existing endpoints | **Unchanged** — Firebase ID token auth continues to work |
 
 ## Security Constraints Summary
@@ -275,13 +290,14 @@ Composite index for listing: `(ownerUid ASC, createdAt DESC)`.
 | Comparison | Hash equality via Firestore query; no timing-attack risk at this level |
 | Revocation | Firestore `revokedAt` field; checked on every request |
 | Expiration | Configurable; default 365 days; enforced on every request |
-| Scope isolation | Each token carries explicit scopes; checked against resource requirements |
+| Scope isolation | Each token carries explicit scopes; checked via `@AuthScope` for non-Firebase auth providers |
 
 ## Consequences
 
 - `@todos/core` gains four new DTOs in the `http` subpath.
 - `@todos/firebase` gains an `ApiTokenRepository` implementation (follow-up task).
 - `apps/api/auth` gains three new endpoint handlers and an extended guard (follow-up task).
+- `apps/api/auth` gains `@AuthScope` metadata handling for non-Firebase providers.
 - The MCP server must be updated to forward a long-lived API token instead of a short-lived
   Firebase ID token (follow-up task).
 - A new Firestore collection (`api_tokens`) is required; no migration of existing data.
@@ -295,9 +311,11 @@ Composite index for listing: `(ownerUid ASC, createdAt DESC)`.
    `findAllByOwner`, and `revoke` methods.
 2. **Extend `FirebaseAuthGuard`** (or add `ApiTokenAuthGuard` + composite) to perform
    Firestore hash lookup for `todos_`-prefixed tokens.
-3. **Implement `ApiTokensController`** in `apps/api` (`POST`, `GET`,
+3. **Add `@AuthScope` decorator support** and enforce it only for requests authenticated
+  through non-Firebase providers.
+4. **Implement `ApiTokensController`** in `apps/api` (`POST`, `GET`,
    `DELETE /api/v1/auth/tokens`).
-4. **Update MCP server** to accept a long-lived API token via environment variable and
+5. **Update MCP server** to accept a long-lived API token via environment variable and
    forward it as `Authorization: Bearer <token>` instead of `x-api-token`.
-5. **Update Firestore rules** to block direct client access to `api_tokens`.
-6. **Update `apps/api` README** with new token issuance and revocation docs.
+6. **Update Firestore rules** to block direct client access to `api_tokens`.
+7. **Update `apps/api` README** with new token issuance and revocation docs.
