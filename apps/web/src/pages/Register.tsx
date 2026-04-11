@@ -5,7 +5,7 @@ import { useSessionStore } from '../store/session-store';
 
 /**
  * Register page – container component that wires session-store state/actions to RegisterForm.
- * On successful registration, redirects to the app home.
+ * Logged-in users cannot access this page; successful registration auto-signs in and redirects home.
  */
 const Register = () => {
   const isLoading = useSessionStore((state) => state.isLoading);

@@ -1,4 +1,6 @@
 import type {
+  LoginUserDto,
+  LoginUserResponseDto,
   RegisterUserDto,
   RegisterUserResponseDto,
 } from '@todos/core/http';
@@ -42,4 +44,31 @@ export async function registerUser(
   }
 
   return response.json() as Promise<RegisterUserResponseDto>;
+}
+
+/**
+ * Authenticates a user with email and password via the API auth endpoint.
+ * Returns the authenticated session payload used by the web app.
+ */
+export async function loginUser(
+  payload: LoginUserDto,
+): Promise<LoginUserResponseDto> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const body = (await response.json().catch(() => ({}))) as Partial<ApiError>;
+    const message =
+      typeof body.message === 'string'
+        ? body.message
+        : response.status === 401
+          ? 'Invalid email or password'
+          : 'Login failed. Please try again.';
+    throw new Error(message);
+  }
+
+  return response.json() as Promise<LoginUserResponseDto>;
 }

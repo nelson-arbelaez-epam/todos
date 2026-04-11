@@ -17,7 +17,11 @@ export interface RegisterFormProps {
  * Presentational register form component.
  * Accepts all data and callbacks via props – no side effects or API calls.
  */
-export function RegisterForm({ isLoading, error, onSubmit }: RegisterFormProps) {
+export function RegisterForm({
+  isLoading,
+  error,
+  onSubmit,
+}: RegisterFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');

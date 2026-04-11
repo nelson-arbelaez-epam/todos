@@ -68,10 +68,7 @@ describe('RegisterForm', () => {
 
     await user.type(screen.getByLabelText(/email/i), 'user@example.com');
     await user.type(screen.getByLabelText(/^password$/i), 'password123');
-    await user.type(
-      screen.getByLabelText(/confirm password/i),
-      'password123',
-    );
+    await user.type(screen.getByLabelText(/confirm password/i), 'password123');
     await user.click(screen.getByRole('button', { name: /register/i }));
 
     expect(onSubmit).toHaveBeenCalledOnce();

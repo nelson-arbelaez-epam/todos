@@ -1,14 +1,11 @@
-import type {
-  RegisterUserDto,
-  RegisterUserResponseDto,
-} from '@todos/core/http';
+import type { LoginUserResponseDto, RegisterUserDto } from '@todos/core/http';
 import { create } from 'zustand';
-import { registerUser } from '../services/auth.service';
+import { loginUser, registerUser } from '../services/auth.service';
 
 interface SessionStoreState {
   isLoading: boolean;
   error: string | null;
-  currentUser: RegisterUserResponseDto | null;
+  currentUser: LoginUserResponseDto | null;
   register: (payload: RegisterUserDto) => Promise<void>;
   resetError: () => void;
   clearCurrentUser: () => void;
@@ -25,12 +22,13 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   register: async (payload) => {
     set({ isLoading: true, error: null });
     try {
-      const user = await registerUser(payload);
-      set({ currentUser: user });
+      await registerUser(payload);
+      const session = await loginUser(payload);
+      set({ currentUser: session });
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : 'Registration failed';
-      set({ error: message });
+      set({ error: message, currentUser: null });
     } finally {
       set({ isLoading: false });
     }
