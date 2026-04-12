@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { IS_PUBLIC_KEY } from '../auth/public.decorator';
+import { IS_PUBLIC_KEY } from '../shared/http/decorators/public.decorator';
 import { HealthController } from './health.controller';
 
 describe('HealthController', () => {

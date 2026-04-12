@@ -21,11 +21,11 @@ import {
   RegisterUserDto,
   RegisterUserResponseDto,
 } from '@todos/core/http';
-import { ApiTokenService } from './api-token.service';
-import { AuthService } from './auth.service';
-import { CurrentUser } from './current-user.decorator';
-import type { AuthenticatedPrincipal } from './firebase-auth.guard';
-import { Public } from './public.decorator';
+import { CurrentUser } from '../../shared/http/decorators/current-user.decorator';
+import { Public } from '../../shared/http/decorators/public.decorator';
+import type { AuthenticatedPrincipal } from '../../shared/http/guards/firebase-auth.guard';
+import { ApiTokenService } from '../api-token.service';
+import { AuthService } from '../auth.service';
 
 @ApiTags('auth')
 @Controller('auth')

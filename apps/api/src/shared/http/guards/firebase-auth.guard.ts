@@ -13,8 +13,8 @@ import { FirebaseAuthService } from '@todos/firebase';
 import { ApiTokenStoreService } from '@todos/store';
 import type { Request } from 'express';
 import type { DecodedIdToken } from 'firebase-admin/auth';
-import { AUTH_SCOPE_KEY } from './auth-scope.decorator';
-import { IS_PUBLIC_KEY } from './public.decorator';
+import { AUTH_SCOPE_KEY } from '../decorators/auth-scope.decorator';
+import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
 /**
  * Principal shape for requests authenticated with a long-lived API token (ADR 0022).

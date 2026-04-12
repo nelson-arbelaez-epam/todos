@@ -7,10 +7,10 @@ import {
 import { Test, type TestingModule } from '@nestjs/testing';
 import type { ApiTokenResponseDto, CreateApiTokenDto } from '@todos/core/http';
 import type { DecodedIdToken } from 'firebase-admin/auth';
-import { ApiTokenService } from './api-token.service';
+import { AuthenticatedPrincipal } from '../../shared/http/guards/firebase-auth.guard';
+import { ApiTokenService } from '../api-token.service';
+import { AuthService } from '../auth.service';
 import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
-import { AuthenticatedPrincipal } from './firebase-auth.guard';
 
 const mockAuthService = {
   register: vi.fn(),
