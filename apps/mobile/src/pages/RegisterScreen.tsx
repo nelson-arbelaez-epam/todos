@@ -1,8 +1,6 @@
-import { StyleSheet, View } from 'react-native';
 import { RegisterForm } from '../components/organisms/RegisterForm';
+import { ScreenLayout } from '../components/templates';
 import { useSessionStore } from '../store/session-store';
-import { colors } from '../tokens/colors';
-import { spacing } from '../tokens/spacing';
 
 /**
  * Page: Container component that wires the session store to the
@@ -14,21 +12,12 @@ export function RegisterScreen() {
   const register = useSessionStore((state) => state.register);
 
   return (
-    <View style={styles.container}>
+    <ScreenLayout horizontalPadding={48} className="justify-center">
       <RegisterForm
         onSubmit={(email, password) => register({ email, password })}
         isLoading={isLoading}
         errorMessage={error ?? undefined}
       />
-    </View>
+    </ScreenLayout>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: spacing.xxl,
-    justifyContent: 'center',
-    backgroundColor: colors.backgroundScreen,
-  },
-});

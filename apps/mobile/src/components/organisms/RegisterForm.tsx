@@ -1,9 +1,6 @@
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { colors } from '../../tokens/colors';
-import { fontSizes, spacing } from '../../tokens/spacing';
-import { Button } from '../atoms/Button';
-import { FormField } from '../molecules/FormField';
+import { View } from 'react-native';
+import { AppButton, AppInput, AppText } from '../atoms';
 
 export interface RegisterFormProps {
   onSubmit: (email: string, password: string) => void;
@@ -44,62 +41,57 @@ export function RegisterForm({
   const displayError = localError ?? errorMessage;
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Create an account</Text>
+    <View className="w-full">
+      <AppText variant="heading" weight="bold" className="mb-12 text-center">
+        Create an account
+      </AppText>
 
-      <FormField
-        label="Email"
-        value={email}
-        onChangeText={setEmail}
-        placeholder="you@example.com"
-        keyboardType="email-address"
-        autoCapitalize="none"
-        editable={!isLoading}
-        testID="register-email"
-      />
+      <View className="mb-8">
+        <AppInput
+          label="Email"
+          value={email}
+          onChangeText={setEmail}
+          placeholder="you@example.com"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          editable={!isLoading}
+          testID="register-email"
+          required
+        />
+      </View>
 
-      <FormField
-        label="Password"
-        value={password}
-        onChangeText={setPassword}
-        placeholder="Min. 6 characters"
-        secureTextEntry
-        editable={!isLoading}
-        testID="register-password"
-      />
+      <View className="mb-8">
+        <AppInput
+          label="Password"
+          value={password}
+          onChangeText={setPassword}
+          placeholder="Min. 6 characters"
+          secureTextEntry
+          editable={!isLoading}
+          testID="register-password"
+          required
+        />
+      </View>
 
       {displayError ? (
-        <Text style={styles.error} testID="register-error">
+        <AppText
+          variant="caption"
+          color="#EF4444"
+          className="mb-3 text-center"
+          testID="register-error"
+        >
           {displayError}
-        </Text>
+        </AppText>
       ) : null}
 
-      <Button
-        label="Register"
+      <AppButton
+        title="Register"
         onPress={handleSubmit}
         loading={isLoading}
         disabled={isLoading}
         testID="register-submit"
+        fullWidth
       />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-  },
-  title: {
-    fontSize: fontSizes.lg,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    textAlign: 'center',
-    marginBottom: spacing.xxl,
-  },
-  error: {
-    fontSize: fontSizes.sm,
-    color: colors.error,
-    marginBottom: spacing.md,
-    textAlign: 'center',
-  },
-});

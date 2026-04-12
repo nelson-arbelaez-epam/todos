@@ -1,11 +1,19 @@
-import { StyleSheet, View, type ViewProps } from 'react-native';
-import { colors, type ElevationToken, elevation, radii } from '../../../theme';
+import { View, type ViewProps } from 'react-native';
+import { type ElevationToken } from '../../../theme';
+import { cn } from '../../../utils/cn';
 
 export interface SurfaceProps extends ViewProps {
   elevationLevel?: ElevationToken;
   rounded?: boolean;
   children: React.ReactNode;
 }
+
+const elevationClassNames: Record<ElevationToken, string> = {
+  none: '',
+  sm: 'shadow-sm',
+  md: 'shadow-md',
+  lg: 'shadow-lg',
+};
 
 /**
  * Surface – presentational atom representing an elevated card-like container.
@@ -15,30 +23,21 @@ export interface SurfaceProps extends ViewProps {
 export function Surface({
   elevationLevel = 'md',
   rounded = true,
-  style,
+  className,
   children,
   ...rest
 }: SurfaceProps) {
   return (
     <View
-      style={[
-        styles.base,
-        elevation[elevationLevel],
-        rounded && styles.rounded,
-        style,
-      ]}
+      className={cn(
+        'bg-surface-elevated',
+        rounded && 'rounded-xl',
+        elevationClassNames[elevationLevel],
+        className,
+      )}
       {...rest}
     >
       {children}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  base: {
-    backgroundColor: colors.surfaceElevated,
-  },
-  rounded: {
-    borderRadius: radii.lg,
-  },
-});

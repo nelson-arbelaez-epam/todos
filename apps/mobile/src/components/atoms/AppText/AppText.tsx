@@ -1,5 +1,4 @@
 import { Text, type TextProps } from 'react-native';
-import { colors } from '../../../theme';
 import { cn } from '../../../utils/cn';
 
 export type AppTextVariant =
@@ -20,13 +19,13 @@ export interface AppTextProps extends TextProps {
 }
 
 const colorClassNames: Record<string, string> = {
-  [colors.primary]: 'text-primary',
-  [colors.danger]: 'text-danger',
-  [colors.textPrimary]: 'text-text-primary',
-  [colors.textSecondary]: 'text-text-secondary',
-  [colors.textDisabled]: 'text-text-disabled',
-  [colors.textInverse]: 'text-text-inverse',
-  [colors.white]: 'text-white',
+  primary: 'text-primary',
+  danger: 'text-danger',
+  'text-primary': 'text-text-primary',
+  'text-secondary': 'text-text-secondary',
+  'text-disabled': 'text-text-disabled',
+  'text-inverse': 'text-text-inverse',
+  white: 'text-white',
 };
 
 const variantClassNames: Record<AppTextVariant, string> = {
