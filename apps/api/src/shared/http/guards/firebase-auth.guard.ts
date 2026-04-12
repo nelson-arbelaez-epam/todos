@@ -186,8 +186,15 @@ export class FirebaseAuthGuard implements CanActivate {
       ApiTokenScope[] | undefined
     >(AUTH_SCOPE_KEY, [context.getHandler(), context.getClass()]);
 
+    // API tokens may only access routes that explicitly declare required scopes.
+    // Routes without @AuthScope are reserved for Firebase JWT callers only.
     if (!requiredScopes || requiredScopes.length === 0) {
-      return;
+      this.logger.warn(
+        `API token used on unscoped route — access denied (tokenId=${principal.apiTokenId})`,
+      );
+      throw new ForbiddenException(
+        'This endpoint requires Firebase JWT authentication',
+      );
     }
 
     const missingScope = requiredScopes.find(

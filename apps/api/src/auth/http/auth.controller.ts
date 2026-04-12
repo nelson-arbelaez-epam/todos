@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  ForbiddenException,
   Get,
   HttpCode,
   HttpStatus,
@@ -124,25 +123,21 @@ export class AuthController {
     @CurrentUser() user: AuthenticatedPrincipal,
     @Body() dto: CreateApiTokenDto,
   ): Promise<ApiTokenResponseDto> {
-    // Enforce ADR 0022: only Firebase JWT can issue tokens, not API tokens
-    if ('authProvider' in user && user.authProvider === 'api-token') {
-      throw new ForbiddenException(
-        'Token issuance requires Firebase JWT authentication',
-      );
-    }
     return this.apiTokenService.createToken(user.uid, dto);
   }
 
   /**
    * List all API tokens for the authenticated user.
    * The raw token value and its hash are never included in the response.
+   * Only Firebase JWT callers may access this endpoint; API tokens are rejected
+   * at the guard level (no @AuthScope declared — see ADR 0022).
    */
   @ApiBearerAuth('firebase-jwt')
-  @ApiBearerAuth('api-token')
   @Get('tokens')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: "List caller's issued API tokens (metadata only)",
+    summary:
+      "List caller's issued API tokens (metadata only, requires Firebase JWT)",
   })
   @ApiResponse({
     status: 200,
@@ -154,6 +149,11 @@ export class AuthController {
   @ApiResponse({
     status: 401,
     description: 'Missing or invalid authentication',
+  })
+  @ApiResponse({
+    status: 403,
+    description:
+      'API tokens cannot access this endpoint (requires Firebase JWT)',
   })
   async listTokens(
     @CurrentUser() user: AuthenticatedPrincipal,

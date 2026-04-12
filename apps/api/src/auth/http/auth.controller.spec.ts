@@ -1,17 +1,14 @@
 import {
   BadRequestException,
   ConflictException,
-  ForbiddenException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import type {
   ApiTokenMetadataDto,
   ApiTokenResponseDto,
-  CreateApiTokenDto,
 } from '@todos/core/http';
 import type { DecodedIdToken } from 'firebase-admin/auth';
-import { AuthenticatedPrincipal } from '../../shared/http/guards/firebase-auth.guard';
 import { ApiTokenService } from '../api-token.service';
 import { AuthService } from '../auth.service';
 import { AuthController } from './auth.controller';
@@ -166,27 +163,6 @@ describe('AuthController', () => {
         'Firestore unavailable',
       );
     });
-
-    it('should return 403 when user is authenticated via API token (token proliferation check)', async () => {
-      // Per ADR 0022, only Firebase JWT can issue tokens; API tokens cannot create other tokens
-      const apiTokenPrincipal: AuthenticatedPrincipal = {
-        uid: 'firebase-uid-123',
-        authProvider: 'api-token',
-        apiTokenId: 'existing-token-id',
-        scopes: ['todos:read'],
-      };
-
-      const dto: CreateApiTokenDto = {
-        label: 'Malicious Token',
-        scopes: ['todos:write'],
-      };
-
-      await expect(
-        authController.createToken(apiTokenPrincipal, dto),
-      ).rejects.toThrow(ForbiddenException);
-
-      expect(mockApiTokenService.createToken).not.toHaveBeenCalled();
-    });
   });
 
   describe('listTokens', () => {
@@ -220,24 +196,6 @@ describe('AuthController', () => {
 
       expect(result).toEqual([]);
       expect(mockApiTokenService.listTokens).toHaveBeenCalledWith(mockUser.uid);
-    });
-
-    it('should allow API-token-authenticated callers to list tokens', async () => {
-      const apiTokenPrincipal: AuthenticatedPrincipal = {
-        uid: 'firebase-uid-123',
-        authProvider: 'api-token',
-        apiTokenId: 'existing-token-id',
-        scopes: ['todos:read'],
-      };
-
-      mockApiTokenService.listTokens.mockResolvedValue(mockTokenList);
-
-      const result = await authController.listTokens(apiTokenPrincipal);
-
-      expect(result).toEqual(mockTokenList);
-      expect(mockApiTokenService.listTokens).toHaveBeenCalledWith(
-        apiTokenPrincipal.uid,
-      );
     });
 
     it('should propagate errors from ApiTokenService', async () => {
