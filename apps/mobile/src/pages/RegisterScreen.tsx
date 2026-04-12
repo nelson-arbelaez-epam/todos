@@ -1,6 +1,6 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { RegisterForm } from '../components/organisms/RegisterForm';
-import { useRegister } from '../hooks/use-register';
+import { useSessionStore } from '../store/session-store';
 import { colors } from '../tokens/colors';
 import { fontSizes, spacing } from '../tokens/spacing';
 
@@ -9,18 +9,22 @@ export interface RegisterScreenProps {
 }
 
 /**
- * Page: Container component that wires the useRegister hook to the
+ * Page: Container component that wires the session store to the
  * RegisterForm organism. Handles post-registration UX (success state).
  */
 export function RegisterScreen({ onNavigateToLogin }: RegisterScreenProps) {
-  const { register, isLoading, error, result, reset } = useRegister();
+  const isLoading = useSessionStore((state) => state.isLoading);
+  const error = useSessionStore((state) => state.error);
+  const currentUser = useSessionStore((state) => state.currentUser);
+  const register = useSessionStore((state) => state.register);
+  const clearCurrentUser = useSessionStore((state) => state.clearCurrentUser);
 
-  if (result) {
+  if (currentUser) {
     return (
       <View style={styles.container}>
         <Text style={styles.successTitle}>Registration successful!</Text>
         <Text style={styles.successBody}>
-          Welcome, {result.email}. Your account has been created.
+          Welcome, {currentUser.email}. Your account has been created.
         </Text>
         {onNavigateToLogin ? (
           <TouchableOpacity
@@ -32,7 +36,7 @@ export function RegisterScreen({ onNavigateToLogin }: RegisterScreenProps) {
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
-            onPress={reset}
+            onPress={clearCurrentUser}
             testID="register-another"
             accessibilityRole="button"
           >
@@ -46,9 +50,9 @@ export function RegisterScreen({ onNavigateToLogin }: RegisterScreenProps) {
   return (
     <View style={styles.container}>
       <RegisterForm
-        onSubmit={register}
+        onSubmit={(email, password) => register({ email, password })}
         isLoading={isLoading}
-        errorMessage={error?.message}
+        errorMessage={error ?? undefined}
       />
     </View>
   );

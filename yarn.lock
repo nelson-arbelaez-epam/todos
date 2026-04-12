@@ -3951,6 +3951,7 @@ __metadata:
   dependencies:
     "@testing-library/react-native": "npm:~12.4.3"
     "@todos/branding": "workspace:*"
+    "@todos/core": "workspace:^"
     "@types/react": "npm:~18.2.45"
     "@types/react-native": "npm:~0.73.0"
     expo: "npm:~54.0.33"
@@ -3960,6 +3961,8 @@ __metadata:
     react-test-renderer: "npm:19.1.0"
     sharp: "npm:^0.34.4"
     typescript: "npm:^5.7.3"
+    vitest: "npm:latest"
+    zustand: "npm:^5.0.8"
   languageName: unknown
   linkType: soft
 
