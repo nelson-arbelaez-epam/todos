@@ -1,18 +1,39 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
+  Body,
+  Controller,
+  ForbiddenException,
+  HttpCode,
+  HttpStatus,
+  Post,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import {
+  ApiTokenResponseDto,
+  CreateApiTokenDto,
   LoginUserDto,
   LoginUserResponseDto,
   RegisterUserDto,
   RegisterUserResponseDto,
 } from '@todos/core/http';
+import { ApiTokenService } from './api-token.service';
 import { AuthService } from './auth.service';
+import { CurrentUser } from './current-user.decorator';
+import type { AuthenticatedPrincipal } from './firebase-auth.guard';
 import { Public } from './public.decorator';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly apiTokenService: ApiTokenService,
+  ) {}
 
   /**
    * Register a new user with email and password.
@@ -63,5 +84,50 @@ export class AuthController {
   })
   async login(@Body() dto: LoginUserDto): Promise<LoginUserResponseDto> {
     return this.authService.login(dto);
+  }
+
+  /**
+   * Issue a new long-lived API token for the authenticated user.
+   * The raw token value is returned exactly once in the response body.
+   * Per ADR 0022, only Firebase JWT authentication is permitted (to prevent token proliferation).
+   */
+  @ApiBearerAuth('firebase-jwt')
+  @Post('tokens')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiBody({ type: CreateApiTokenDto })
+  @ApiOperation({
+    summary: 'Issue a new long-lived API token (requires Firebase JWT)',
+  })
+  @ApiResponse({
+    status: 201,
+    description:
+      'Token issued successfully. The raw token is returned once – store it securely.',
+    type: ApiTokenResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description:
+      'Invalid request payload (missing label, invalid scopes, etc.)',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Missing or invalid Firebase JWT',
+  })
+  @ApiResponse({
+    status: 403,
+    description:
+      'API tokens cannot issue other API tokens (requires Firebase JWT)',
+  })
+  async createToken(
+    @CurrentUser() user: AuthenticatedPrincipal,
+    @Body() dto: CreateApiTokenDto,
+  ): Promise<ApiTokenResponseDto> {
+    // Enforce ADR 0022: only Firebase JWT can issue tokens, not API tokens
+    if ('authProvider' in user && user.authProvider === 'api-token') {
+      throw new ForbiddenException(
+        'Token issuance requires Firebase JWT authentication',
+      );
+    }
+    return this.apiTokenService.createToken(user.uid, dto);
   }
 }

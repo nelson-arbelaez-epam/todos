@@ -8,11 +8,7 @@ import { TodosModule } from './todos/todos.module';
 
 @Module({
   imports: [FirebaseModule, HealthModule, AuthModule, TodosModule],
-  providers: [
-    {
-      provide: APP_GUARD,
-      useClass: FirebaseAuthGuard,
-    },
-  ],
+  controllers: [],
+  providers: [{ provide: APP_GUARD, useClass: FirebaseAuthGuard }],
 })
 export class AppModule {}

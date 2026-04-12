@@ -4,4 +4,5 @@ export interface FirebaseModuleOptions {
   appName?: string;
   appOptions?: AppOptions;
   todosCollectionPath?: string;
+  apiTokensCollectionPath?: string;
 }
