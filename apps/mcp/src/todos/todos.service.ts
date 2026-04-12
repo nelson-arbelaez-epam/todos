@@ -1,9 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { OrderDir, TodoOrderBy } from '@todos/core/http';
 import type {
   MCPCreateTodoRequest,
   MCPTodoDto,
   MCPTodoListResponse,
 } from '@todos/core/mcp';
+
+type ListTodosParams = {
+  page?: number;
+  limit?: number;
+  orderBy?: `${TodoOrderBy}`;
+  orderDir?: `${OrderDir}`;
+};
 
 /**
  * Service that proxies todo operations to the Todos API using a Bearer token.
@@ -61,7 +69,7 @@ export class TodosApiService {
    */
   async listTodos(
     apiToken: string,
-    params?: { page?: number; limit?: number; orderBy?: string; orderDir?: string },
+    params?: ListTodosParams,
   ): Promise<MCPTodoListResponse> {
     const url = new URL(`${this.apiBaseUrl}/api/v1/todos`);
     if (params?.page != null) {

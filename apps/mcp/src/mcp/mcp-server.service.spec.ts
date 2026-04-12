@@ -125,7 +125,12 @@ describe('McpServerService', () => {
       mockTodosApiService.listTodos.mockResolvedValue(mockListResult);
 
       const handler = getListTodosHandler();
-      await handler({ page: 2, limit: 5, orderBy: 'updatedAt', orderDir: 'asc' });
+      await handler({
+        page: 2,
+        limit: 5,
+        orderBy: 'updatedAt',
+        orderDir: 'asc',
+      });
 
       expect(mockTodosApiService.listTodos).toHaveBeenCalledWith('test-token', {
         page: 2,
