@@ -155,4 +155,35 @@ export class TodosApiService {
       hasMore: data.page * data.limit < data.total,
     };
   }
+
+  /**
+   * Archives (soft-deletes) an existing todo via the Todos API, authenticated with the provided token.
+   *
+   * @param apiToken - Bearer token forwarded from the client (not logged in plain text)
+   * @param id - ID of the todo to archive
+   */
+  async archiveTodo(apiToken: string, id: string): Promise<MCPTodoDto> {
+    const url = `${this.apiBaseUrl}/api/v1/todos/${encodeURIComponent(id)}/archive`;
+
+    const response = await fetch(url, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${apiToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      const body = (await response.json().catch(() => null)) as {
+        message?: string;
+      } | null;
+      const message = body?.message ?? response.statusText;
+      this.logger.warn(`API responded ${response.status}: ${message}`);
+      const error = Object.assign(new Error(message), {
+        status: response.status,
+      });
+      throw error;
+    }
+
+    return response.json() as Promise<MCPTodoDto>;
+  }
 }
