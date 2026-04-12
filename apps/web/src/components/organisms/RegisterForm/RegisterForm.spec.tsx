@@ -8,9 +8,9 @@ describe('RegisterForm', () => {
   it('renders all form fields and submit button', () => {
     render(<RegisterForm isLoading={false} error={null} onSubmit={noop} />);
 
-    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/confirm password/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Email/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Password/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Confirm password/i)).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: /register/i }),
     ).toBeInTheDocument();
@@ -34,10 +34,10 @@ describe('RegisterForm', () => {
     const user = userEvent.setup();
     render(<RegisterForm isLoading={false} error={null} onSubmit={noop} />);
 
-    await user.type(screen.getByLabelText(/email/i), 'user@example.com');
-    await user.type(screen.getByLabelText(/^password$/i), 'password123');
+    await user.type(screen.getByLabelText(/Email/i), 'user@example.com');
+    await user.type(screen.getByLabelText(/^Password/i), 'password123');
     await user.type(
-      screen.getByLabelText(/confirm password/i),
+      screen.getByLabelText(/Confirm password/i),
       'differentpass',
     );
     await user.click(screen.getByRole('button', { name: /register/i }));
@@ -51,9 +51,9 @@ describe('RegisterForm', () => {
     const user = userEvent.setup();
     render(<RegisterForm isLoading={false} error={null} onSubmit={noop} />);
 
-    await user.type(screen.getByLabelText(/email/i), 'user@example.com');
-    await user.type(screen.getByLabelText(/^password$/i), 'abc');
-    await user.type(screen.getByLabelText(/confirm password/i), 'abc');
+    await user.type(screen.getByLabelText(/Email/i), 'user@example.com');
+    await user.type(screen.getByLabelText(/^Password/i), 'abc');
+    await user.type(screen.getByLabelText(/Confirm password/i), 'abc');
     await user.click(screen.getByRole('button', { name: /register/i }));
 
     expect(screen.getByRole('alert')).toHaveTextContent(
@@ -66,9 +66,9 @@ describe('RegisterForm', () => {
     const onSubmit = vi.fn();
     render(<RegisterForm isLoading={false} error={null} onSubmit={onSubmit} />);
 
-    await user.type(screen.getByLabelText(/email/i), 'user@example.com');
-    await user.type(screen.getByLabelText(/^password$/i), 'password123');
-    await user.type(screen.getByLabelText(/confirm password/i), 'password123');
+    await user.type(screen.getByLabelText(/Email/i), 'user@example.com');
+    await user.type(screen.getByLabelText(/^Password/i), 'password123');
+    await user.type(screen.getByLabelText(/Confirm password/i), 'password123');
     await user.click(screen.getByRole('button', { name: /register/i }));
 
     expect(onSubmit).toHaveBeenCalledOnce();
@@ -81,9 +81,9 @@ describe('RegisterForm', () => {
   it('disables inputs and button while loading', () => {
     render(<RegisterForm isLoading={true} error={null} onSubmit={noop} />);
 
-    expect(screen.getByLabelText(/email/i)).toBeDisabled();
-    expect(screen.getByLabelText(/^password$/i)).toBeDisabled();
-    expect(screen.getByLabelText(/confirm password/i)).toBeDisabled();
+    expect(screen.getByLabelText(/Email/i)).toBeDisabled();
+    expect(screen.getByLabelText(/^Password/i)).toBeDisabled();
+    expect(screen.getByLabelText(/Confirm password/i)).toBeDisabled();
 
     const button = screen.getByRole('button');
     expect(button).toBeDisabled();
