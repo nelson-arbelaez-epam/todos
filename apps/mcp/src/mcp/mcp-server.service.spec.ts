@@ -43,18 +43,18 @@ describe('McpServerService', () => {
 
   describe('createServer', () => {
     it('should return an McpServer instance', () => {
-      const server = service.createServer();
+      const server = service.createServer('test-token');
       expect(server).toBeInstanceOf(McpServer);
     });
 
     it('should return a new server instance on each call', () => {
-      const server1 = service.createServer();
-      const server2 = service.createServer();
+      const server1 = service.createServer('test-token');
+      const server2 = service.createServer('test-token');
       expect(server1).not.toBe(server2);
     });
 
     it('should create a server with the create_todo tool registered', () => {
-      const server = service.createServer();
+      const server = service.createServer('test-token');
       // The registered tools are accessible on the internal Server's request handlers.
       // We verify the server has capabilities for tools.
       expect(server).toBeDefined();
