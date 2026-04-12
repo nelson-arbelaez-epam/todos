@@ -1,5 +1,6 @@
-import { StyleSheet, Text, type TextProps } from 'react-native';
-import { colors, typography } from '../../../theme';
+import { Text, type TextProps } from 'react-native';
+import { colors } from '../../../theme';
+import { cn } from '../../../utils/cn';
 
 export type AppTextVariant =
   | 'display'
@@ -18,6 +19,32 @@ export interface AppTextProps extends TextProps {
   children: React.ReactNode;
 }
 
+const colorClassNames: Record<string, string> = {
+  [colors.primary]: 'text-primary',
+  [colors.danger]: 'text-danger',
+  [colors.textPrimary]: 'text-text-primary',
+  [colors.textSecondary]: 'text-text-secondary',
+  [colors.textDisabled]: 'text-text-disabled',
+  [colors.textInverse]: 'text-text-inverse',
+  [colors.white]: 'text-white',
+};
+
+const variantClassNames: Record<AppTextVariant, string> = {
+  display: 'text-[34px] leading-[40.8px] text-text-primary',
+  heading: 'text-[28px] leading-[33.6px] text-text-primary',
+  subheading: 'text-2xl leading-9 text-text-primary',
+  body: 'text-[15px] leading-[22.5px] text-text-primary',
+  caption: 'text-[13px] leading-[19.5px] text-text-secondary',
+  label: 'text-[13px] leading-[19.5px] text-text-primary',
+};
+
+const weightClassNames: Record<AppTextWeight, string> = {
+  regular: 'font-normal',
+  medium: 'font-medium',
+  semibold: 'font-semibold',
+  bold: 'font-bold',
+};
+
 /**
  * AppText – presentational atom for all text rendering.
  * Wraps React Native's `Text` with design-token-driven typography variants.
@@ -27,63 +54,21 @@ export function AppText({
   variant = 'body',
   weight = 'regular',
   color,
-  style,
+  className,
   children,
   ...rest
 }: AppTextProps) {
   return (
     <Text
-      style={[
-        styles.base,
-        styles[variant],
-        styles[`weight_${weight}`],
-        color ? { color } : null,
-        style,
-      ]}
+      className={cn(
+        variantClassNames[variant],
+        weightClassNames[weight],
+        color ? colorClassNames[color] : null,
+        className,
+      )}
       {...rest}
     >
       {children}
     </Text>
   );
 }
-
-const styles = StyleSheet.create({
-  base: {
-    color: colors.textPrimary,
-  },
-  display: {
-    fontSize: typography.fontSizes['3xl'],
-    lineHeight: typography.fontSizes['3xl'] * typography.lineHeights.tight,
-    fontWeight: typography.fontWeights.bold,
-  },
-  heading: {
-    fontSize: typography.fontSizes['2xl'],
-    lineHeight: typography.fontSizes['2xl'] * typography.lineHeights.tight,
-    fontWeight: typography.fontWeights.semibold,
-  },
-  subheading: {
-    fontSize: typography.fontSizes.xl,
-    lineHeight: typography.fontSizes.xl * typography.lineHeights.normal,
-    fontWeight: typography.fontWeights.medium,
-  },
-  body: {
-    fontSize: typography.fontSizes.base,
-    lineHeight: typography.fontSizes.base * typography.lineHeights.normal,
-    fontWeight: typography.fontWeights.regular,
-  },
-  caption: {
-    fontSize: typography.fontSizes.sm,
-    lineHeight: typography.fontSizes.sm * typography.lineHeights.normal,
-    fontWeight: typography.fontWeights.regular,
-    color: colors.textSecondary,
-  },
-  label: {
-    fontSize: typography.fontSizes.sm,
-    lineHeight: typography.fontSizes.sm * typography.lineHeights.normal,
-    fontWeight: typography.fontWeights.medium,
-  },
-  weight_regular: { fontWeight: typography.fontWeights.regular },
-  weight_medium: { fontWeight: typography.fontWeights.medium },
-  weight_semibold: { fontWeight: typography.fontWeights.semibold },
-  weight_bold: { fontWeight: typography.fontWeights.bold },
-});

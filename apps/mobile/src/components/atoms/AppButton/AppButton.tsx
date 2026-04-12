@@ -2,10 +2,9 @@ import {
   ActivityIndicator,
   Pressable,
   type PressableProps,
-  StyleSheet,
-  type ViewStyle,
 } from 'react-native';
-import { colors, radii, spacing, typography } from '../../../theme';
+import { colors } from '../../../theme';
+import { cn } from '../../../utils/cn';
 import { AppText } from '../AppText/AppText';
 
 export type AppButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
@@ -19,6 +18,32 @@ export interface AppButtonProps extends PressableProps {
   fullWidth?: boolean;
 }
 
+const variantClassNames: Record<AppButtonVariant, string> = {
+  primary: 'border border-primary bg-primary',
+  secondary: 'border border-primary bg-white',
+  ghost: 'border border-transparent bg-transparent',
+  danger: 'border border-danger bg-danger',
+};
+
+const sizeClassNames: Record<AppButtonSize, string> = {
+  sm: 'min-h-8 px-3 py-1',
+  md: 'min-h-11 px-4 py-2',
+  lg: 'min-h-[52px] px-6 py-3',
+};
+
+const labelVariantClassNames: Record<AppButtonVariant, string> = {
+  primary: 'text-white',
+  secondary: 'text-primary',
+  ghost: 'text-primary',
+  danger: 'text-white',
+};
+
+const labelSizeClassNames: Record<AppButtonSize, string> = {
+  sm: 'text-[13px]',
+  md: 'text-[15px]',
+  lg: 'text-[17px]',
+};
+
 /**
  * AppButton – presentational atom for interactive button controls.
  * Supports primary, secondary, ghost, and danger variants with
@@ -31,22 +56,21 @@ export function AppButton({
   loading = false,
   fullWidth = false,
   disabled,
-  style,
+  className,
   ...rest
 }: AppButtonProps) {
   const isDisabled = disabled || loading;
 
   return (
     <Pressable
-      style={({ pressed }) => [
-        styles.base,
-        styles[variant],
-        styles[`size_${size}`],
-        fullWidth && styles.fullWidth,
-        isDisabled && styles.disabled,
-        pressed && !isDisabled && styles.pressed,
-        style as ViewStyle,
-      ]}
+      className={cn(
+        'flex-row items-center justify-center rounded-md',
+        variantClassNames[variant],
+        sizeClassNames[size],
+        fullWidth && 'w-full',
+        isDisabled && 'opacity-50',
+        className,
+      )}
       disabled={isDisabled}
       accessibilityRole="button"
       accessibilityState={{ disabled: isDisabled, busy: loading }}
@@ -63,11 +87,11 @@ export function AppButton({
         />
       ) : (
         <AppText
-          style={[
-            styles.label,
-            styles[`labelVariant_${variant}`],
-            styles[`labelSize_${size}`],
-          ]}
+          className={cn(
+            'text-center',
+            labelVariantClassNames[variant],
+            labelSizeClassNames[size],
+          )}
           weight="semibold"
         >
           {title}
@@ -76,74 +100,3 @@ export function AppButton({
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  base: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radii.md,
-    borderWidth: 1,
-    borderColor: 'transparent',
-  },
-  fullWidth: {
-    width: '100%',
-  },
-  disabled: {
-    opacity: 0.5,
-  },
-  pressed: {
-    opacity: 0.85,
-  },
-
-  // Variants
-  primary: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  secondary: {
-    backgroundColor: colors.white,
-    borderColor: colors.primary,
-  },
-  ghost: {
-    backgroundColor: 'transparent',
-    borderColor: 'transparent',
-  },
-  danger: {
-    backgroundColor: colors.danger,
-    borderColor: colors.danger,
-  },
-
-  // Sizes
-  size_sm: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    minHeight: 32,
-  },
-  size_md: {
-    paddingHorizontal: spacing.base,
-    paddingVertical: spacing.sm,
-    minHeight: 44,
-  },
-  size_lg: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    minHeight: 52,
-  },
-
-  // Label base
-  label: {
-    textAlign: 'center',
-  },
-
-  // Label color per variant
-  labelVariant_primary: { color: colors.white },
-  labelVariant_secondary: { color: colors.primary },
-  labelVariant_ghost: { color: colors.primary },
-  labelVariant_danger: { color: colors.white },
-
-  // Label size per button size
-  labelSize_sm: { fontSize: typography.fontSizes.sm },
-  labelSize_md: { fontSize: typography.fontSizes.base },
-  labelSize_lg: { fontSize: typography.fontSizes.md },
-});

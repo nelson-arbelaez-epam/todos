@@ -1,5 +1,6 @@
-import { StyleSheet, TextInput, type TextInputProps, View } from 'react-native';
-import { colors, radii, spacing, typography } from '../../../theme';
+import { TextInput, type TextInputProps, View } from 'react-native';
+import { colors } from '../../../theme';
+import { cn } from '../../../utils/cn';
 import { AppLabel } from '../AppLabel/AppLabel';
 import { AppText } from '../AppText/AppText';
 
@@ -20,27 +21,27 @@ export function AppInput({
   error,
   hint,
   required,
-  style,
+  className,
   editable = true,
   ...rest
 }: AppInputProps) {
   const hasError = Boolean(error);
 
   return (
-    <View style={styles.container}>
+    <View className="w-full">
       {label ? (
-        <AppLabel required={required} style={styles.labelSpacing}>
+        <AppLabel required={required} className="mb-1">
           {label}
         </AppLabel>
       ) : null}
 
       <TextInput
-        style={[
-          styles.input,
-          hasError && styles.inputError,
-          !editable && styles.inputDisabled,
-          style,
-        ]}
+        className={cn(
+          'min-h-11 rounded-md border border-border bg-white px-3 py-2 text-[15px] text-text-primary',
+          hasError && 'border-danger',
+          !editable && 'bg-surface text-text-disabled',
+          className,
+        )}
         editable={editable}
         placeholderTextColor={colors.textDisabled}
         accessibilityLabel={label}
@@ -49,44 +50,14 @@ export function AppInput({
       />
 
       {hasError ? (
-        <AppText variant="caption" color={colors.danger} style={styles.message}>
+        <AppText variant="caption" color={colors.danger} className="mt-1">
           {error}
         </AppText>
       ) : hint ? (
-        <AppText variant="caption" style={styles.message}>
+        <AppText variant="caption" className="mt-1">
           {hint}
         </AppText>
       ) : null}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-  },
-  labelSpacing: {
-    marginBottom: spacing.xs,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    fontSize: typography.fontSizes.base,
-    color: colors.textPrimary,
-    backgroundColor: colors.white,
-    minHeight: 44,
-  },
-  inputError: {
-    borderColor: colors.danger,
-  },
-  inputDisabled: {
-    backgroundColor: colors.gray100,
-    color: colors.textDisabled,
-  },
-  message: {
-    marginTop: spacing.xs,
-  },
-});
