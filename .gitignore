@@ -30,3 +30,4 @@ firebase-debug.log
 
 # Service key files
 *key*.json
+.cache
