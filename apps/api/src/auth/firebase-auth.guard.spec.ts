@@ -1,12 +1,9 @@
-import {
-  ForbiddenException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { createHash } from 'node:crypto';
+import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { FirebaseAuthService } from '@todos/firebase';
 import { ApiTokenStoreService } from '@todos/store';
-import { createHash } from 'node:crypto';
 import { AUTH_SCOPE_KEY } from './auth-scope.decorator';
 import { FirebaseAuthGuard } from './firebase-auth.guard';
 import { IS_PUBLIC_KEY } from './public.decorator';
@@ -239,7 +236,7 @@ describe('FirebaseAuthGuard', () => {
 
     it('should authenticate with a valid API token and attach ApiTokenPrincipal', async () => {
       vi.spyOn(reflector, 'getAllAndOverride')
-        .mockReturnValueOnce(false)   // IS_PUBLIC_KEY
+        .mockReturnValueOnce(false) // IS_PUBLIC_KEY
         .mockReturnValueOnce(undefined); // AUTH_SCOPE_KEY
 
       mockFindByHash.mockResolvedValue(activeEntity);
@@ -352,7 +349,7 @@ describe('FirebaseAuthGuard', () => {
 
     it('should allow access when token has the required scope', async () => {
       vi.spyOn(reflector, 'getAllAndOverride')
-        .mockReturnValueOnce(false)          // IS_PUBLIC_KEY
+        .mockReturnValueOnce(false) // IS_PUBLIC_KEY
         .mockReturnValueOnce(['todos:read']); // AUTH_SCOPE_KEY
 
       mockFindByHash.mockResolvedValue(readOnlyEntity);
@@ -373,7 +370,7 @@ describe('FirebaseAuthGuard', () => {
 
     it('should throw ForbiddenException when token lacks a required scope', async () => {
       vi.spyOn(reflector, 'getAllAndOverride')
-        .mockReturnValueOnce(false)           // IS_PUBLIC_KEY
+        .mockReturnValueOnce(false) // IS_PUBLIC_KEY
         .mockReturnValueOnce(['todos:write']); // AUTH_SCOPE_KEY — token only has todos:read
 
       mockFindByHash.mockResolvedValue(readOnlyEntity);

@@ -9,6 +9,6 @@ import { FirebaseAuthGuard } from './firebase-auth.guard';
   imports: [ApiTokenStoreModule],
   controllers: [AuthController],
   providers: [AuthService, FirebaseAuthGuard, ApiTokenService],
-  exports: [FirebaseAuthGuard, ApiTokenStoreModule],
+  exports: [FirebaseAuthGuard],
 })
 export class AuthModule {}

@@ -2,6 +2,13 @@
 
 This document outlines the core principles, standards, and guidelines for the Todos project to ensure consistency, maintainability, and quality across all components.
 
+## Vocabulary
+
+- SDLC: Software Development Life Cycle, the process of planning, creating, testing, and deploying software.
+- Spike: An issue with the `Spike:` prefix, with the conditions of actual SDLC meaning
+- PBI: Product Backlog Item, an issue with the `PBI:` prefix, with the conditions of actual SDLC meaning
+- ADR: Architectural Decision Record, a document that captures an important architectural decision made during the project, along with its context and consequences.
+
 ## Architecture Principles
 
 - **Monorepo Structure**: The project uses a monorepo with apps and shared packages.

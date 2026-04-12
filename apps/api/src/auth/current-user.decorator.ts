@@ -1,5 +1,8 @@
 import { createParamDecorator, type ExecutionContext } from '@nestjs/common';
-import type { AuthenticatedPrincipal, AuthenticatedRequest } from './firebase-auth.guard';
+import type {
+  AuthenticatedPrincipal,
+  AuthenticatedRequest,
+} from './firebase-auth.guard';
 
 /**
  * Parameter decorator that extracts the authenticated principal from the

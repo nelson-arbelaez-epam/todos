@@ -112,6 +112,10 @@ export class FirebaseApiTokenRepository implements ApiTokenRepository {
       return null;
     }
 
+    if (data.revokedAt) {
+      return this.toEntity(data);
+    }
+
     const revokedAt = new Date();
     await ref.update({ revokedAt });
 

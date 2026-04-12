@@ -66,7 +66,7 @@ export class FirebaseAuthGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     private readonly firebaseAuth: FirebaseAuthService,
-    private readonly apiTokenStore?: ApiTokenStoreService,
+    private readonly apiTokenStore: ApiTokenStoreService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -124,15 +124,6 @@ export class FirebaseAuthGuard implements CanActivate {
     request: AuthenticatedRequest,
     rawToken: string,
   ): Promise<boolean> {
-    if (!this.apiTokenStore) {
-      this.logger.warn(
-        'API token presented but ApiTokenStoreService is not available',
-      );
-      throw new UnauthorizedException(
-        'Invalid or expired authentication token',
-      );
-    }
-
     const tokenHash = createHash('sha256').update(rawToken).digest('hex');
     const entity = await this.apiTokenStore.findByHash(tokenHash);
 

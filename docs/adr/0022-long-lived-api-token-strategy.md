@@ -121,6 +121,12 @@ Initial scope set (extend as new resources are added):
 The issuance endpoint accepts only scopes that the requesting Firebase-authenticated user
 is authorised to hold; a user cannot self-escalate beyond their current permissions.
 
+Implementation note (2026-04-11): The current implementation enforces allowed scope values
+and API-token route scope checks, but does not yet map Firebase-authenticated callers to a
+fine-grained entitlement model at token issuance time. Future role- or policy-based auth
+implementations must enforce caller-to-scope entitlement at issuance (rejecting
+out-of-entitlement scope requests) before expanding authorization capabilities.
+
 Scope validation during token lookup: the request-handling code checks that the resolved
 token's `scopes` array includes the required scope for the requested resource before
 permitting the action.
