@@ -5,8 +5,17 @@ import type {
   RegisterUserResponseDto,
 } from '@todos/core/http';
 
-const API_BASE_URL =
-  process.env.EXPO_PUBLIC_TODOS_API_URL ?? 'http://localhost:3000';
+function getApiBaseUrl(): string {
+  const apiBaseUrl = process.env.EXPO_PUBLIC_TODOS_API_URL;
+
+  if (!apiBaseUrl) {
+    throw new Error(
+      'EXPO_PUBLIC_TODOS_API_URL is required for mobile API requests.',
+    );
+  }
+
+  return apiBaseUrl;
+}
 
 /**
  * Minimal subset of the NestJS global-exception-filter response envelope.
@@ -23,7 +32,7 @@ interface ApiError {
 export async function registerUser(
   payload: RegisterUserDto,
 ): Promise<RegisterUserResponseDto> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/auth/register`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/v1/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -50,7 +59,7 @@ export async function registerUser(
 export async function loginUser(
   payload: LoginUserDto,
 ): Promise<LoginUserResponseDto> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/v1/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),

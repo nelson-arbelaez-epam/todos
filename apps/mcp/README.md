@@ -32,7 +32,7 @@ ID token via the `x-api-token` header.
 | Variable | Description | Default |
 |---|---|---|
 | `PORT` | Port the MCP server listens on | `3000` |
-| `TODOS_API_URL` | Base URL of the Todos backend API | `http://localhost:3001` |
+| `TODOS_API_URL` | Base URL of the Todos backend API | `http://localhost:3000` |
 
 Copy `.env.example` to `.env` and set the values before starting the server.
 

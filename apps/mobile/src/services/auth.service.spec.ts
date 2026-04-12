@@ -1,16 +1,26 @@
 // @vitest-environment node
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { registerUser } from './auth.service';
+import { loginUser, registerUser } from './auth.service';
 
 const mockFetch = vi.fn();
+const originalApiBaseUrl = process.env.EXPO_PUBLIC_TODOS_API_URL;
 
 describe('registerUser', () => {
   beforeEach(() => {
+    process.env.EXPO_PUBLIC_TODOS_API_URL = 'http://mobile-api.test';
+    mockFetch.mockReset();
     vi.stubGlobal('fetch', mockFetch);
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
+
+    if (originalApiBaseUrl === undefined) {
+      delete process.env.EXPO_PUBLIC_TODOS_API_URL;
+      return;
+    }
+
+    process.env.EXPO_PUBLIC_TODOS_API_URL = originalApiBaseUrl;
   });
 
   it('returns uid and email on successful registration', async () => {
@@ -26,9 +36,21 @@ describe('registerUser', () => {
 
     expect(result).toEqual({ uid: 'uid-123', email: 'test@example.com' });
     expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('/api/v1/auth/register'),
+      'http://mobile-api.test/api/v1/auth/register',
       expect.objectContaining({ method: 'POST' }),
     );
+  });
+
+  it('throws before making a request when EXPO_PUBLIC_TODOS_API_URL is missing', async () => {
+    delete process.env.EXPO_PUBLIC_TODOS_API_URL;
+
+    await expect(
+      registerUser({ email: 'test@example.com', password: 'password123' }),
+    ).rejects.toThrow(
+      'EXPO_PUBLIC_TODOS_API_URL is required for mobile API requests.',
+    );
+
+    expect(mockFetch).not.toHaveBeenCalled();
   });
 
   it('throws an error with conflict message when email is already registered (409)', async () => {
@@ -85,5 +107,33 @@ describe('registerUser', () => {
     await expect(
       registerUser({ email: 'a@b.com', password: 'password123' }),
     ).rejects.toThrow('Failed to fetch');
+  });
+
+  it('uses the configured API base URL for login requests', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        uid: 'uid-123',
+        email: 'test@example.com',
+        idToken: 'token-123',
+        expiresIn: '3600',
+      }),
+    });
+
+    const result = await loginUser({
+      email: 'test@example.com',
+      password: 'password123',
+    });
+
+    expect(result).toEqual({
+      uid: 'uid-123',
+      email: 'test@example.com',
+      idToken: 'token-123',
+      expiresIn: '3600',
+    });
+    expect(mockFetch).toHaveBeenCalledWith(
+      'http://mobile-api.test/api/v1/auth/login',
+      expect.objectContaining({ method: 'POST' }),
+    );
   });
 });
