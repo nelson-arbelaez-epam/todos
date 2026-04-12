@@ -11,6 +11,7 @@ import type {
   RevokeApiTokenResponseDto,
 } from '@todos/core/http';
 import type { DecodedIdToken } from 'firebase-admin/auth';
+import { ApiTokenPrincipal } from 'src/shared/http/guards/firebase-auth.guard';
 import { ApiTokenService } from '../api-token.service';
 import { AuthService } from '../auth.service';
 import { AuthController } from './auth.controller';
@@ -280,6 +281,23 @@ describe('AuthController', () => {
       await expect(
         authController.revokeToken(mockUser, tokenId),
       ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should return 403 when authenticated via API token', async () => {
+      const apiTokenPrincipal: ApiTokenPrincipal = {
+        uid: 'firebase-uid-123',
+        authProvider: 'api-token',
+        apiTokenId: 'existing-token-id',
+        scopes: ['todos:read'],
+      };
+
+      await expect(
+        authController.revokeToken(apiTokenPrincipal, tokenId),
+      ).rejects.toThrowError(
+        'Token revocation requires Firebase JWT authentication',
+      );
+
+      expect(mockApiTokenService.revokeToken).not.toHaveBeenCalled();
     });
   });
 });

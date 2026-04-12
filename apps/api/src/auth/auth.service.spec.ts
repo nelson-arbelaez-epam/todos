@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   InternalServerErrorException,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
@@ -21,6 +22,7 @@ describe('AuthService', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
+    vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
