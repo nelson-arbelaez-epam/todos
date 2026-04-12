@@ -1,3 +1,4 @@
+import { NotFoundException } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import type { ApiTokenEntity } from '@todos/core';
 import type { CreateApiTokenDto } from '@todos/core/http';
@@ -173,11 +174,10 @@ describe('ApiTokenService', () => {
 
   describe('listTokens', () => {
     it('should return an array of ApiTokenMetadataDto for the owner', async () => {
-      const revokedEntity: ApiTokenEntity = {
+      const revokedEntity: typeof mockEntity = {
         ...mockEntity,
-        tokenId: 'b2c3d4e5-f6a7-8901-bcde-f12345678901',
-        label: 'Old token',
-        revokedAt: '2026-04-10T10:00:00.000Z',
+        tokenId: 'revoked-token-id',
+        revokedAt: '2026-04-11T15:00:00.000Z',
       };
       mockApiTokenStore.findAllByOwner.mockResolvedValue([
         mockEntity,
@@ -187,28 +187,17 @@ describe('ApiTokenService', () => {
       const result = await service.listTokens(ownerUid);
 
       expect(result).toHaveLength(2);
+      expect(result[0].tokenId).toBe(mockEntity.tokenId);
+      expect(result[0].revokedAt).toBeNull();
+      expect(result[1].tokenId).toBe('revoked-token-id');
+      expect(result[1].revokedAt).toBe('2026-04-11T15:00:00.000Z');
+      // Raw token must never appear in metadata
+      expect(result[0]).not.toHaveProperty('token');
+      expect(result[0]).not.toHaveProperty('tokenHash');
       expect(mockApiTokenStore.findAllByOwner).toHaveBeenCalledWith(ownerUid);
     });
 
-    it('should map entity fields correctly and never include tokenHash', async () => {
-      mockApiTokenStore.findAllByOwner.mockResolvedValue([mockEntity]);
-
-      const result = await service.listTokens(ownerUid);
-
-      expect(result[0]).toEqual({
-        tokenId: mockEntity.tokenId,
-        label: mockEntity.label,
-        scopes: mockEntity.scopes,
-        createdAt: mockEntity.createdAt,
-        expiresAt: mockEntity.expiresAt,
-        lastUsedAt: mockEntity.lastUsedAt,
-        revokedAt: mockEntity.revokedAt,
-      });
-      expect(result[0]).not.toHaveProperty('tokenHash');
-      expect(result[0]).not.toHaveProperty('token');
-    });
-
-    it('should return an empty array when the owner has no tokens', async () => {
+    it('should return an empty array when owner has no tokens', async () => {
       mockApiTokenStore.findAllByOwner.mockResolvedValue([]);
 
       const result = await service.listTokens(ownerUid);
@@ -222,6 +211,52 @@ describe('ApiTokenService', () => {
       );
 
       await expect(service.listTokens(ownerUid)).rejects.toThrow(
+        'Firestore unavailable',
+      );
+    });
+  });
+
+  describe('revokeToken', () => {
+    const tokenId = mockEntity.tokenId;
+
+    it('should return RevokeApiTokenResponseDto when token is revoked successfully', async () => {
+      const revokedAt = '2026-04-11T15:00:00.000Z';
+      const revokedEntity = { ...mockEntity, revokedAt };
+      mockApiTokenStore.revoke.mockResolvedValue(revokedEntity);
+
+      const result = await service.revokeToken(ownerUid, tokenId);
+
+      expect(result.tokenId).toBe(tokenId);
+      expect(result.revokedAt).toBe(revokedAt);
+      expect(mockApiTokenStore.revoke).toHaveBeenCalledWith(ownerUid, tokenId);
+    });
+
+    it('should be idempotent – returns revokedAt for already-revoked token', async () => {
+      const revokedAt = '2026-04-11T15:00:00.000Z';
+      const revokedEntity = { ...mockEntity, revokedAt };
+      mockApiTokenStore.revoke.mockResolvedValue(revokedEntity);
+
+      const result1 = await service.revokeToken(ownerUid, tokenId);
+      const result2 = await service.revokeToken(ownerUid, tokenId);
+
+      expect(result1.revokedAt).toBe(revokedAt);
+      expect(result2.revokedAt).toBe(revokedAt);
+    });
+
+    it('should throw NotFoundException when token does not exist or belongs to a different owner', async () => {
+      mockApiTokenStore.revoke.mockResolvedValue(null);
+
+      await expect(
+        service.revokeToken(ownerUid, 'non-existent-token-id'),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should propagate store errors', async () => {
+      mockApiTokenStore.revoke.mockRejectedValue(
+        new Error('Firestore unavailable'),
+      );
+
+      await expect(service.revokeToken(ownerUid, tokenId)).rejects.toThrow(
         'Firestore unavailable',
       );
     });
