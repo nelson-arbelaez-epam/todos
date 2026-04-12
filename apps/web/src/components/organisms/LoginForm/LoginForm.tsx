@@ -14,6 +14,8 @@ export interface LoginFormProps {
   onSubmit: (values: LoginFormValues) => void;
 }
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 /**
  * Presentational login form component.
  * Accepts all data and callbacks via props – no side effects or API calls.
@@ -22,11 +24,33 @@ export interface LoginFormProps {
 export function LoginForm({ isLoading, error, onSubmit }: LoginFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    onSubmit({ email, password });
+    setValidationError(null);
+
+    const trimmedEmail = email.trim();
+
+    if (!trimmedEmail) {
+      setValidationError('Email is required');
+      return;
+    }
+
+    if (!EMAIL_REGEX.test(trimmedEmail)) {
+      setValidationError('Please enter a valid email address');
+      return;
+    }
+
+    if (!password) {
+      setValidationError('Password is required');
+      return;
+    }
+
+    onSubmit({ email: trimmedEmail, password });
   };
+
+  const displayError = validationError ?? error;
 
   return (
     <form
@@ -38,12 +62,12 @@ export function LoginForm({ isLoading, error, onSubmit }: LoginFormProps) {
         Sign in
       </Text>
 
-      {error && (
+      {displayError && (
         <p
           role="alert"
           className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-600"
         >
-          {error}
+          {displayError}
         </p>
       )}
 
