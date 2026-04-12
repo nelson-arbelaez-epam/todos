@@ -1,4 +1,11 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  ForbiddenException,
+  HttpCode,
+  HttpStatus,
+  Post,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -82,6 +89,7 @@ export class AuthController {
   /**
    * Issue a new long-lived API token for the authenticated user.
    * The raw token value is returned exactly once in the response body.
+   * Per ADR 0022, only Firebase JWT authentication is permitted (to prevent token proliferation).
    */
   @ApiBearerAuth('firebase-jwt')
   @Post('tokens')
@@ -105,10 +113,21 @@ export class AuthController {
     status: 401,
     description: 'Missing or invalid Firebase JWT',
   })
+  @ApiResponse({
+    status: 403,
+    description:
+      'API tokens cannot issue other API tokens (requires Firebase JWT)',
+  })
   async createToken(
     @CurrentUser() user: AuthenticatedPrincipal,
     @Body() dto: CreateApiTokenDto,
   ): Promise<ApiTokenResponseDto> {
+    // Enforce ADR 0022: only Firebase JWT can issue tokens, not API tokens
+    if ('authProvider' in user && user.authProvider === 'api-token') {
+      throw new ForbiddenException(
+        'Token issuance requires Firebase JWT authentication',
+      );
+    }
     return this.apiTokenService.createToken(user.uid, dto);
   }
 }

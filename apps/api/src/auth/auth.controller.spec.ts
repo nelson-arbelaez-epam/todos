@@ -1,14 +1,16 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
-import type { ApiTokenResponseDto } from '@todos/core/http';
+import type { ApiTokenResponseDto, CreateApiTokenDto } from '@todos/core/http';
 import type { DecodedIdToken } from 'firebase-admin/auth';
 import { ApiTokenService } from './api-token.service';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { AuthenticatedPrincipal } from './firebase-auth.guard';
 
 const mockAuthService = {
   register: vi.fn(),
@@ -158,6 +160,27 @@ describe('AuthController', () => {
       await expect(authController.createToken(mockUser, dto)).rejects.toThrow(
         'Firestore unavailable',
       );
+    });
+
+    it('should return 403 when user is authenticated via API token (token proliferation check)', async () => {
+      // Per ADR 0022, only Firebase JWT can issue tokens; API tokens cannot create other tokens
+      const apiTokenPrincipal: AuthenticatedPrincipal = {
+        uid: 'firebase-uid-123',
+        authProvider: 'api-token',
+        apiTokenId: 'existing-token-id',
+        scopes: ['todos:read'],
+      };
+
+      const dto: CreateApiTokenDto = {
+        label: 'Malicious Token',
+        scopes: ['todos:write'],
+      };
+
+      await expect(
+        authController.createToken(apiTokenPrincipal, dto),
+      ).rejects.toThrow(ForbiddenException);
+
+      expect(mockApiTokenService.createToken).not.toHaveBeenCalled();
     });
   });
 });
