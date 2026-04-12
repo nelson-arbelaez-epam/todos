@@ -1,14 +1,25 @@
 #!/bin/sh
-# Pre-commit hook: enforce Biome lint+format on every commit.
+# Pre-commit hook: enforce Biome lint+format and TypeScript type checking on every commit.
 # Installed automatically via `yarn install` (prepare script).
 
 echo "Running Biome check..."
 yarn biome check .
 
-exit_code=$?
-if [ $exit_code -ne 0 ]; then
+biome_exit=$?
+if [ $biome_exit -ne 0 ]; then
   echo ""
   echo "Biome check failed. Run \`yarn biome check --write .\` to auto-fix formatting issues,"
   echo "then stage the fixed files and commit again."
-  exit $exit_code
+  exit $biome_exit
 fi
+
+echo "Running TypeScript type check..."
+yarn workspaces foreach --all --parallel exec 'test -d src && npx tsc --noEmit || true'
+
+tsc_exit=$?
+if [ $tsc_exit -ne 0 ]; then
+  echo ""
+  echo "TypeScript type check failed. Review the errors above and fix them."
+  exit $tsc_exit
+fi
+

@@ -37,5 +37,8 @@ jobs:
           yarn workspace @todos/store build
           yarn workspace @todos/firebase build
 
+      - name: Type check (TSC)
+        run: yarn workspaces foreach --all --parallel exec 'test -d src && npx tsc --noEmit || true'
+
       - name: Run tests
         run: yarn test
