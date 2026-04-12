@@ -1,0 +1,14 @@
+#!/bin/sh
+# Pre-commit hook: enforce Biome lint+format on every commit.
+# Installed automatically via `yarn install` (prepare script).
+
+echo "Running Biome check..."
+yarn biome check .
+
+exit_code=$?
+if [ $exit_code -ne 0 ]; then
+  echo ""
+  echo "Biome check failed. Run \`yarn biome check --write .\` to auto-fix formatting issues,"
+  echo "then stage the fixed files and commit again."
+  exit $exit_code
+fi

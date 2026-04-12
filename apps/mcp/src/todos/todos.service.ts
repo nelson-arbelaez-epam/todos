@@ -4,6 +4,7 @@ import type {
   MCPCreateTodoRequest,
   MCPTodoDto,
   MCPTodoListResponse,
+  MCPUpdateTodoRequest,
 } from '@todos/core/mcp';
 
 type ListTodosParams = {
@@ -39,6 +40,44 @@ export class TodosApiService {
 
     const response = await fetch(url, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiToken}`,
+      },
+      body: JSON.stringify(dto),
+    });
+
+    if (!response.ok) {
+      const body = (await response.json().catch(() => null)) as {
+        message?: string;
+      } | null;
+      const message = body?.message ?? response.statusText;
+      this.logger.warn(`API responded ${response.status}: ${message}`);
+      const error = Object.assign(new Error(message), {
+        status: response.status,
+      });
+      throw error;
+    }
+
+    return response.json() as Promise<MCPTodoDto>;
+  }
+
+  /**
+   * Updates an existing todo via the Todos API, authenticated with the provided token.
+   *
+   * @param apiToken - Bearer token forwarded from the client (not logged in plain text)
+   * @param id - ID of the todo to update
+   * @param dto - Partial todo update payload
+   */
+  async updateTodo(
+    apiToken: string,
+    id: string,
+    dto: Omit<MCPUpdateTodoRequest, 'id'>,
+  ): Promise<MCPTodoDto> {
+    const url = `${this.apiBaseUrl}/api/v1/todos/${encodeURIComponent(id)}`;
+
+    const response = await fetch(url, {
+      method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiToken}`,

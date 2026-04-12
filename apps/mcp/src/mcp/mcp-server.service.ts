@@ -68,6 +68,83 @@ export class McpServerService {
     );
 
     server.registerTool(
+      'update_todo',
+      {
+        description: 'Update fields of an existing todo item in the Todos API.',
+        inputSchema: {
+          id: z.string().min(1).describe('ID of the todo to update'),
+          title: z
+            .string()
+            .min(1)
+            .optional()
+            .describe('New title for the todo'),
+          description: z
+            .string()
+            .optional()
+            .describe('New description for the todo'),
+          completed: z
+            .boolean()
+            .optional()
+            .describe('New completion status for the todo'),
+        },
+      },
+      async ({ id, title, description, completed }) => {
+        try {
+          const todo = await this.todosApiService.updateTodo(apiToken, id, {
+            title,
+            description,
+            completed,
+          });
+          return {
+            content: [{ type: 'text' as const, text: JSON.stringify(todo) }],
+          };
+        } catch (err: unknown) {
+          const message =
+            err instanceof Error ? err.message : 'Unknown error updating todo';
+          this.logger.error(`update_todo tool failed: ${message}`);
+          return {
+            content: [{ type: 'text' as const, text: `Error: ${message}` }],
+            isError: true,
+          };
+        }
+      },
+    );
+
+    server.registerTool(
+      'complete_todo',
+      {
+        description: 'Mark a todo item as completed or incomplete.',
+        inputSchema: {
+          id: z.string().min(1).describe('ID of the todo to complete'),
+          completed: z
+            .boolean()
+            .default(true)
+            .describe('Completion status to set (default: true)'),
+        },
+      },
+      async ({ id, completed }) => {
+        try {
+          const todo = await this.todosApiService.updateTodo(apiToken, id, {
+            completed,
+          });
+          return {
+            content: [{ type: 'text' as const, text: JSON.stringify(todo) }],
+          };
+        } catch (err: unknown) {
+          const message =
+            err instanceof Error
+              ? err.message
+              : 'Unknown error completing todo';
+          this.logger.error(`complete_todo tool failed: ${message}`);
+          return {
+            content: [{ type: 'text' as const, text: `Error: ${message}` }],
+            isError: true,
+          };
+        }
+      },
+    );
+
+    server.registerTool(
       'list_todos',
       {
         description:

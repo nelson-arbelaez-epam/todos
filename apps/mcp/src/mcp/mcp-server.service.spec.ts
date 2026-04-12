@@ -17,6 +17,7 @@ const mockTodo = {
 const mockTodosApiService = {
   createTodo: vi.fn(),
   listTodos: vi.fn(),
+  updateTodo: vi.fn(),
 };
 
 describe('McpServerService', () => {
@@ -147,6 +148,162 @@ describe('McpServerService', () => {
 
       const handler = getListTodosHandler();
       const result = await handler({});
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toBe('Error: Service unavailable');
+    });
+  });
+
+  describe('update_todo tool', () => {
+    // biome-ignore lint/suspicious/noExplicitAny: spy on internal registerTool
+    let registerToolSpy: ReturnType<typeof vi.spyOn<any, any>>;
+
+    beforeEach(() => {
+      registerToolSpy = vi.spyOn(McpServer.prototype, 'registerTool');
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    const getUpdateTodoHandler = (apiToken = 'test-token') => {
+      service.createServer(apiToken);
+      const call = registerToolSpy.mock.calls.find(
+        ([name]: [string]) => name === 'update_todo',
+      );
+      // biome-ignore lint/suspicious/noExplicitAny: handler is typed by MCP SDK
+      return call?.[2] as (args: Record<string, any>) => Promise<{
+        content: { type: string; text: string }[];
+        isError?: boolean;
+      }>;
+    };
+
+    it('should return the updated todo on a successful API call', async () => {
+      const updatedTodo = {
+        ...mockTodo,
+        title: 'Updated Title',
+        completed: true,
+      };
+      mockTodosApiService.updateTodo.mockResolvedValue(updatedTodo);
+
+      const handler = getUpdateTodoHandler();
+      const result = await handler({
+        id: 'todo-1',
+        title: 'Updated Title',
+        completed: true,
+      });
+
+      expect(result.isError).toBeUndefined();
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe('text');
+      expect(JSON.parse(result.content[0].text)).toEqual(updatedTodo);
+      expect(mockTodosApiService.updateTodo).toHaveBeenCalledWith(
+        'test-token',
+        'todo-1',
+        { title: 'Updated Title', description: undefined, completed: true },
+      );
+    });
+
+    it('should return an error response when the todo is not found', async () => {
+      mockTodosApiService.updateTodo.mockRejectedValue(
+        Object.assign(new Error('Not Found'), { status: 404 }),
+      );
+
+      const handler = getUpdateTodoHandler();
+      const result = await handler({ id: 'missing-id', title: 'New title' });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toBe('Error: Not Found');
+    });
+
+    it('should return an error response when the API call fails', async () => {
+      mockTodosApiService.updateTodo.mockRejectedValue(
+        new Error('Service unavailable'),
+      );
+
+      const handler = getUpdateTodoHandler();
+      const result = await handler({ id: 'todo-1', title: 'x' });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toBe('Error: Service unavailable');
+    });
+  });
+
+  describe('complete_todo tool', () => {
+    // biome-ignore lint/suspicious/noExplicitAny: spy on internal registerTool
+    let registerToolSpy: ReturnType<typeof vi.spyOn<any, any>>;
+
+    beforeEach(() => {
+      registerToolSpy = vi.spyOn(McpServer.prototype, 'registerTool');
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    const getCompleteTodoHandler = (apiToken = 'test-token') => {
+      service.createServer(apiToken);
+      const call = registerToolSpy.mock.calls.find(
+        ([name]: [string]) => name === 'complete_todo',
+      );
+      // biome-ignore lint/suspicious/noExplicitAny: handler is typed by MCP SDK
+      return call?.[2] as (args: Record<string, any>) => Promise<{
+        content: { type: string; text: string }[];
+        isError?: boolean;
+      }>;
+    };
+
+    it('should mark a todo as completed by default', async () => {
+      const completedTodo = { ...mockTodo, completed: true };
+      mockTodosApiService.updateTodo.mockResolvedValue(completedTodo);
+
+      const handler = getCompleteTodoHandler();
+      const result = await handler({ id: 'todo-1', completed: true });
+
+      expect(result.isError).toBeUndefined();
+      expect(JSON.parse(result.content[0].text)).toEqual(completedTodo);
+      expect(mockTodosApiService.updateTodo).toHaveBeenCalledWith(
+        'test-token',
+        'todo-1',
+        { completed: true },
+      );
+    });
+
+    it('should mark a todo as incomplete when completed is false', async () => {
+      const incompleteTodo = { ...mockTodo, completed: false };
+      mockTodosApiService.updateTodo.mockResolvedValue(incompleteTodo);
+
+      const handler = getCompleteTodoHandler();
+      const result = await handler({ id: 'todo-1', completed: false });
+
+      expect(result.isError).toBeUndefined();
+      expect(JSON.parse(result.content[0].text)).toEqual(incompleteTodo);
+      expect(mockTodosApiService.updateTodo).toHaveBeenCalledWith(
+        'test-token',
+        'todo-1',
+        { completed: false },
+      );
+    });
+
+    it('should return an error response when the todo is not found', async () => {
+      mockTodosApiService.updateTodo.mockRejectedValue(
+        Object.assign(new Error('Not Found'), { status: 404 }),
+      );
+
+      const handler = getCompleteTodoHandler();
+      const result = await handler({ id: 'missing-id', completed: true });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toBe('Error: Not Found');
+    });
+
+    it('should return an error response when the API call fails', async () => {
+      mockTodosApiService.updateTodo.mockRejectedValue(
+        new Error('Service unavailable'),
+      );
+
+      const handler = getCompleteTodoHandler();
+      const result = await handler({ id: 'todo-1', completed: true });
 
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toBe('Error: Service unavailable');
