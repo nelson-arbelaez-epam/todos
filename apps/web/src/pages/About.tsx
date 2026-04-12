@@ -1,9 +1,13 @@
+import Text from '../components/atoms/Text/Text';
+
 const About = () => {
   return (
-    <div>
-      <h1>About Page</h1>
-      <p>This is the about page of the Todos Web App</p>
-    </div>
+    <section className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-16 text-center">
+      <Text variant="heading-1" as="h1">
+        About Page
+      </Text>
+      <Text variant="body">This is the about page of the Todos Web App</Text>
+    </section>
   );
 };
 
