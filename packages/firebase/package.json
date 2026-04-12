@@ -29,6 +29,6 @@
     "@nestjs/testing": "^11.0.1",
     "@types/node": "^24.0.0",
     "typescript": "^5.7.3",
-    "vitest": "latest"
+    "vitest": "4.1.2"
   }
 }

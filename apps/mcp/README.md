@@ -2,9 +2,6 @@
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
-
   <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
     <p align="center">
 <a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
@@ -31,8 +28,8 @@ ID token via the `x-api-token` header.
 
 | Variable | Description | Default |
 |---|---|---|
-| `PORT` | Port the MCP server listens on | `3000` |
-| `TODOS_API_URL` | Base URL of the Todos backend API | `http://localhost:3001` |
+| `PORT` | Port the MCP server listens on | `3010` |
+| `TODOS_API_URL` | Base URL of the Todos backend API | `http://localhost:3000` |
 
 Copy `.env.example` to `.env` and set the values before starting the server.
 
@@ -90,7 +87,7 @@ curl -X POST http://localhost:3000/api/v1/todos \
 ## Project setup
 
 ```bash
-$ yarn install
+yarn install
 ```
 
 ## Compile and run the project
