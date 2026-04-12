@@ -20,6 +20,7 @@
     "dev:mcp": "yarn workspace @todos/mcp dev",
     "dev:web": "yarn workspace @todos/web dev",
     "dev:mobile": "yarn workspace @todos/mobile start",
+    "prepare": "git config core.hooksPath .githooks",
     "lint": "biome lint .",
     "format": "biome format . --write",
     "test": "vitest run --config vitest.workspace.config.ts",

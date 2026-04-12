@@ -49,7 +49,7 @@ If no argument is provided, review all pending changes in the current working tr
 
 ### Step 5: Static Quality Gates
 1. TypeScript strictness and `tsc` health.
-2. Linting and formatting compliance (Biome).
+2. Linting and formatting compliance: **run `yarn biome check .`** on the changed files and report the full output. A non-zero exit code is a blocking finding.
 3. Dependency hygiene and imports consistency.
 
 ### Step 6: Security and OWASP Checklist

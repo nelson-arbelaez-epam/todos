@@ -43,7 +43,12 @@ Before committing each group:
    - Database migrations (if any) are backwards compatible
    - Configuration changes don't break startup
    
-3. **Run Tests** (if applicable to the change):
+3. **Run Biome** (mandatory for all changes):
+   - Run `yarn biome check .` on all staged/changed files
+   - **Block the commit** if any lint or format violation is found
+   - Offer `yarn biome check --write .` to auto-fix formatting issues
+
+4. **Run Tests** (if applicable to the change):
    - Execute affected test suites
    - Ensure the application still starts without errors
    - Validate that the specific change works as intended
@@ -58,6 +63,7 @@ For each bounded action group:
 3. **Conditions to commit**:
    - ✅ All safety checks passed
    - ✅ Code smells resolved
+   - ✅ `yarn biome check .` passes (no lint/format violations)
    - ✅ Related tests pass
    - ✅ Application still runs
 4. **If any condition fails**: Stop and report the issue instead of committing
@@ -84,6 +90,7 @@ After analyzing all changes, present:
 
 ## Safety Status
 - [x] Code smells reviewed
+- [x] Biome check passes
 - [x] Tests passing
 - [x] Application runs
 - [x] No breaking changes
