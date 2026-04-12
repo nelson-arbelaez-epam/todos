@@ -30,7 +30,7 @@ describe('LoginForm', () => {
     );
   });
 
-  it('calls onSubmit with email and password when form is submitted', async () => {
+  it('calls onSubmit with trimmed email and password when form is submitted', async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();
     render(<LoginForm isLoading={false} error={null} onSubmit={onSubmit} />);
@@ -64,5 +64,65 @@ describe('LoginForm', () => {
     render(<LoginForm isLoading={false} error={null} onSubmit={noop} />);
 
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('shows validation error and does not call onSubmit when email is empty', async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(<LoginForm isLoading={false} error={null} onSubmit={onSubmit} />);
+
+    await user.type(screen.getByTestId('form-field--password'), 'password123');
+    await user.click(screen.getByRole('button', { name: /sign in/i }));
+
+    expect(screen.getByRole('alert')).toHaveTextContent(/email is required/i);
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('shows validation error and does not call onSubmit when email format is invalid', async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(<LoginForm isLoading={false} error={null} onSubmit={onSubmit} />);
+
+    await user.type(screen.getByTestId('form-field--email'), 'notanemail');
+    await user.type(screen.getByTestId('form-field--password'), 'password123');
+    await user.click(screen.getByRole('button', { name: /sign in/i }));
+
+    expect(screen.getByRole('alert')).toHaveTextContent(/valid email address/i);
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('shows validation error and does not call onSubmit when password is empty', async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(<LoginForm isLoading={false} error={null} onSubmit={onSubmit} />);
+
+    await user.type(
+      screen.getByTestId('form-field--email'),
+      'user@example.com',
+    );
+    await user.click(screen.getByRole('button', { name: /sign in/i }));
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      /password is required/i,
+    );
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('trims whitespace from email before submitting', async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(<LoginForm isLoading={false} error={null} onSubmit={onSubmit} />);
+
+    await user.type(
+      screen.getByTestId('form-field--email'),
+      '  user@example.com  ',
+    );
+    await user.type(screen.getByTestId('form-field--password'), 'password123');
+    await user.click(screen.getByRole('button', { name: /sign in/i }));
+
+    expect(onSubmit).toHaveBeenCalledWith({
+      email: 'user@example.com',
+      password: 'password123',
+    });
   });
 });
