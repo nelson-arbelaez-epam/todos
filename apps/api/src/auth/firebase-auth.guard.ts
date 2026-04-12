@@ -1,19 +1,18 @@
+import { createHash } from 'node:crypto';
 import {
   type CanActivate,
   type ExecutionContext,
   ForbiddenException,
   Injectable,
   Logger,
-  Optional,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { FirebaseAuthService } from '@todos/firebase';
 import type { ApiTokenScope } from '@todos/core';
+import { FirebaseAuthService } from '@todos/firebase';
 import { ApiTokenStoreService } from '@todos/store';
 import type { Request } from 'express';
 import type { DecodedIdToken } from 'firebase-admin/auth';
-import { createHash } from 'node:crypto';
 import { AUTH_SCOPE_KEY } from './auth-scope.decorator';
 import { IS_PUBLIC_KEY } from './public.decorator';
 
@@ -67,7 +66,6 @@ export class FirebaseAuthGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     private readonly firebaseAuth: FirebaseAuthService,
-    @Optional()
     private readonly apiTokenStore?: ApiTokenStoreService,
   ) {}
 
@@ -130,7 +128,9 @@ export class FirebaseAuthGuard implements CanActivate {
       this.logger.warn(
         'API token presented but ApiTokenStoreService is not available',
       );
-      throw new UnauthorizedException('Invalid or expired authentication token');
+      throw new UnauthorizedException(
+        'Invalid or expired authentication token',
+      );
     }
 
     const tokenHash = createHash('sha256').update(rawToken).digest('hex');
@@ -138,21 +138,27 @@ export class FirebaseAuthGuard implements CanActivate {
 
     if (!entity) {
       this.logger.warn('API token validation failed: token not found');
-      throw new UnauthorizedException('Invalid or expired authentication token');
+      throw new UnauthorizedException(
+        'Invalid or expired authentication token',
+      );
     }
 
     if (entity.revokedAt) {
       this.logger.warn(
         `API token validation failed: token revoked (tokenId=${entity.tokenId})`,
       );
-      throw new UnauthorizedException('Invalid or expired authentication token');
+      throw new UnauthorizedException(
+        'Invalid or expired authentication token',
+      );
     }
 
     if (entity.expiresAt && new Date(entity.expiresAt) < new Date()) {
       this.logger.warn(
         `API token validation failed: token expired (tokenId=${entity.tokenId})`,
       );
-      throw new UnauthorizedException('Invalid or expired authentication token');
+      throw new UnauthorizedException(
+        'Invalid or expired authentication token',
+      );
     }
 
     const principal: ApiTokenPrincipal = {
@@ -164,11 +170,13 @@ export class FirebaseAuthGuard implements CanActivate {
     request.user = principal;
 
     // Best-effort update of lastUsedAt — a write failure must not reject the request.
-    this.apiTokenStore.updateLastUsedAt(entity.tokenId).catch((err: unknown) => {
-      this.logger.warn(
-        `Failed to update lastUsedAt for tokenId=${entity.tokenId}: ${err instanceof Error ? err.message : String(err)}`,
-      );
-    });
+    this.apiTokenStore
+      .updateLastUsedAt(entity.tokenId)
+      .catch((err: unknown) => {
+        this.logger.warn(
+          `Failed to update lastUsedAt for tokenId=${entity.tokenId}: ${err instanceof Error ? err.message : String(err)}`,
+        );
+      });
 
     this.enforceScopes(context, principal);
 

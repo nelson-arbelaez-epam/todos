@@ -11,6 +11,7 @@ describe('ApiTokenStoreModule', () => {
       findByHash: vi.fn(),
       findAllByOwner: vi.fn(),
       revoke: vi.fn(),
+      updateLastUsedAt: vi.fn(),
     };
 
     const moduleRef = await Test.createTestingModule({
