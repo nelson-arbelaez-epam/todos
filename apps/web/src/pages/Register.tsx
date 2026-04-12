@@ -21,7 +21,7 @@ const Register = () => {
   }, [currentUser, navigate]);
 
   return (
-    <div style={{ padding: '48px 16px' }}>
+    <div className="flex flex-1 items-center justify-center px-4 py-12">
       <RegisterForm isLoading={isLoading} error={error} onSubmit={register} />
     </div>
   );
