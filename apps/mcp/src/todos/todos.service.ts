@@ -101,6 +101,7 @@ export class TodosApiService {
   }
 
   /**
+   * Lists active (non-archived) todos via the Todos API, authenticated with the provided token.
    *
    * @param apiToken - Bearer token forwarded from the client (not logged in plain text)
    * @param params - Optional query parameters (page, limit, orderBy, orderDir)
