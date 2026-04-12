@@ -28,8 +28,8 @@ import {
   UpdateTodoDto,
 } from '@todos/core/http';
 import type { DecodedIdToken } from 'firebase-admin/auth';
-import { CurrentUser } from '../auth/current-user.decorator';
-import { TodosService } from './todos.service';
+import { CurrentUser } from '../../shared/http/decorators/current-user.decorator';
+import { TodosService } from '../todos.service';
 
 @ApiTags('todos')
 @ApiBearerAuth('firebase-jwt')

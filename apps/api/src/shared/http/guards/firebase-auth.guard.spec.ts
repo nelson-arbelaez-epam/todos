@@ -4,9 +4,9 @@ import { Reflector } from '@nestjs/core';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { FirebaseAuthService } from '@todos/firebase';
 import { ApiTokenStoreService } from '@todos/store';
-import { AUTH_SCOPE_KEY } from './auth-scope.decorator';
+import { AUTH_SCOPE_KEY } from '../decorators/auth-scope.decorator';
+import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { FirebaseAuthGuard } from './firebase-auth.guard';
-import { IS_PUBLIC_KEY } from './public.decorator';
 
 const mockVerifyIdToken = vi.fn();
 const mockFindByHash = vi.fn();
