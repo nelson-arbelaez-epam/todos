@@ -20,7 +20,8 @@
     "test:watch": "vitest --config vitest.config.ts --watch",
     "test:cov": "vitest run --config vitest.config.ts --coverage",
     "test:debug": "vitest --config vitest.config.ts --inspect-brk --inspect --single-thread",
-    "test:e2e": "vitest run --config vitest.config.ts --include \"**/*.e2e-spec.ts\"",
+    "test:e2e": "vitest run --config vitest.config.e2e.ts",
+    "test:e2e:smoke": "vitest run --config vitest.config.e2e.ts --testNamePattern=\"smoke\"",
     "deps:build": "yarn workspace @todos/core build"
   },
   "dependencies": {

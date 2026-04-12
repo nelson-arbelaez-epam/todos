@@ -30,3 +30,16 @@ firebase-debug.log
 
 # Service key files
 *key*.json
+
+# E2E test report artifacts (directory is tracked via .gitkeep)
+tools/e2e/reports/*.xml
+tools/e2e/reports/*.json
+tools/e2e/reports/*.html
+tools/e2e/reports/junit-*.xml
+
+# Playwright report outputs
+apps/web/playwright-report/
+apps/web/test-results/
+
+# Maestro report outputs
+apps/mobile/e2e/reports/

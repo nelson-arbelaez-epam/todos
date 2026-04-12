@@ -8,7 +8,9 @@
     "build": "tsc -b && vite build",
     "lint": "biome lint .",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "echo 'Playwright not yet installed — see docs/e2e-guide.md'",
+    "test:e2e:smoke": "echo 'Playwright not yet installed — see docs/e2e-guide.md'"
   },
   "dependencies": {
     "@todos/branding": "workspace:*",

@@ -1,0 +1,41 @@
+# Mobile e2e journey — auth login (Maestro flow)
+#
+# PLACEHOLDER — requires Maestro CLI to be installed:
+#   curl -Ls "https://get.maestro.mobile.dev" | bash
+#
+# Also requires the Expo app to be running on a connected device or simulator:
+#   yarn workspace @todos/mobile android   # or ios
+#
+# Journey:
+#   1. Launch the app.
+#   2. Tap the email field and enter test credentials.
+#   3. Tap the password field and enter the test password.
+#   4. Tap the "Sign In" button.
+#   5. Assert the home screen (todo list) is visible.
+#   6. Tap the logout button.
+#   7. Assert the login screen is visible again.
+#
+# Environment variables (set before running):
+#   E2E_TEST_EMAIL    — test user email (Firebase emulator)
+#   E2E_TEST_PASSWORD — test user password
+#
+# Run with:
+#   maestro test apps/mobile/e2e/journeys/auth-login.yaml
+
+appId: host.exp.exponent   # Replace with the production bundle ID before release
+---
+- launchApp
+- tapOn:
+    text: "Email"
+- inputText: "${E2E_TEST_EMAIL}"
+- tapOn:
+    text: "Password"
+- inputText: "${E2E_TEST_PASSWORD}"
+- tapOn:
+    text: "Sign In"
+- assertVisible:
+    text: "My Todos"
+- tapOn:
+    text: "Logout"
+- assertVisible:
+    text: "Sign In"

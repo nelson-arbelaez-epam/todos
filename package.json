@@ -24,7 +24,9 @@
     "lint": "biome lint .",
     "format": "biome format . --write",
     "test": "vitest run --config vitest.workspace.config.ts",
-    "test:ui": "vitest --config vitest.workspace.config.ts --ui"
+    "test:ui": "vitest --config vitest.workspace.config.ts --ui",
+    "e2e:smoke": "yarn workspace @todos/api test:e2e:smoke && yarn workspace @todos/mcp test:e2e:smoke",
+    "e2e": "./tools/e2e/scripts/run-e2e.sh"
   },
   "devDependencies": {
     "@biomejs/biome": "latest",

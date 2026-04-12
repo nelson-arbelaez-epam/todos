@@ -1,0 +1,8 @@
+# E2E test reports
+#
+# This directory receives JUnit XML and other report artifacts produced by
+# the CI e2e runner (tools/e2e/scripts/run-e2e-ci.sh).
+#
+# Report files are excluded from git (see .gitignore entries) but the
+# directory itself is tracked so that the structure exists in CI without
+# a mkdir step.

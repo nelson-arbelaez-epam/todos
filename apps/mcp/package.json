@@ -17,7 +17,9 @@
     "test": "vitest run --config vitest.config.ts",
     "test:watch": "vitest --config vitest.config.ts --watch",
     "test:cov": "vitest run --config vitest.config.ts --coverage",
-    "test:ui": "vitest --config vitest.config.ts --ui"
+    "test:ui": "vitest --config vitest.config.ts --ui",
+    "test:e2e": "vitest run --config vitest.config.e2e.ts",
+    "test:e2e:smoke": "vitest run --config vitest.config.e2e.ts --testNamePattern=\"smoke\""
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.29.0",

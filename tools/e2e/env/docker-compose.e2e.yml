@@ -1,0 +1,69 @@
+# tools/e2e/env/docker-compose.e2e.yml
+#
+# Docker Compose configuration for the e2e test environment.
+#
+# Starts the Firebase emulator suite and the Todos API server wired to use
+# the emulator instead of production Firebase services.
+#
+# Prerequisites:
+#   - Docker and Docker Compose v2 installed
+#   - Firebase CLI installed: npm install -g firebase-tools
+#
+# Usage:
+#   docker compose -f tools/e2e/env/docker-compose.e2e.yml up -d
+#   yarn workspace @todos/api test:e2e
+#   docker compose -f tools/e2e/env/docker-compose.e2e.yml down
+#
+# Environment variables can be overridden by creating a tools/e2e/env/.env.local file.
+
+version: '3.9'
+
+services:
+  firebase-emulator:
+    image: andreysenov/firebase-tools:latest
+    container_name: todos-firebase-emulator
+    command: >
+      firebase emulators:start
+        --only auth,firestore
+        --project todos-e2e
+        --import /firebase/seed
+        --export-on-exit /firebase/seed
+    ports:
+      - '4000:4000'   # Emulator UI
+      - '8080:8080'   # Firestore
+      - '9099:9099'   # Auth
+    volumes:
+      - ./firebase-emulator.config.json:/root/.config/configstore/firebase-tools.json:ro
+      - firebase-seed:/firebase/seed
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:4000']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  api:
+    build:
+      context: ../../../
+      dockerfile: apps/api/Dockerfile
+    container_name: todos-api-e2e
+    depends_on:
+      firebase-emulator:
+        condition: service_healthy
+    environment:
+      NODE_ENV: test
+      PORT: 3000
+      FIREBASE_AUTH_EMULATOR_HOST: firebase-emulator:9099
+      FIRESTORE_EMULATOR_HOST: firebase-emulator:8080
+      FIREBASE_PROJECT_ID: todos-e2e
+    ports:
+      - '3000:3000'
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/api/v1/health']
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 20s
+
+volumes:
+  firebase-seed:

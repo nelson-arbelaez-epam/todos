@@ -1,0 +1,55 @@
+# Mobile e2e journey — todo CRUD smoke (Maestro flow)
+#
+# PLACEHOLDER — requires Maestro CLI and a running Expo app.
+#
+# Journey:
+#   1. Log in as a test user (see auth-login.yaml).
+#   2. Tap the "Add todo" input and type a new todo title.
+#   3. Confirm (tap the submit / enter button).
+#   4. Assert the new todo is visible in the list.
+#   5. Tap the checkbox to complete the todo.
+#   6. Assert the todo is rendered in a completed state.
+#   7. Long-press the todo to reveal the delete option.
+#   8. Tap "Delete" and confirm.
+#   9. Assert the todo is no longer visible.
+#
+# Run with:
+#   maestro test apps/mobile/e2e/journeys/todos-crud.yaml
+
+appId: host.exp.exponent
+---
+- launchApp
+# Step 1: log in (inline — replace with a reusable subflow once Maestro supports imports)
+- tapOn:
+    text: "Email"
+- inputText: "${E2E_TEST_EMAIL}"
+- tapOn:
+    text: "Password"
+- inputText: "${E2E_TEST_PASSWORD}"
+- tapOn:
+    text: "Sign In"
+- assertVisible:
+    text: "My Todos"
+
+# Step 2-4: create a todo
+- tapOn:
+    text: "Add a todo"
+- inputText: "E2E smoke todo"
+- tapOn:
+    id: "submit-todo-button"
+- assertVisible:
+    text: "E2E smoke todo"
+
+# Step 5-6: complete the todo
+- tapOn:
+    id: "todo-checkbox"
+- assertVisible:
+    text: "E2E smoke todo"   # still visible, but in completed state
+
+# Step 7-9: delete the todo
+- longPressOn:
+    text: "E2E smoke todo"
+- tapOn:
+    text: "Delete"
+- assertNotVisible:
+    text: "E2E smoke todo"
