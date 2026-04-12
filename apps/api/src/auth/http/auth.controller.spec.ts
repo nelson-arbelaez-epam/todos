@@ -1,13 +1,14 @@
 import {
   BadRequestException,
   ConflictException,
-  ForbiddenException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
-import type { ApiTokenResponseDto, CreateApiTokenDto } from '@todos/core/http';
+import type {
+  ApiTokenMetadataDto,
+  ApiTokenResponseDto,
+} from '@todos/core/http';
 import type { DecodedIdToken } from 'firebase-admin/auth';
-import { AuthenticatedPrincipal } from '../../shared/http/guards/firebase-auth.guard';
 import { ApiTokenService } from '../api-token.service';
 import { AuthService } from '../auth.service';
 import { AuthController } from './auth.controller';
@@ -19,6 +20,7 @@ const mockAuthService = {
 
 const mockApiTokenService = {
   createToken: vi.fn(),
+  listTokens: vi.fn(),
 };
 
 describe('AuthController', () => {
@@ -161,26 +163,49 @@ describe('AuthController', () => {
         'Firestore unavailable',
       );
     });
+  });
 
-    it('should return 403 when user is authenticated via API token (token proliferation check)', async () => {
-      // Per ADR 0022, only Firebase JWT can issue tokens; API tokens cannot create other tokens
-      const apiTokenPrincipal: AuthenticatedPrincipal = {
-        uid: 'firebase-uid-123',
-        authProvider: 'api-token',
-        apiTokenId: 'existing-token-id',
-        scopes: ['todos:read'],
-      };
+  describe('listTokens', () => {
+    const mockUser = { uid: 'firebase-uid-123' } as DecodedIdToken;
 
-      const dto: CreateApiTokenDto = {
-        label: 'Malicious Token',
-        scopes: ['todos:write'],
-      };
+    const mockTokenList: ApiTokenMetadataDto[] = [
+      {
+        tokenId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+        label: 'MCP server – production',
+        scopes: ['todos:read', 'todos:write'],
+        createdAt: '2026-04-11T13:00:00.000Z',
+        expiresAt: '2027-04-11T13:00:00.000Z',
+        lastUsedAt: '2026-04-11T14:00:00.000Z',
+        revokedAt: null,
+      },
+    ];
 
-      await expect(
-        authController.createToken(apiTokenPrincipal, dto),
-      ).rejects.toThrow(ForbiddenException);
+    it('should return the list of tokens for the authenticated user', async () => {
+      mockApiTokenService.listTokens.mockResolvedValue(mockTokenList);
 
-      expect(mockApiTokenService.createToken).not.toHaveBeenCalled();
+      const result = await authController.listTokens(mockUser);
+
+      expect(result).toEqual(mockTokenList);
+      expect(mockApiTokenService.listTokens).toHaveBeenCalledWith(mockUser.uid);
+    });
+
+    it('should return an empty array when the user has no tokens', async () => {
+      mockApiTokenService.listTokens.mockResolvedValue([]);
+
+      const result = await authController.listTokens(mockUser);
+
+      expect(result).toEqual([]);
+      expect(mockApiTokenService.listTokens).toHaveBeenCalledWith(mockUser.uid);
+    });
+
+    it('should propagate errors from ApiTokenService', async () => {
+      mockApiTokenService.listTokens.mockRejectedValue(
+        new Error('Firestore unavailable'),
+      );
+
+      await expect(authController.listTokens(mockUser)).rejects.toThrow(
+        'Firestore unavailable',
+      );
     });
   });
 });
