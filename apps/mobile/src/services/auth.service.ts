@@ -5,7 +5,8 @@ import type {
   RegisterUserResponseDto,
 } from '@todos/core/http';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
+const API_BASE_URL =
+  process.env.EXPO_PUBLIC_TODOS_API_URL ?? 'http://localhost:3000';
 
 /**
  * Minimal subset of the NestJS global-exception-filter response envelope.

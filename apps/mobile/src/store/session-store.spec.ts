@@ -1,7 +1,6 @@
 // @vitest-environment node
 
 import type { LoginUserResponseDto } from '@todos/core/http';
-import { act } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as authService from '../services/auth.service';
 import { resetSessionStoreForTests, useSessionStore } from './session-store';
@@ -30,11 +29,9 @@ describe('useSessionStore', () => {
     });
     mockLoginUser.mockResolvedValue(session);
 
-    await act(async () => {
-      await useSessionStore.getState().register({
-        email: 'user@example.com',
-        password: 'password123',
-      });
+    await useSessionStore.getState().register({
+      email: 'user@example.com',
+      password: 'password123',
     });
 
     expect(mockRegisterUser).toHaveBeenCalledOnce();
@@ -49,11 +46,9 @@ describe('useSessionStore', () => {
       new Error('Email is already registered'),
     );
 
-    await act(async () => {
-      await useSessionStore.getState().register({
-        email: 'user@example.com',
-        password: 'password123',
-      });
+    await useSessionStore.getState().register({
+      email: 'user@example.com',
+      password: 'password123',
     });
 
     expect(mockLoginUser).not.toHaveBeenCalled();
@@ -72,11 +67,9 @@ describe('useSessionStore', () => {
       new Error('Login failed. Please try again.'),
     );
 
-    await act(async () => {
-      await useSessionStore.getState().register({
-        email: 'user@example.com',
-        password: 'password123',
-      });
+    await useSessionStore.getState().register({
+      email: 'user@example.com',
+      password: 'password123',
     });
 
     expect(mockLoginUser).toHaveBeenCalledOnce();
