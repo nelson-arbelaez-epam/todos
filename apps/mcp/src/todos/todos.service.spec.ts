@@ -158,4 +158,74 @@ describe('TodosApiService', () => {
       });
     });
   });
+
+  describe('archiveTodo', () => {
+    const archivedTodo = {
+      ...sampleTodo,
+      archivedAt: '2026-02-01T00:00:00.000Z',
+      updatedAt: '2026-02-01T00:00:00.000Z',
+    };
+
+    it('archives a todo and returns the archived todo DTO', async () => {
+      fetchMock.mockResolvedValue({
+        ok: true,
+        json: async () => archivedTodo,
+      });
+
+      const result = await service.archiveTodo(apiToken, 'todo-1');
+
+      expect(fetchMock).toHaveBeenCalledOnce();
+      const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit];
+      expect(url).toBe('http://localhost:3001/api/v1/todos/todo-1/archive');
+      expect((options as RequestInit & { method: string }).method).toBe(
+        'PATCH',
+      );
+      expect(options.headers).toEqual({ Authorization: `Bearer ${apiToken}` });
+      expect(result).toEqual(archivedTodo);
+    });
+
+    it('URL-encodes the todo id', async () => {
+      fetchMock.mockResolvedValue({
+        ok: true,
+        json: async () => archivedTodo,
+      });
+
+      await service.archiveTodo(apiToken, 'todo/with/slashes');
+
+      const [url] = fetchMock.mock.calls[0] as [string];
+      expect(url).toContain('todo%2Fwith%2Fslashes');
+    });
+
+    it('propagates API errors with the server message', async () => {
+      fetchMock.mockResolvedValue({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+        json: async () => ({ message: 'Todo not found' }),
+      });
+
+      await expect(
+        service.archiveTodo(apiToken, 'missing-id'),
+      ).rejects.toMatchObject({
+        message: 'Todo not found',
+        status: 404,
+      });
+    });
+
+    it('falls back to statusText when the error body has no message', async () => {
+      fetchMock.mockResolvedValue({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+        json: async () => ({}),
+      });
+
+      await expect(
+        service.archiveTodo(apiToken, 'todo-1'),
+      ).rejects.toMatchObject({
+        message: 'Internal Server Error',
+        status: 500,
+      });
+    });
+  });
 });

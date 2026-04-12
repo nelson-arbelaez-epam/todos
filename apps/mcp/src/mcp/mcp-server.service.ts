@@ -195,6 +195,33 @@ export class McpServerService {
       },
     );
 
+    server.registerTool(
+      'archive_todo',
+      {
+        description:
+          'Archive (soft-delete) a todo item. The todo is not physically deleted but will be excluded from active lists.',
+        inputSchema: {
+          id: z.string().min(1).describe('ID of the todo to archive'),
+        },
+      },
+      async ({ id }) => {
+        try {
+          const todo = await this.todosApiService.archiveTodo(apiToken, id);
+          return {
+            content: [{ type: 'text' as const, text: JSON.stringify(todo) }],
+          };
+        } catch (err: unknown) {
+          const message =
+            err instanceof Error ? err.message : 'Unknown error archiving todo';
+          this.logger.error(`archive_todo tool failed: ${message}`);
+          return {
+            content: [{ type: 'text' as const, text: `Error: ${message}` }],
+            isError: true,
+          };
+        }
+      },
+    );
+
     return server;
   }
 }

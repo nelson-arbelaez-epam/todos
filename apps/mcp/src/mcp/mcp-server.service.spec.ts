@@ -18,6 +18,7 @@ const mockTodosApiService = {
   createTodo: vi.fn(),
   listTodos: vi.fn(),
   updateTodo: vi.fn(),
+  archiveTodo: vi.fn(),
 };
 
 describe('McpServerService', () => {
@@ -304,6 +305,77 @@ describe('McpServerService', () => {
 
       const handler = getCompleteTodoHandler();
       const result = await handler({ id: 'todo-1', completed: true });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toBe('Error: Service unavailable');
+    });
+  });
+
+  describe('archive_todo tool', () => {
+    // biome-ignore lint/suspicious/noExplicitAny: spy on internal registerTool
+    let registerToolSpy: ReturnType<typeof vi.spyOn<any, any>>;
+
+    beforeEach(() => {
+      registerToolSpy = vi.spyOn(McpServer.prototype, 'registerTool');
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    const getArchiveTodoHandler = (apiToken = 'test-token') => {
+      service.createServer(apiToken);
+      const call = registerToolSpy.mock.calls.find(
+        ([name]: [string]) => name === 'archive_todo',
+      );
+      // biome-ignore lint/suspicious/noExplicitAny: handler is typed by MCP SDK
+      return call?.[2] as (args: Record<string, any>) => Promise<{
+        content: { type: string; text: string }[];
+        isError?: boolean;
+      }>;
+    };
+
+    it('should return the archived todo on a successful API call', async () => {
+      const archivedTodo = {
+        ...mockTodo,
+        archivedAt: '2024-02-01T00:00:00.000Z',
+        updatedAt: '2024-02-01T00:00:00.000Z',
+      };
+      mockTodosApiService.archiveTodo.mockResolvedValue(archivedTodo);
+
+      const handler = getArchiveTodoHandler();
+      const result = await handler({ id: 'todo-1' });
+
+      expect(result.isError).toBeUndefined();
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe('text');
+      expect(JSON.parse(result.content[0].text)).toEqual(archivedTodo);
+      expect(mockTodosApiService.archiveTodo).toHaveBeenCalledWith(
+        'test-token',
+        'todo-1',
+      );
+    });
+
+    it('should return an error response when the todo is not found', async () => {
+      const notFoundError = Object.assign(new Error('Todo not found'), {
+        status: 404,
+      });
+      mockTodosApiService.archiveTodo.mockRejectedValue(notFoundError);
+
+      const handler = getArchiveTodoHandler();
+      const result = await handler({ id: 'missing-id' });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toBe('Error: Todo not found');
+    });
+
+    it('should return an error response when the API call fails', async () => {
+      mockTodosApiService.archiveTodo.mockRejectedValue(
+        new Error('Service unavailable'),
+      );
+
+      const handler = getArchiveTodoHandler();
+      const result = await handler({ id: 'todo-1' });
 
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toBe('Error: Service unavailable');

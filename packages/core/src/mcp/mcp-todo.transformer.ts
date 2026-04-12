@@ -10,6 +10,9 @@ export class MCPTodoDtoTransformer {
     // Convert dates to ISO strings for MCP serialization
     const transformedEntity = {
       ...entity,
+      archivedAt: entity.archivedAt
+        ? new Date(entity.archivedAt).toISOString()
+        : undefined,
       createdAt: entity.createdAt
         ? new Date(entity.createdAt).toISOString()
         : new Date().toISOString(),

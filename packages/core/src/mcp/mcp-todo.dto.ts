@@ -26,6 +26,11 @@ export class MCPTodoDto {
   @Transform(({ value }) => value ?? false)
   completed!: boolean;
 
+  @IsOptional()
+  @IsString()
+  @IsDateString()
+  archivedAt?: string; // ISO 8601 string
+
   @IsString()
   @IsDateString()
   createdAt!: string; // ISO 8601 string
