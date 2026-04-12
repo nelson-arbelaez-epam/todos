@@ -1,8 +1,14 @@
+import { fileURLToPath } from 'node:url';
 import { reactNative } from '@srsholmes/vitest-react-native';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
   plugins: [react(), reactNative()],
   test: {
     setupFiles: ['@srsholmes/vitest-react-native/setup'],
