@@ -15,6 +15,8 @@ export interface FormFieldProps extends InputProps {
  * plus a `label` and optional `required` flag.
  *
  * Fully presentational: no side effects, store calls, or API fetches.
+ *
+ * @testid form-field--{id} — the input element (e.g., "form-field--email")
  */
 const FormField = ({
   label,
@@ -26,7 +28,7 @@ const FormField = ({
     <Label htmlFor={id} required={required}>
       {label}
     </Label>
-    <Input id={id} {...inputProps} />
+    <Input id={id} data-testid={`form-field--${id}`} {...inputProps} />
   </div>
 );
 

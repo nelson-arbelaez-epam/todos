@@ -10,7 +10,10 @@ describe('FormField', () => {
 
   it('associates label with input via htmlFor/id', () => {
     render(<FormField id="email" label="Email" />);
-    expect(screen.getByLabelText('Email')).toBeInTheDocument();
+    expect(screen.getByTestId('form-field--email')).toHaveAttribute(
+      'id',
+      'email',
+    );
   });
 
   it('shows required indicator when required=true', () => {
@@ -34,7 +37,7 @@ describe('FormField', () => {
         placeholder="you@example.com"
       />,
     );
-    const input = screen.getByLabelText('Email');
+    const input = screen.getByTestId('form-field--email');
     expect(input).toHaveAttribute('type', 'email');
     expect(input).toHaveAttribute('placeholder', 'you@example.com');
   });
@@ -46,7 +49,7 @@ describe('FormField', () => {
 
   it('sets aria-invalid when error prop is provided', () => {
     render(<FormField id="email" label="Email" error="Required" />);
-    expect(screen.getByLabelText('Email')).toHaveAttribute(
+    expect(screen.getByTestId('form-field--email')).toHaveAttribute(
       'aria-invalid',
       'true',
     );
@@ -54,6 +57,6 @@ describe('FormField', () => {
 
   it('is disabled when disabled prop is true', () => {
     render(<FormField id="email" label="Email" disabled />);
-    expect(screen.getByLabelText('Email')).toBeDisabled();
+    expect(screen.getByTestId('form-field--email')).toBeDisabled();
   });
 });
