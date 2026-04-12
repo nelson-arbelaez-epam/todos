@@ -97,4 +97,65 @@ describe('TodosApiService', () => {
       status: 503,
     });
   });
+
+  describe('updateTodo', () => {
+    it('sends a PATCH request and returns the updated todo', async () => {
+      const updatedTodo = { ...sampleTodo, title: 'Updated', completed: true };
+      fetchMock.mockResolvedValue({
+        ok: true,
+        json: async () => updatedTodo,
+      });
+
+      const result = await service.updateTodo(apiToken, 'todo-1', {
+        title: 'Updated',
+        completed: true,
+      });
+
+      expect(fetchMock).toHaveBeenCalledOnce();
+      const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit];
+      expect(url).toContain('/api/v1/todos/todo-1');
+      expect(options.method).toBe('PATCH');
+      expect(options.headers).toMatchObject({
+        Authorization: `Bearer ${apiToken}`,
+        'Content-Type': 'application/json',
+      });
+      expect(JSON.parse(options.body as string)).toEqual({
+        title: 'Updated',
+        completed: true,
+      });
+      expect(result).toEqual(updatedTodo);
+    });
+
+    it('throws with status 404 when todo is not found', async () => {
+      fetchMock.mockResolvedValue({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+        json: async () => ({ message: 'Todo not found' }),
+      });
+
+      await expect(
+        service.updateTodo(apiToken, 'missing-id', { title: 'x' }),
+      ).rejects.toMatchObject({
+        message: 'Todo not found',
+        status: 404,
+      });
+    });
+
+    it('propagates API errors when response is non-ok', async () => {
+      fetchMock.mockResolvedValue({
+        ok: false,
+        status: 503,
+        statusText: 'Service Unavailable',
+        json: async () => ({ message: 'Backend unavailable' }),
+      });
+
+      await expect(
+        service.updateTodo(apiToken, 'todo-1', { completed: true }),
+      ).rejects.toMatchObject({
+        message: 'Backend unavailable',
+        status: 503,
+      });
+    });
+  });
 });
