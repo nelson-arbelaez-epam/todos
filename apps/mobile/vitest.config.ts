@@ -16,7 +16,7 @@ export default defineConfig({
      * @testing-library/react-native queries work as expected.
      */
     alias: {
-      '@' : resolve(appDir, 'src'),
+      '@': resolve(appDir, 'src'),
       'react-native': resolve(appDir, 'src/test/__mocks__/react-native.js'),
       'expo-status-bar': resolve(
         appDir,
