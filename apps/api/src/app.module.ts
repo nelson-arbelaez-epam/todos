@@ -16,6 +16,6 @@ import { TodosModule } from './todos/todos.module';
     SharedHttpModule,
   ],
   controllers: [],
-  providers: [{ provide: APP_GUARD, useClass: FirebaseAuthGuard }],
+  providers: [{ provide: APP_GUARD, useExisting: FirebaseAuthGuard }],
 })
 export class AppModule {}
