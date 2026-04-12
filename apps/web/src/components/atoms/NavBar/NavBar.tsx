@@ -13,16 +13,18 @@ export interface NavBarProps {
   links: NavLink[];
   /** Optional brand/logo slot */
   brand?: ReactNode;
+  /** Optional actions slot rendered after the nav links (e.g. sign-out button) */
+  actions?: ReactNode;
 }
 
 /**
  * NavBar atom — a fully presentational top navigation bar primitive.
  *
- * Accepts all link data and the optional brand slot via props.
+ * Accepts all link data and the optional brand/actions slots via props.
  * Uses React Router's `<Link>` for client-side navigation but contains
  * no routing logic, store calls, or data-fetching.
  */
-const NavBar = ({ links, brand }: NavBarProps) => (
+const NavBar = ({ links, brand, actions }: NavBarProps) => (
   <nav
     className="flex items-center gap-6 px-6 py-3"
     aria-label="Main navigation"
@@ -40,6 +42,7 @@ const NavBar = ({ links, brand }: NavBarProps) => (
         </li>
       ))}
     </ul>
+    {actions && <div className="ml-auto">{actions}</div>}
   </nav>
 );
 

@@ -84,3 +84,57 @@ describe('useSessionStore', () => {
     );
   });
 });
+
+describe('useSessionStore – login / logout', () => {
+  const session: LoginUserResponseDto = {
+    uid: 'uid456',
+    email: 'login@example.com',
+    idToken: 'token-456',
+    expiresIn: '3600',
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    resetSessionStoreForTests();
+  });
+
+  it('logs in and stores the authenticated session', async () => {
+    mockLoginUser.mockResolvedValue(session);
+
+    await act(async () => {
+      await useSessionStore.getState().login({
+        email: 'login@example.com',
+        password: 'password123',
+      });
+    });
+
+    expect(mockLoginUser).toHaveBeenCalledOnce();
+    expect(useSessionStore.getState().currentUser).toEqual(session);
+    expect(useSessionStore.getState().error).toBeNull();
+    expect(useSessionStore.getState().isLoading).toBe(false);
+  });
+
+  it('stores the error and keeps user null when login fails', async () => {
+    mockLoginUser.mockRejectedValue(new Error('Invalid email or password'));
+
+    await act(async () => {
+      await useSessionStore.getState().login({
+        email: 'login@example.com',
+        password: 'wrongpassword',
+      });
+    });
+
+    expect(useSessionStore.getState().currentUser).toBeNull();
+    expect(useSessionStore.getState().error).toBe('Invalid email or password');
+    expect(useSessionStore.getState().isLoading).toBe(false);
+  });
+
+  it('clears the current user and error on logout', () => {
+    useSessionStore.setState({ currentUser: session, error: 'some error' });
+
+    useSessionStore.getState().logout();
+
+    expect(useSessionStore.getState().currentUser).toBeNull();
+    expect(useSessionStore.getState().error).toBeNull();
+  });
+});

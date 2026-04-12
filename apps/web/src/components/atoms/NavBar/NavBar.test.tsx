@@ -49,8 +49,17 @@ describe('NavBar', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders an empty list when no links are provided', () => {
-    renderWithRouter(<NavBar links={[]} />);
-    expect(screen.queryAllByRole('link')).toHaveLength(0);
+  it('renders the actions slot when provided', () => {
+    renderWithRouter(
+      <NavBar links={links} actions={<button type="button">Sign out</button>} />,
+    );
+    expect(
+      screen.getByRole('button', { name: 'Sign out' }),
+    ).toBeInTheDocument();
+  });
+
+  it('does not render actions slot when omitted', () => {
+    renderWithRouter(<NavBar links={links} />);
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 });
