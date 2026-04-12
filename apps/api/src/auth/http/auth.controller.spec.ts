@@ -5,7 +5,11 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
-import type { ApiTokenResponseDto, CreateApiTokenDto } from '@todos/core/http';
+import type {
+  ApiTokenMetadataDto,
+  ApiTokenResponseDto,
+  CreateApiTokenDto,
+} from '@todos/core/http';
 import type { DecodedIdToken } from 'firebase-admin/auth';
 import { AuthenticatedPrincipal } from '../../shared/http/guards/firebase-auth.guard';
 import { ApiTokenService } from '../api-token.service';
@@ -19,6 +23,7 @@ const mockAuthService = {
 
 const mockApiTokenService = {
   createToken: vi.fn(),
+  listTokens: vi.fn(),
 };
 
 describe('AuthController', () => {
@@ -181,6 +186,68 @@ describe('AuthController', () => {
       ).rejects.toThrow(ForbiddenException);
 
       expect(mockApiTokenService.createToken).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('listTokens', () => {
+    const mockUser = { uid: 'firebase-uid-123' } as DecodedIdToken;
+
+    const mockTokenList: ApiTokenMetadataDto[] = [
+      {
+        tokenId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+        label: 'MCP server – production',
+        scopes: ['todos:read', 'todos:write'],
+        createdAt: '2026-04-11T13:00:00.000Z',
+        expiresAt: '2027-04-11T13:00:00.000Z',
+        lastUsedAt: '2026-04-11T14:00:00.000Z',
+        revokedAt: null,
+      },
+    ];
+
+    it('should return the list of tokens for the authenticated user', async () => {
+      mockApiTokenService.listTokens.mockResolvedValue(mockTokenList);
+
+      const result = await authController.listTokens(mockUser);
+
+      expect(result).toEqual(mockTokenList);
+      expect(mockApiTokenService.listTokens).toHaveBeenCalledWith(mockUser.uid);
+    });
+
+    it('should return an empty array when the user has no tokens', async () => {
+      mockApiTokenService.listTokens.mockResolvedValue([]);
+
+      const result = await authController.listTokens(mockUser);
+
+      expect(result).toEqual([]);
+      expect(mockApiTokenService.listTokens).toHaveBeenCalledWith(mockUser.uid);
+    });
+
+    it('should allow API-token-authenticated callers to list tokens', async () => {
+      const apiTokenPrincipal: AuthenticatedPrincipal = {
+        uid: 'firebase-uid-123',
+        authProvider: 'api-token',
+        apiTokenId: 'existing-token-id',
+        scopes: ['todos:read'],
+      };
+
+      mockApiTokenService.listTokens.mockResolvedValue(mockTokenList);
+
+      const result = await authController.listTokens(apiTokenPrincipal);
+
+      expect(result).toEqual(mockTokenList);
+      expect(mockApiTokenService.listTokens).toHaveBeenCalledWith(
+        apiTokenPrincipal.uid,
+      );
+    });
+
+    it('should propagate errors from ApiTokenService', async () => {
+      mockApiTokenService.listTokens.mockRejectedValue(
+        new Error('Firestore unavailable'),
+      );
+
+      await expect(authController.listTokens(mockUser)).rejects.toThrow(
+        'Firestore unavailable',
+      );
     });
   });
 });

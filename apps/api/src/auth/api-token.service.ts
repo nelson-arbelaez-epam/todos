@@ -1,7 +1,11 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { Injectable, Logger } from '@nestjs/common';
 import type { CreateApiTokenInput } from '@todos/core';
-import type { ApiTokenResponseDto, CreateApiTokenDto } from '@todos/core/http';
+import type {
+  ApiTokenMetadataDto,
+  ApiTokenResponseDto,
+  CreateApiTokenDto,
+} from '@todos/core/http';
 import { ApiTokenStoreService } from '@todos/store';
 
 /** Default token lifetime when the caller does not specify one. */
@@ -61,6 +65,32 @@ export class ApiTokenService {
       createdAt: entity.createdAt,
       expiresAt: entity.expiresAt,
     };
+  }
+
+  /**
+   * Lists all API tokens owned by the authenticated user.
+   * Tokens are returned ordered by createdAt DESC (newest first).
+   * The raw token value and its hash are never included in the response.
+   *
+   * @param ownerUid - Firebase UID of the requesting user
+   * @returns Array of token metadata DTOs
+   */
+  async listTokens(ownerUid: string): Promise<ApiTokenMetadataDto[]> {
+    const entities = await this.apiTokenStore.findAllByOwner(ownerUid);
+
+    this.logger.log(
+      `API tokens listed: ownerUid=${ownerUid} count=${entities.length}`,
+    );
+
+    return entities.map((entity) => ({
+      tokenId: entity.tokenId,
+      label: entity.label,
+      scopes: entity.scopes,
+      createdAt: entity.createdAt,
+      expiresAt: entity.expiresAt,
+      lastUsedAt: entity.lastUsedAt,
+      revokedAt: entity.revokedAt,
+    }));
   }
 
   /**

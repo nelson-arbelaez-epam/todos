@@ -170,4 +170,60 @@ describe('ApiTokenService', () => {
       expect(result1.token).not.toBe(result2.token);
     });
   });
+
+  describe('listTokens', () => {
+    it('should return an array of ApiTokenMetadataDto for the owner', async () => {
+      const revokedEntity: ApiTokenEntity = {
+        ...mockEntity,
+        tokenId: 'b2c3d4e5-f6a7-8901-bcde-f12345678901',
+        label: 'Old token',
+        revokedAt: '2026-04-10T10:00:00.000Z',
+      };
+      mockApiTokenStore.findAllByOwner.mockResolvedValue([
+        mockEntity,
+        revokedEntity,
+      ]);
+
+      const result = await service.listTokens(ownerUid);
+
+      expect(result).toHaveLength(2);
+      expect(mockApiTokenStore.findAllByOwner).toHaveBeenCalledWith(ownerUid);
+    });
+
+    it('should map entity fields correctly and never include tokenHash', async () => {
+      mockApiTokenStore.findAllByOwner.mockResolvedValue([mockEntity]);
+
+      const result = await service.listTokens(ownerUid);
+
+      expect(result[0]).toEqual({
+        tokenId: mockEntity.tokenId,
+        label: mockEntity.label,
+        scopes: mockEntity.scopes,
+        createdAt: mockEntity.createdAt,
+        expiresAt: mockEntity.expiresAt,
+        lastUsedAt: mockEntity.lastUsedAt,
+        revokedAt: mockEntity.revokedAt,
+      });
+      expect(result[0]).not.toHaveProperty('tokenHash');
+      expect(result[0]).not.toHaveProperty('token');
+    });
+
+    it('should return an empty array when the owner has no tokens', async () => {
+      mockApiTokenStore.findAllByOwner.mockResolvedValue([]);
+
+      const result = await service.listTokens(ownerUid);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should propagate store errors', async () => {
+      mockApiTokenStore.findAllByOwner.mockRejectedValue(
+        new Error('Firestore unavailable'),
+      );
+
+      await expect(service.listTokens(ownerUid)).rejects.toThrow(
+        'Firestore unavailable',
+      );
+    });
+  });
 });

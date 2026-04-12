@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   ForbiddenException,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
@@ -14,6 +15,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import {
+  ApiTokenMetadataDto,
   ApiTokenResponseDto,
   CreateApiTokenDto,
   LoginUserDto,
@@ -129,5 +131,33 @@ export class AuthController {
       );
     }
     return this.apiTokenService.createToken(user.uid, dto);
+  }
+
+  /**
+   * List all API tokens for the authenticated user.
+   * The raw token value and its hash are never included in the response.
+   */
+  @ApiBearerAuth('firebase-jwt')
+  @ApiBearerAuth('api-token')
+  @Get('tokens')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "List caller's issued API tokens (metadata only)",
+  })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Returns metadata for all tokens owned by the authenticated user. Raw token values are never included.',
+    type: ApiTokenMetadataDto,
+    isArray: true,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Missing or invalid authentication',
+  })
+  async listTokens(
+    @CurrentUser() user: AuthenticatedPrincipal,
+  ): Promise<ApiTokenMetadataDto[]> {
+    return this.apiTokenService.listTokens(user.uid);
   }
 }
