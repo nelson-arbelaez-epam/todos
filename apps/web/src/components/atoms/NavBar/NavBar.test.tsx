@@ -51,7 +51,10 @@ describe('NavBar', () => {
 
   it('renders the actions slot when provided', () => {
     renderWithRouter(
-      <NavBar links={links} actions={<button type="button">Sign out</button>} />,
+      <NavBar
+        links={links}
+        actions={<button type="button">Sign out</button>}
+      />,
     );
     expect(
       screen.getByRole('button', { name: 'Sign out' }),

@@ -1,4 +1,8 @@
-import type { LoginUserDto, LoginUserResponseDto, RegisterUserDto } from '@todos/core/http';
+import type {
+  LoginUserDto,
+  LoginUserResponseDto,
+  RegisterUserDto,
+} from '@todos/core/http';
 import { create } from 'zustand';
 import { loginUser, registerUser } from '../services/auth.service';
 
