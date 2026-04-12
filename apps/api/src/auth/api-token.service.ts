@@ -1,10 +1,11 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import type { CreateApiTokenInput } from '@todos/core';
 import type {
   ApiTokenMetadataDto,
   ApiTokenResponseDto,
   CreateApiTokenDto,
+  RevokeApiTokenResponseDto,
 } from '@todos/core/http';
 import { ApiTokenStoreService } from '@todos/store';
 
@@ -91,6 +92,39 @@ export class ApiTokenService {
       lastUsedAt: entity.lastUsedAt,
       revokedAt: entity.revokedAt,
     }));
+  }
+
+  /**
+   * Revokes a previously issued API token.
+   * The operation is idempotent – revoking an already-revoked token returns
+   * the existing revokedAt timestamp without error.
+   *
+   * @param ownerUid - Firebase UID of the requesting user
+   * @param tokenId - UUID of the token to revoke
+   * @returns The revoke response DTO with tokenId and revokedAt timestamp
+   * @throws NotFoundException when the token does not exist or belongs to a different owner
+   */
+  async revokeToken(
+    ownerUid: string,
+    tokenId: string,
+  ): Promise<RevokeApiTokenResponseDto> {
+    const entity = await this.apiTokenStore.revoke(ownerUid, tokenId);
+
+    if (!entity) {
+      this.logger.warn(
+        `API token revoke failed: not found or unauthorized (tokenId=${tokenId} ownerUid=${ownerUid})`,
+      );
+      throw new NotFoundException(`Token '${tokenId}' not found`);
+    }
+
+    this.logger.log(
+      `API token revoked: tokenId=${entity.tokenId} ownerUid=${entity.ownerUid} revokedAt=${entity.revokedAt}`,
+    );
+
+    return {
+      tokenId: entity.tokenId,
+      revokedAt: entity.revokedAt as string,
+    };
   }
 
   /**

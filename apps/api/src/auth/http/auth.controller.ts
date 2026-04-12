@@ -1,15 +1,19 @@
 import {
   Body,
   Controller,
+  Delete,
+  ForbiddenException,
   Get,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
   ApiOperation,
+  ApiParam,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -21,6 +25,7 @@ import {
   LoginUserResponseDto,
   RegisterUserDto,
   RegisterUserResponseDto,
+  RevokeApiTokenResponseDto,
 } from '@todos/core/http';
 import { CurrentUser } from '../../shared/http/decorators/current-user.decorator';
 import { Public } from '../../shared/http/decorators/public.decorator';
@@ -159,5 +164,46 @@ export class AuthController {
     @CurrentUser() user: AuthenticatedPrincipal,
   ): Promise<ApiTokenMetadataDto[]> {
     return this.apiTokenService.listTokens(user.uid);
+  }
+
+  /**
+   * Revoke an existing API token by its tokenId.
+   * The operation is idempotent – revoking an already-revoked token succeeds.
+   * Per ADR 0022, only Firebase JWT authentication is permitted.
+   */
+  @ApiBearerAuth('firebase-jwt')
+  @Delete('tokens/:tokenId')
+  @HttpCode(HttpStatus.OK)
+  @ApiParam({
+    name: 'tokenId',
+    description: 'UUID of the token to revoke',
+    example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+  })
+  @ApiOperation({
+    summary: 'Revoke an existing API token (requires Firebase JWT)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Token revoked successfully',
+    type: RevokeApiTokenResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Missing or invalid bearer token' })
+  @ApiResponse({
+    status: 403,
+    description:
+      'API tokens cannot revoke other API tokens (requires Firebase JWT)',
+  })
+  @ApiResponse({ status: 404, description: 'Token not found' })
+  async revokeToken(
+    @CurrentUser() user: AuthenticatedPrincipal,
+    @Param('tokenId') tokenId: string,
+  ): Promise<RevokeApiTokenResponseDto> {
+    // Enforce ADR 0022: only Firebase JWT can revoke tokens, not API tokens
+    if ('authProvider' in user && user.authProvider === 'api-token') {
+      throw new ForbiddenException(
+        'Token revocation requires Firebase JWT authentication',
+      );
+    }
+    return this.apiTokenService.revokeToken(user.uid, tokenId);
   }
 }
