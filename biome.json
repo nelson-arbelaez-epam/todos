@@ -7,7 +7,9 @@
       "!!**/node_modules",
       "!!**/dist",
       "!!**/build",
-      "!!**/coverage"
+      "!!**/coverage",
+      "!!**/.expo",
+      "!!**/expo-env.d.ts"
     ]
   },
   "linter": {
