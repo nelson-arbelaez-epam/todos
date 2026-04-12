@@ -76,7 +76,7 @@ describe('McpServerService', () => {
     const getListTodosHandler = (apiToken = 'test-token') => {
       service.createServer(apiToken);
       const call = registerToolSpy.mock.calls.find(
-        ([name]: [string]) => name === 'list_todos',
+        ([name]) => name === 'list_todos',
       );
       // biome-ignore lint/suspicious/noExplicitAny: handler is typed by MCP SDK
       return call?.[2] as (args: Record<string, any>) => Promise<{
@@ -170,7 +170,7 @@ describe('McpServerService', () => {
     const getUpdateTodoHandler = (apiToken = 'test-token') => {
       service.createServer(apiToken);
       const call = registerToolSpy.mock.calls.find(
-        ([name]: [string]) => name === 'update_todo',
+        ([name]) => name === 'update_todo',
       );
       // biome-ignore lint/suspicious/noExplicitAny: handler is typed by MCP SDK
       return call?.[2] as (args: Record<string, any>) => Promise<{
@@ -245,7 +245,7 @@ describe('McpServerService', () => {
     const getCompleteTodoHandler = (apiToken = 'test-token') => {
       service.createServer(apiToken);
       const call = registerToolSpy.mock.calls.find(
-        ([name]: [string]) => name === 'complete_todo',
+        ([name]) => name === 'complete_todo',
       );
       // biome-ignore lint/suspicious/noExplicitAny: handler is typed by MCP SDK
       return call?.[2] as (args: Record<string, any>) => Promise<{
@@ -326,7 +326,7 @@ describe('McpServerService', () => {
     const getArchiveTodoHandler = (apiToken = 'test-token') => {
       service.createServer(apiToken);
       const call = registerToolSpy.mock.calls.find(
-        ([name]: [string]) => name === 'archive_todo',
+        ([name]) => name === 'archive_todo',
       );
       // biome-ignore lint/suspicious/noExplicitAny: handler is typed by MCP SDK
       return call?.[2] as (args: Record<string, any>) => Promise<{
