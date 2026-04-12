@@ -67,6 +67,57 @@ export class McpServerService {
       },
     );
 
+    server.registerTool(
+      'list_todos',
+      {
+        description:
+          'List active (non-archived) todo items from the Todos API.',
+        inputSchema: {
+          page: z
+            .number()
+            .int()
+            .positive()
+            .optional()
+            .describe('Page number for pagination (default: 1)'),
+          limit: z
+            .number()
+            .int()
+            .positive()
+            .optional()
+            .describe('Maximum number of todos to return (default: 20)'),
+          orderBy: z
+            .enum(['createdAt', 'updatedAt'])
+            .optional()
+            .describe('Field to sort by (default: createdAt)'),
+          orderDir: z
+            .enum(['asc', 'desc'])
+            .optional()
+            .describe('Sort direction (default: desc)'),
+        },
+      },
+      async ({ page, limit, orderBy, orderDir }) => {
+        try {
+          const result = await this.todosApiService.listTodos(apiToken, {
+            page,
+            limit,
+            orderBy,
+            orderDir,
+          });
+          return {
+            content: [{ type: 'text' as const, text: JSON.stringify(result) }],
+          };
+        } catch (err: unknown) {
+          const message =
+            err instanceof Error ? err.message : 'Unknown error listing todos';
+          this.logger.error(`list_todos tool failed: ${message}`);
+          return {
+            content: [{ type: 'text' as const, text: `Error: ${message}` }],
+            isError: true,
+          };
+        }
+      },
+    );
+
     return server;
   }
 }
