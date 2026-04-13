@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react-native';
+import { render, screen } from '@testing-library/react-native';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { RegisterScreen } from './RegisterScreen';
 
@@ -61,5 +61,11 @@ describe('RegisterScreen', () => {
       email: 'user@example.com',
       password: 'password123',
     });
+  });
+
+  it('renders a Sign in link for existing users', () => {
+    render(<RegisterScreen />);
+
+    expect(screen.getByText('Sign in')).toBeTruthy();
   });
 });

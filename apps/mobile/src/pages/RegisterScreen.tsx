@@ -1,3 +1,6 @@
+import { Link } from 'expo-router';
+import { View } from 'react-native';
+import { AppText } from '../components/atoms';
 import { RegisterForm } from '../components/organisms/RegisterForm';
 import { ScreenLayout } from '../components/templates';
 import { useSessionStore } from '../store/session-store';
@@ -18,6 +21,16 @@ export function RegisterScreen() {
         isLoading={isLoading}
         errorMessage={error ?? undefined}
       />
+      <View className="mt-6 items-center">
+        <AppText variant="caption" className="mb-2">
+          Already have an account?
+        </AppText>
+        <Link href="/login">
+          <AppText variant="body" className="text-blue-600">
+            Sign in
+          </AppText>
+        </Link>
+      </View>
     </ScreenLayout>
   );
 }
