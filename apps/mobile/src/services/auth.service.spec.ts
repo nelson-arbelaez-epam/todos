@@ -136,4 +136,38 @@ describe('registerUser', () => {
       expect.objectContaining({ method: 'POST' }),
     );
   });
+
+  describe('loginUser error handling', () => {
+    it('throws an error with server-provided message on 401', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        json: async () => ({ message: 'Invalid credentials' }),
+      });
+
+      await expect(
+        loginUser({ email: 'a@b.com', password: 'wrong' }),
+      ).rejects.toThrow('Invalid credentials');
+    });
+
+    it('throws default message on 401 when body has no message', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        json: async () => ({}),
+      });
+
+      await expect(
+        loginUser({ email: 'a@b.com', password: 'wrong' }),
+      ).rejects.toThrow('Invalid email or password');
+    });
+
+    it('throws network error when fetch rejects for login', async () => {
+      mockFetch.mockRejectedValueOnce(new Error('Network fail'));
+
+      await expect(
+        loginUser({ email: 'a@b.com', password: 'pwd' }),
+      ).rejects.toThrow('Network fail');
+    });
+  });
 });
