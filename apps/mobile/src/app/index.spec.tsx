@@ -23,10 +23,10 @@ describe('Home route', () => {
     state.currentUser = null;
   });
 
-  it('redirects to /register when there is no authenticated session', () => {
+  it('redirects to /login when there is no authenticated session', () => {
     render(<HomeScreen />);
 
-    expect(screen.getByText('/register')).toBeTruthy();
+    expect(screen.getByText('/login')).toBeTruthy();
   });
 
   it('renders signed-in content when session exists', () => {

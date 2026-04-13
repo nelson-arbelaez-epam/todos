@@ -7,6 +7,7 @@ interface SessionStoreState {
   error: string | null;
   currentUser: LoginUserResponseDto | null;
   register: (payload: RegisterUserDto) => Promise<void>;
+  login: (payload: { email: string; password: string }) => Promise<void>;
   resetError: () => void;
   clearCurrentUser: () => void;
 }
@@ -28,6 +29,19 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : 'Registration failed';
+      set({ error: message, currentUser: null });
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+  login: async (payload) => {
+    set({ isLoading: true, error: null });
+    try {
+      const session = await loginUser(payload);
+      set({ currentUser: session });
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : 'Login failed. Please try again.';
       set({ error: message, currentUser: null });
     } finally {
       set({ isLoading: false });

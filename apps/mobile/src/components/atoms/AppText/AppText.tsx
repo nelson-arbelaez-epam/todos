@@ -11,14 +11,23 @@ export type AppTextVariant =
 
 export type AppTextWeight = 'regular' | 'medium' | 'semibold' | 'bold';
 
+export type AppTextColor =
+  | 'primary'
+  | 'danger'
+  | 'text-primary'
+  | 'text-secondary'
+  | 'text-disabled'
+  | 'text-inverse'
+  | 'white';
+
 export interface AppTextProps extends TextProps {
   variant?: AppTextVariant;
   weight?: AppTextWeight;
-  color?: string;
+  color?: AppTextColor;
   children: React.ReactNode;
 }
 
-const colorClassNames: Record<string, string> = {
+const colorClassNames: Record<AppTextColor, string> = {
   primary: 'text-primary',
   danger: 'text-danger',
   'text-primary': 'text-text-primary',
