@@ -59,6 +59,14 @@ Rules:
 - Cross-cutting shared hooks live in `src/hooks/`.
 - Cross-cutting shared types live in `src/types/` or in `@todos/core` if they are domain contracts.
 
+### Atom primitives and base HTML elements
+
+- Rule: Base HTML elements used for layout and semantic structure (for example `div`, `section`, `article`, `header`, `footer`, `nav`, `h1`-`h6`, `p`, `span`, `ul`, `li`) are considered UI primitives and should be implemented and exported as Atoms (for example `Box`, `Text`, `List`, `ListItem`). Molecules and Organisms must compose these atoms rather than using raw HTML tags directly.
+
+- Rationale: Reserving base HTML tags for Atoms centralises styling, design-token usage, and accessibility attributes (for example role, aria-* and semantic element selection). Making these primitives atoms enables project-wide updates to tokens, typography, or semantics by changing a single, well-tested primitive.
+
+- Exceptions & Migration: New components must follow this pattern. Existing molecules and organisms that use raw HTML tags should be migrated opportunistically. Exceptions are discouraged and must be documented in a PR with justification. Consider adding a linter rule or codemod in a future PBI to detect raw HTML usage in `src/components/molecules/` and `src/components/organisms/.`
+
 ### 3. Styling: PostCSS Pipeline with Utility-Class Approach
 
 The Todos web app uses Vite, which has built-in PostCSS support. The following decisions govern styling:
