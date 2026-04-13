@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import Box from '../../atoms/Box/Box';
 import Input, { type InputProps } from '../../atoms/Input/Input';
 import Label from '../../atoms/Label/Label';
 
@@ -24,12 +25,12 @@ const FormField = ({
   id,
   ...inputProps
 }: FormFieldProps) => (
-  <div className="flex flex-col gap-1">
+  <Box className="flex flex-col gap-1">
     <Label htmlFor={id} required={required}>
       {label}
     </Label>
     <Input id={id} data-testid={`form-field--${id}`} {...inputProps} />
-  </div>
+  </Box>
 );
 
 export default FormField;

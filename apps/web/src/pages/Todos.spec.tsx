@@ -1,5 +1,6 @@
 import { render, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import * as TodosService from '../services/todos.service';
 import { resetSessionStoreForTests } from '../store/session-store';
 import Todos from './Todos';
 
@@ -10,12 +11,11 @@ vi.mock('../services/todos.service', () => ({
 describe('Todos page', () => {
   beforeEach(() => {
     resetSessionStoreForTests();
-    const svc = require('../services/todos.service');
-    svc.listTodos.mockReset();
+    TodosService.listTodos.mockReset();
   });
 
   it('shows loading then renders todos', async () => {
-    const svc = require('../services/todos.service');
+    const svc = TodosService;
     svc.listTodos.mockResolvedValue([
       {
         id: '1',
@@ -36,7 +36,7 @@ describe('Todos page', () => {
   });
 
   it('shows error when service fails', async () => {
-    const svc = require('../services/todos.service');
+    const svc = TodosService;
     svc.listTodos.mockRejectedValue(new Error('Network failure'));
 
     const { getByRole } = render(<Todos />);
