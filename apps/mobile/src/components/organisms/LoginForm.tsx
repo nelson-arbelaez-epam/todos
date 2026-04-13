@@ -81,7 +81,7 @@ export function LoginForm({
       {displayError ? (
         <AppText
           variant="caption"
-          color="#EF4444"
+          color="danger"
           className="mb-3 text-center"
           testID="login-error"
         >

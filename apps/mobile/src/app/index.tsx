@@ -5,7 +5,7 @@ import { useSessionStore } from '@/store/session-store';
 
 /**
  * Home route – requires an authenticated session.
- * Redirects to /register when no session is active (mirrors web Register redirect).
+ * Redirects to /login when no session is active (mirrors web Login redirect).
  */
 export default function HomeRoute() {
   const currentUser = useSessionStore((state) => state.currentUser);

@@ -8,8 +8,6 @@ interface SessionStoreState {
   currentUser: LoginUserResponseDto | null;
   register: (payload: RegisterUserDto) => Promise<void>;
   login: (payload: { email: string; password: string }) => Promise<void>;
-  logout: () => void;
-  hydrateSession: () => LoginUserResponseDto | null;
   resetError: () => void;
   clearCurrentUser: () => void;
 }
@@ -49,9 +47,6 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
       set({ isLoading: false });
     }
   },
-  /** Clears both in-memory session data. */
-  logout: () => set({ currentUser: null, error: null }),
-  hydrateSession: () => null,
   resetError: () => set({ error: null }),
   clearCurrentUser: () => set({ currentUser: null }),
 }));
