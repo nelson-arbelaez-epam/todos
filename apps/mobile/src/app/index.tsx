@@ -11,7 +11,7 @@ export default function HomeRoute() {
   const currentUser = useSessionStore((state) => state.currentUser);
 
   if (!currentUser) {
-    return <Redirect href="/register" />;
+    return <Redirect href="/login" />;
   }
 
   return <HomeScreen currentUserEmail={currentUser.email} />;
