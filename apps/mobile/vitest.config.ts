@@ -18,6 +18,7 @@ export default defineConfig({
     alias: {
       '@': resolve(appDir, 'src'),
       'react-native': resolve(appDir, 'src/test/__mocks__/react-native.js'),
+      'expo-router': resolve(appDir, 'src/test/__mocks__/expo-router.js'),
       'expo-status-bar': resolve(
         appDir,
         'src/test/__mocks__/expo-status-bar.js',
@@ -51,7 +52,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      exclude: ['node_modules/', 'dist/'],
+      exclude: ['node_modules/', 'dist/', 'src/test/__mocks__/**'],
     },
   },
 });

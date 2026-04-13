@@ -78,4 +78,54 @@ describe('useSessionStore', () => {
       'Login failed. Please try again.',
     );
   });
+
+  it('logs in and stores the authenticated session when login succeeds', async () => {
+    const session: LoginUserResponseDto = {
+      uid: 'uid-login',
+      email: 'login@example.com',
+      idToken: 'token-xyz',
+      expiresIn: '3600',
+    };
+
+    mockLoginUser.mockResolvedValue(session);
+
+    await useSessionStore.getState().login({
+      email: 'login@example.com',
+      password: 'password123',
+    });
+
+    expect(mockLoginUser).toHaveBeenCalledOnce();
+    expect(useSessionStore.getState().currentUser).toEqual(session);
+    expect(useSessionStore.getState().error).toBeNull();
+    expect(useSessionStore.getState().isLoading).toBe(false);
+  });
+
+  it('sets an error and keeps user signed out when login fails', async () => {
+    mockLoginUser.mockRejectedValue(new Error('Invalid email or password'));
+
+    await useSessionStore.getState().login({
+      email: 'bad@example.com',
+      password: 'wrong',
+    });
+
+    expect(useSessionStore.getState().currentUser).toBeNull();
+    expect(useSessionStore.getState().error).toBe('Invalid email or password');
+    expect(useSessionStore.getState().isLoading).toBe(false);
+  });
+
+  it('clears session when clearCurrentUser is called and resets error with resetError', () => {
+    useSessionStore.setState({
+      currentUser: { uid: 'u', email: 'e', idToken: 't', expiresIn: '1' },
+      error: 'some-error',
+    });
+
+    useSessionStore.getState().clearCurrentUser();
+
+    expect(useSessionStore.getState().currentUser).toBeNull();
+    // error is not cleared by clearCurrentUser; call resetError to clear it
+    expect(useSessionStore.getState().error).toBe('some-error');
+
+    useSessionStore.getState().resetError();
+    expect(useSessionStore.getState().error).toBeNull();
+  });
 });
