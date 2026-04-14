@@ -84,4 +84,45 @@ describe('todos.service (mobile)', () => {
     const call = fetchMock.mock.calls[0];
     expect(call[1].headers.Authorization).toBe('Bearer token-123');
   });
+
+  it('creates a todo when response is ok', async () => {
+    const created = {
+      id: '2',
+      title: 'Created',
+      description: 'Desc',
+      completed: false,
+      createdAt: '2020-01-01',
+      updatedAt: '2020-01-01',
+    };
+
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => created,
+    });
+
+    const res = await TodosService.createTodo(
+      { title: 'Created', description: 'Desc' },
+      'token-abc',
+    );
+
+    expect(res).toEqual(created);
+    const [url, options] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/todos');
+    expect(options.method).toBe('POST');
+    expect(options.headers.Authorization).toBe('Bearer token-abc');
+    expect(options.body).toBe(
+      JSON.stringify({ title: 'Created', description: 'Desc' }),
+    );
+  });
+
+  it('uses joined validation messages when create response has message array', async () => {
+    fetchMock.mockResolvedValue({
+      ok: false,
+      json: async () => ({ message: ['title should not be empty'] }),
+    });
+
+    await expect(TodosService.createTodo({ title: '' })).rejects.toThrow(
+      'title should not be empty',
+    );
+  });
 });

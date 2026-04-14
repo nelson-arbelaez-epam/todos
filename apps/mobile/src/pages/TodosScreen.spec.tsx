@@ -7,6 +7,7 @@ vi.mock('@/components/organisms', () => {
   const React = require('react');
   const { Text } = require('react-native');
   return {
+    CreateTodoForm: () => React.createElement(Text, null, 'create-form'),
     TodoList: (props: { todos?: TodoDto[] }) =>
       React.createElement(Text, null, props.todos?.[0]?.title ?? ''),
   };
@@ -35,13 +36,17 @@ describe('TodosScreen', () => {
         },
       ],
       isLoading: false,
+      isCreating: false,
       error: null,
+      createError: null,
       refresh: vi.fn(),
+      createTodo: vi.fn(),
     };
 
     mockUseTodos.mockReturnValue(mockValue);
 
     const { getByText } = render(<TodosScreen />);
+    expect(getByText('create-form')).toBeTruthy();
     expect(getByText('Write tests')).toBeTruthy();
   });
 });

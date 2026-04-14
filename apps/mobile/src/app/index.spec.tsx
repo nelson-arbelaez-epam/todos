@@ -18,6 +18,11 @@ vi.mock('@/store/session-store', () => ({
     selector(state),
 }));
 
+vi.mock('@/pages/TodosScreen', () => ({
+  __esModule: true,
+  default: () => <Text>Todos Screen</Text>,
+}));
+
 describe('Home route', () => {
   beforeEach(() => {
     state.currentUser = null;
@@ -29,12 +34,11 @@ describe('Home route', () => {
     expect(screen.getByText('/login')).toBeTruthy();
   });
 
-  it('renders signed-in content when session exists', () => {
+  it('renders todos screen when session exists', () => {
     state.currentUser = { email: 'user@example.com' };
 
     render(<HomeScreen />);
 
-    expect(screen.getByText('You are signed in')).toBeTruthy();
-    expect(screen.getByText('Welcome, user@example.com.')).toBeTruthy();
+    expect(screen.getByText('Todos Screen')).toBeTruthy();
   });
 });
