@@ -190,8 +190,11 @@ changing backend auth contracts.
 
 #### Persistence adapters by platform
 
-- **Web**: use Zustand `persist` middleware with browser `localStorage`.
-  - Persist only the session snapshot needed for authenticated API calls (`currentUser`).
+- **Web**: browser storage (for example `localStorage`) is an untrusted, non-secure cache.
+  - Do **not** persist sensitive auth/session tokens in browser storage.
+  - If persistent token-backed sessions are required on web, migrate to a more secure
+    browser-backed approach when possible (for example HttpOnly cookie-backed sessions).
+  - Persist only non-sensitive session metadata needed for UX restoration.
   - Use a versioned key (for example `todos-session:v1`) so future schema changes can be
     invalidated safely.
 - **Mobile**: use a platform adapter that can be swapped by runtime constraints.
@@ -224,6 +227,7 @@ changing backend auth contracts.
 #### Stale/corrupt persisted-state handling
 
 - Treat persistence input as untrusted.
+- Treat all browser storage content as attacker-controlled in XSS scenarios.
 - If payload parsing fails, required fields are missing, or persisted schema version is not
   supported, clear persisted data and continue in anonymous state.
 - Do not throw uncaught errors from hydration into UI render paths; surface recoverable
