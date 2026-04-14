@@ -5,6 +5,7 @@ import About from './pages/About';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Todos from './pages/Todos';
 import { useSessionStore } from './store/session-store';
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
   const navLinks = currentUser
     ? [
         { label: 'Home', to: '/' },
+        { label: 'Todos', to: '/todos' },
         { label: 'About', to: '/about' },
       ]
     : [
@@ -45,6 +47,7 @@ function App() {
     >
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/todos" element={<Todos />} />
         <Route path="/about" element={<About />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />

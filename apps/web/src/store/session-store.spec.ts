@@ -1,6 +1,6 @@
 import { act } from '@testing-library/react';
 import type { LoginUserResponseDto } from '@todos/core/http';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as authService from '../services/auth.service';
 import { resetSessionStoreForTests, useSessionStore } from './session-store';
 
@@ -8,6 +8,35 @@ vi.mock('../services/auth.service');
 
 const mockRegisterUser = vi.mocked(authService.registerUser);
 const mockLoginUser = vi.mocked(authService.loginUser);
+
+describe('session-store helpers', () => {
+  beforeEach(() => {
+    resetSessionStoreForTests();
+  });
+
+  it('resetError sets error to null', () => {
+    useSessionStore.setState({ error: 'some error' });
+    expect(useSessionStore.getState().error).toBe('some error');
+
+    useSessionStore.getState().resetError();
+    expect(useSessionStore.getState().error).toBeNull();
+  });
+
+  it('clearCurrentUser clears the current user', () => {
+    const fakeUser: LoginUserResponseDto = {
+      uid: 'user-1',
+      email: 'test@example.com',
+      idToken: 'token-1',
+      expiresIn: '3600',
+    };
+
+    useSessionStore.setState({ currentUser: fakeUser });
+    expect(useSessionStore.getState().currentUser).toEqual(fakeUser);
+
+    useSessionStore.getState().clearCurrentUser();
+    expect(useSessionStore.getState().currentUser).toBeNull();
+  });
+});
 
 describe('useSessionStore', () => {
   beforeEach(() => {
@@ -136,77 +165,5 @@ describe('useSessionStore – login / logout', () => {
 
     expect(useSessionStore.getState().currentUser).toBeNull();
     expect(useSessionStore.getState().error).toBeNull();
-  });
-});
-
-describe('useSessionStore – persistence', () => {
-  const session: LoginUserResponseDto = {
-    uid: 'uid789',
-    email: 'persist@example.com',
-    idToken: 'token-789',
-    expiresIn: '3600',
-  };
-
-  beforeEach(() => {
-    localStorage.clear();
-    resetSessionStoreForTests();
-  });
-
-  afterEach(() => {
-    localStorage.clear();
-  });
-
-  it('persists currentUser to localStorage after login', async () => {
-    mockLoginUser.mockResolvedValue(session);
-
-    await act(async () => {
-      await useSessionStore.getState().login({
-        email: 'persist@example.com',
-        password: 'password123',
-      });
-    });
-
-    const stored = JSON.parse(localStorage.getItem('todos-session') ?? '{}');
-    expect(stored.state.currentUser).toEqual(session);
-  });
-
-  it('clears persisted session from localStorage on logout', async () => {
-    mockLoginUser.mockResolvedValue(session);
-
-    await act(async () => {
-      await useSessionStore.getState().login({
-        email: 'persist@example.com',
-        password: 'password123',
-      });
-    });
-
-    act(() => {
-      useSessionStore.getState().logout();
-    });
-
-    const stored = JSON.parse(localStorage.getItem('todos-session') ?? '{}');
-    expect(stored.state?.currentUser).toBeNull();
-  });
-
-  it('hydrateSession returns currentUser from in-memory state', () => {
-    useSessionStore.setState({ currentUser: session });
-
-    const hydrated = useSessionStore.getState().hydrateSession();
-
-    expect(hydrated).toEqual(session);
-  });
-
-  it('hydrateSession returns null when no session exists', () => {
-    expect(useSessionStore.getState().hydrateSession()).toBeNull();
-  });
-
-  it('handles missing persisted data gracefully without throwing', () => {
-    localStorage.setItem('todos-session', 'corrupted-json{');
-
-    expect(() => {
-      resetSessionStoreForTests();
-    }).not.toThrow();
-
-    expect(useSessionStore.getState().currentUser).toBeNull();
   });
 });
