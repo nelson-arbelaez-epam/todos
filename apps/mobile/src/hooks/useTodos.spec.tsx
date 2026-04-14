@@ -6,7 +6,7 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react-native';
-import type { TodoDto } from '@todos/core/http';
+import type { TodoDto, TodoListDto } from '@todos/core/http';
 import type { ReactElement } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -41,7 +41,12 @@ describe('useTodos hook', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     resetSessionStoreForTests();
-    mockListTodos.mockResolvedValue([]);
+    mockListTodos.mockResolvedValue({
+      items: [],
+      total: 0,
+      page: 1,
+      limit: 20,
+    });
   });
 
   it('fetches todos and exposes them', async () => {
@@ -56,7 +61,12 @@ describe('useTodos hook', () => {
       },
     ];
 
-    mockListTodos.mockResolvedValue(items);
+    mockListTodos.mockResolvedValue({
+      items,
+      total: 1,
+      page: 1,
+      limit: 20,
+    });
 
     useSessionStore.setState({
       currentUser: {
@@ -83,7 +93,10 @@ describe('useTodos hook', () => {
     renderWithQueryClient(<TestComp />);
 
     await waitFor(() => expect(screen.getByText('Write tests')).toBeTruthy());
-    expect(mockListTodos).toHaveBeenCalledWith('token-123');
+    expect(mockListTodos).toHaveBeenCalledWith('token-123', {
+      page: 1,
+      limit: 20,
+    });
   });
 
   it('exposes error when service throws', async () => {
@@ -175,36 +188,50 @@ describe('useTodos hook', () => {
     await waitFor(() => expect(screen.getByText('create failed')).toBeTruthy());
   });
 
-  it('updates todo and replaces item in list', async () => {
-    const initialItems: TodoDto[] = [
-      {
-        id: '1',
-        title: 'Old title',
-        description: 'Old desc',
-        completed: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ];
-
-    mockListTodos.mockResolvedValue(initialItems);
-    mockUpdateTodo.mockResolvedValue({
-      ...initialItems[0],
-      title: 'Updated title',
-      completed: true,
-    });
+  it('updates page and requests paged todos', async () => {
+    mockListTodos
+      .mockResolvedValueOnce({
+        items: [
+          {
+            id: '1',
+            title: 'Page one item',
+            description: undefined,
+            completed: false,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
+        total: 40,
+        page: 1,
+        limit: 20,
+      })
+      .mockResolvedValueOnce({
+        items: [
+          {
+            id: '2',
+            title: 'Page two item',
+            description: undefined,
+            completed: false,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
+        total: 40,
+        page: 2,
+        limit: 20,
+      });
 
     function TestComp() {
-      const { todos, updateTodo } = useTodos();
+      const { todos, nextPage, canGoToNextPage } = useTodos();
       return (
         <View>
           <Pressable
-            testID="update-button"
+            testID="next-page"
             onPress={() => {
-              void updateTodo('1', { title: 'Updated title', completed: true });
+              if (canGoToNextPage) nextPage();
             }}
           >
-            <Text>update</Text>
+            <Text>next</Text>
           </Pressable>
           {todos.map((t) => (
             <Text key={t.id}>{t.title}</Text>
@@ -214,28 +241,32 @@ describe('useTodos hook', () => {
     }
 
     renderWithQueryClient(<TestComp />);
-    await waitFor(() => expect(screen.getByText('Old title')).toBeTruthy());
-    fireEvent.press(screen.getByTestId('update-button'));
 
-    await waitFor(() => expect(screen.getByText('Updated title')).toBeTruthy());
-    expect(mockUpdateTodo).toHaveBeenCalledWith(
-      '1',
-      { title: 'Updated title', completed: true },
-      undefined,
-    );
+    await waitFor(() => expect(screen.getByText('Page one item')).toBeTruthy());
+    fireEvent.press(screen.getByTestId('next-page'));
+    await waitFor(() => expect(screen.getByText('Page two item')).toBeTruthy());
+    expect(mockListTodos).toHaveBeenLastCalledWith(undefined, {
+      page: 2,
+      limit: 20,
+    });
   });
 
   it('blocks concurrent update requests for the same todo', async () => {
-    const initialItems: TodoDto[] = [
-      {
-        id: '1',
-        title: 'Old title',
-        description: 'Old desc',
-        completed: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ];
+    const initialItems: TodoListDto = {
+      page: 1,
+      limit: 20,
+      total: 1,
+      items: [
+        {
+          id: '1',
+          title: 'Old title',
+          description: 'Old desc',
+          completed: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ],
+    };
 
     mockListTodos.mockResolvedValue(initialItems);
 
@@ -280,7 +311,7 @@ describe('useTodos hook', () => {
       expect(secondResult).toBe(false);
       expect(mockUpdateTodo).toHaveBeenCalledTimes(1);
       resolveUpdate?.({
-        ...initialItems[0],
+        ...initialItems.items[0],
         title: 'Updated title',
         completed: true,
       });

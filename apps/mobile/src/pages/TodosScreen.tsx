@@ -1,5 +1,7 @@
 import type { TodoDto, UpdateTodoDto } from '@todos/core/http';
 import { useState } from 'react';
+import { View } from 'react-native';
+import { AppButton, AppText } from '@/components/atoms';
 import { CreateTodoForm } from '@/components/organisms';
 import { ScreenLayout, TodoList } from '@/components/templates';
 import { useTodos } from '@/hooks/useTodos';
@@ -13,6 +15,12 @@ export function TodosScreen() {
     error,
     createError,
     updateError,
+    page,
+    totalPages,
+    canGoToPreviousPage,
+    canGoToNextPage,
+    previousPage,
+    nextPage,
     refresh,
     createTodo,
     updateTodo,
@@ -85,6 +93,23 @@ export function TodosScreen() {
           await updateTodo(todo.id, { completed: !todo.completed });
         }}
       />
+      <AppText variant="caption" className="mt-3 text-text-secondary">
+        Page {page} of {totalPages}
+      </AppText>
+      <View className="mt-2 flex-row gap-2">
+        <AppButton
+          title="Previous"
+          variant="secondary"
+          onPress={previousPage}
+          disabled={!canGoToPreviousPage}
+        />
+        <AppButton
+          title="Next"
+          variant="secondary"
+          onPress={nextPage}
+          disabled={!canGoToNextPage}
+        />
+      </View>
     </ScreenLayout>
   );
 }

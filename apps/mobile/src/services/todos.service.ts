@@ -6,6 +6,10 @@ import type {
 } from '@todos/core/http';
 
 type HttpError = Error & { status?: number };
+interface ListTodosParams {
+  page?: number;
+  limit?: number;
+}
 
 function getApiBaseUrl(): string {
   const apiBaseUrl = process.env.EXPO_PUBLIC_TODOS_API_URL;
@@ -20,10 +24,22 @@ function getApiBaseUrl(): string {
 }
 
 /**
- * List active todos for the current user. Returns the items array with archived items filtered out.
+ * List active todos for the current user. Returns a paginated response.
  */
-export async function listTodos(idToken?: string): Promise<TodoDto[]> {
-  const url = `${getApiBaseUrl()}/api/v1/todos`;
+export async function listTodos(
+  idToken?: string,
+  params: ListTodosParams = {},
+): Promise<TodoListDto> {
+  const search = new URLSearchParams();
+  if (params.page !== undefined) {
+    search.set('page', String(params.page));
+  }
+  if (params.limit !== undefined) {
+    search.set('limit', String(params.limit));
+  }
+
+  const queryString = search.toString();
+  const url = `${getApiBaseUrl()}/api/v1/todos${queryString ? `?${queryString}` : ''}`;
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -40,9 +56,7 @@ export async function listTodos(idToken?: string): Promise<TodoDto[]> {
     throw error;
   }
 
-  const body = (await response.json()) as TodoListDto;
-  // Exclude archived todos by default
-  return (body.items ?? []).filter((t) => !t.archivedAt);
+  return (await response.json()) as TodoListDto;
 }
 
 function extractErrorMessage(json: unknown, fallback: string): string {

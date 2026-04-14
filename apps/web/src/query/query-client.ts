@@ -30,8 +30,8 @@ export function getRetryDelay(attemptIndex: number): number {
   return Math.min(RETRY_BASE_DELAY_MS * 2 ** attemptIndex, 30_000);
 }
 
-export function getTodosQueryKey(idToken?: string) {
-  return ['todos', idToken ?? null] as const;
+export function getTodosQueryKey(ownerId?: string, page = 1, limit = 20) {
+  return ['todos', ownerId ?? null, page, limit] as const;
 }
 
 export const queryClientDefaultOptions: DefaultOptions = {

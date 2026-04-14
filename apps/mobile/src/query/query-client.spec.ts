@@ -1,7 +1,7 @@
 import { QueryClient } from '@tanstack/react-query';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { listTodos } from '@/services/todos.service';
-import { shouldRetryQuery } from './query-client';
+import { getTodosQueryKey, shouldRetryQuery } from './query-client';
 
 describe('query-client policy (mobile)', () => {
   const fetchMock = vi.fn();
@@ -65,5 +65,14 @@ describe('query-client policy (mobile)', () => {
       }),
     ).rejects.toThrow('server error');
     expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it('builds query keys with owner uid and pagination params', () => {
+    expect(getTodosQueryKey('user-1', 2, 10)).toEqual([
+      'todos',
+      'user-1',
+      2,
+      10,
+    ]);
   });
 });

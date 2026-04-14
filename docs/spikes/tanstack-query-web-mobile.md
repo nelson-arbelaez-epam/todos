@@ -11,6 +11,8 @@
 - Se migró la carga de `listTodos` a `useQuery` en:
   - Web: `apps/web/src/pages/Todos.tsx`
   - Mobile: `apps/mobile/src/hooks/useTodos.ts`
+- Query keys de todos ahora usan identificador no sensible (`uid`) y parámetros de paginación (`page`, `limit`), sin usar `idToken`.
+- Se agregó soporte de paginación en servicios `listTodos` (web/mobile) y estado de página en contenedores/hook UI.
 
 ## Recomendación de versión
 

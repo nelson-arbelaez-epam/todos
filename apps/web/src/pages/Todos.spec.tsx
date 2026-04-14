@@ -32,16 +32,21 @@ describe('Todos page', () => {
   });
 
   it('shows loading then renders todos', async () => {
-    listSpy.mockResolvedValue([
-      {
-        id: '1',
-        title: 'One',
-        description: undefined,
-        completed: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ]);
+    listSpy.mockResolvedValue({
+      items: [
+        {
+          id: '1',
+          title: 'One',
+          description: undefined,
+          completed: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ],
+      total: 1,
+      page: 1,
+      limit: 20,
+    });
 
     const { getByText } = renderWithQueryClient(<Todos />);
     expect(getByText('Loading...')).toBeInTheDocument();
@@ -49,6 +54,7 @@ describe('Todos page', () => {
     await waitFor(() => {
       expect(getByText('One')).toBeInTheDocument();
     });
+    expect(listSpy).toHaveBeenCalledWith(undefined, { page: 1, limit: 20 });
   });
 
   it('shows error when service fails', async () => {
@@ -63,7 +69,12 @@ describe('Todos page', () => {
 
   it('creates todo and renders it in the list', async () => {
     const user = userEvent.setup();
-    listSpy.mockResolvedValue([]);
+    listSpy.mockResolvedValue({
+      items: [],
+      total: 0,
+      page: 1,
+      limit: 20,
+    });
     createSpy.mockResolvedValue({
       id: 'todo-2',
       title: 'Created todo',
@@ -91,7 +102,12 @@ describe('Todos page', () => {
 
   it('shows create error when create request fails', async () => {
     const user = userEvent.setup();
-    listSpy.mockResolvedValue([]);
+    listSpy.mockResolvedValue({
+      items: [],
+      total: 0,
+      page: 1,
+      limit: 20,
+    });
     createSpy.mockRejectedValue(new Error('Title must not be empty'));
 
     const { getByTestId, getByRole, getByText } = renderWithQueryClient(
@@ -107,5 +123,52 @@ describe('Todos page', () => {
     await waitFor(() => {
       expect(getByRole('alert')).toHaveTextContent('Title must not be empty');
     });
+  });
+
+  it('moves to the next page and requests paginated data', async () => {
+    const user = userEvent.setup();
+    listSpy
+      .mockResolvedValueOnce({
+        items: [
+          {
+            id: '1',
+            title: 'Page one item',
+            description: undefined,
+            completed: false,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
+        total: 40,
+        page: 1,
+        limit: 20,
+      })
+      .mockResolvedValueOnce({
+        items: [
+          {
+            id: '2',
+            title: 'Page two item',
+            description: undefined,
+            completed: false,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
+        total: 40,
+        page: 2,
+        limit: 20,
+      });
+
+    const { getByRole, getByText } = renderWithQueryClient(<Todos />);
+    await waitFor(() => {
+      expect(getByText('Page one item')).toBeInTheDocument();
+    });
+
+    await user.click(getByRole('button', { name: 'Next' }));
+
+    await waitFor(() => {
+      expect(getByText('Page two item')).toBeInTheDocument();
+    });
+    expect(listSpy).toHaveBeenLastCalledWith(undefined, { page: 2, limit: 20 });
   });
 });

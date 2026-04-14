@@ -9,6 +9,10 @@ interface ApiError {
 }
 
 type HttpError = Error & { status?: number };
+interface ListTodosParams {
+  page?: number;
+  limit?: number;
+}
 
 function resolveApiErrorMessage(body: ApiError, fallback: string): string {
   if (typeof body.message === 'string') {
@@ -21,11 +25,23 @@ function resolveApiErrorMessage(body: ApiError, fallback: string): string {
 }
 
 /**
- * List active todos for the current user. Returns the items array.
+ * List active todos for the current user. Returns a paginated response.
  * Include `idToken` (Firebase JWT) as `Authorization: Bearer <token>` when present.
  */
-export async function listTodos(idToken?: string): Promise<TodoDto[]> {
-  const url = `${API_BASE_URL}/api/v1/todos`;
+export async function listTodos(
+  idToken?: string,
+  params: ListTodosParams = {},
+): Promise<TodoListDto> {
+  const search = new URLSearchParams();
+  if (params.page !== undefined) {
+    search.set('page', String(params.page));
+  }
+  if (params.limit !== undefined) {
+    search.set('limit', String(params.limit));
+  }
+
+  const queryString = search.toString();
+  const url = `${API_BASE_URL}/api/v1/todos${queryString ? `?${queryString}` : ''}`;
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -41,8 +57,7 @@ export async function listTodos(idToken?: string): Promise<TodoDto[]> {
     throw error;
   }
 
-  const body = (await response.json()) as TodoListDto;
-  return body.items ?? [];
+  return (await response.json()) as TodoListDto;
 }
 
 /**

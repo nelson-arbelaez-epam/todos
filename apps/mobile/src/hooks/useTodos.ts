@@ -1,5 +1,9 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import type { CreateTodoDto, TodoDto, UpdateTodoDto } from '@todos/core/http';
+import type {
+  CreateTodoDto,
+  TodoListDto,
+  UpdateTodoDto,
+} from '@todos/core/http';
 import { useCallback, useRef, useState } from 'react';
 import { getTodosQueryKey } from '@/query/query-client';
 import {
@@ -9,23 +13,28 @@ import {
 } from '@/services/todos.service';
 import { useSessionStore } from '@/store/session-store';
 
+const PAGE_LIMIT = 20;
+
 export function useTodos() {
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [updateError, setUpdateError] = useState<string | null>(null);
   const [updating, setUpdating] = useState<Record<string, boolean>>({});
   const updatingRef = useRef<Record<string, boolean>>({});
+  const [page, setPage] = useState(1);
   const currentUser = useSessionStore((s) => s.currentUser);
   const queryClient = useQueryClient();
-  const {
-    data: todos = [],
-    isLoading,
-    error,
-    refetch,
-  } = useQuery({
-    queryKey: getTodosQueryKey(currentUser?.idToken),
-    queryFn: () => listTodos(currentUser?.idToken),
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: getTodosQueryKey(currentUser?.uid, page, PAGE_LIMIT),
+    queryFn: () =>
+      listTodos(currentUser?.idToken, {
+        page,
+        limit: PAGE_LIMIT,
+      }),
   });
+  const todos = data?.items ?? [];
+  const total = data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_LIMIT));
 
   const createTodo = useCallback(
     async (payload: CreateTodoDto): Promise<boolean> => {
@@ -33,9 +42,17 @@ export function useTodos() {
       setCreateError(null);
       try {
         const created = await createTodoRequest(payload, currentUser?.idToken);
-        queryClient.setQueryData<TodoDto[]>(
-          getTodosQueryKey(currentUser?.idToken),
-          (prev) => (prev ? [created, ...prev] : [created]),
+        queryClient.setQueryData<TodoListDto>(
+          getTodosQueryKey(currentUser?.uid, page, PAGE_LIMIT),
+          (prev) =>
+            prev
+              ? { ...prev, items: [created, ...prev.items] }
+              : {
+                  items: [created],
+                  total: 1,
+                  page,
+                  limit: PAGE_LIMIT,
+                },
         );
         return true;
       } catch (err: unknown) {
@@ -45,7 +62,7 @@ export function useTodos() {
         setIsCreating(false);
       }
     },
-    [currentUser?.idToken, queryClient],
+    [currentUser?.idToken, currentUser?.uid, page, queryClient],
   );
 
   const updateTodo = useCallback(
@@ -60,12 +77,17 @@ export function useTodos() {
           payload,
           currentUser?.idToken,
         );
-        queryClient.setQueryData<TodoDto[]>(
-          getTodosQueryKey(currentUser?.idToken),
+        queryClient.setQueryData<TodoListDto>(
+          getTodosQueryKey(currentUser?.uid, page, PAGE_LIMIT),
           (prev) =>
             prev
-              ? prev.map((t) => (t.id === id ? { ...t, ...updated } : t))
-              : [updated],
+              ? {
+                  ...prev,
+                  items: prev.items.map((t) =>
+                    t.id === id ? { ...t, ...updated } : t,
+                  ),
+                }
+              : { items: [updated], total: 1, page, limit: PAGE_LIMIT },
         );
         return true;
       } catch (err: unknown) {
@@ -80,15 +102,27 @@ export function useTodos() {
         delete updatingRef.current[id];
       }
     },
-    [currentUser?.idToken, queryClient],
+    [currentUser?.idToken, currentUser?.uid, page, queryClient],
   );
 
   return {
     todos,
+    page,
+    total,
+    totalPages,
+    canGoToPreviousPage: page > 1,
+    canGoToNextPage: page < totalPages,
+    nextPage: () => {
+      setPage((currentPage) => Math.min(totalPages, currentPage + 1));
+    },
+    previousPage: () => {
+      setPage((currentPage) => Math.max(1, currentPage - 1));
+    },
     isLoading,
     isCreating,
     updating,
     updateError,
+    clearUpdateError: () => setUpdateError(null),
     error:
       error instanceof Error ? error.message : error ? String(error) : null,
     createError,
