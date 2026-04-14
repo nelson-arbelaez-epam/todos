@@ -3,11 +3,18 @@ import { ScreenLayout } from '@/components/templates';
 import { useTodos } from '@/hooks/useTodos';
 
 export function TodosScreen() {
-  const { todos, isLoading, isCreating, error, createError, refresh, createTodo } =
-    useTodos();
+  const {
+    todos,
+    isLoading,
+    isCreating,
+    error,
+    createError,
+    refresh,
+    createTodo,
+  } = useTodos();
 
   return (
-    <ScreenLayout scrollable>
+    <ScreenLayout>
       <CreateTodoForm
         onSubmit={createTodo}
         isLoading={isCreating}

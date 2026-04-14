@@ -36,17 +36,16 @@ export async function listTodos(idToken?: string): Promise<TodoDto[]> {
   return (body.items ?? []).filter((t) => !t.archivedAt);
 }
 
-function extractErrorMessage(
-  json: unknown,
-  fallback: string,
-): string {
+function extractErrorMessage(json: unknown, fallback: string): string {
   if (typeof json !== 'object' || json === null) return fallback;
   const maybeMessage = (json as { message?: unknown }).message;
 
   if (typeof maybeMessage === 'string') return maybeMessage;
   if (Array.isArray(maybeMessage)) {
-    const text = maybeMessage.filter((item) => typeof item === 'string').join(', ');
-    if (text) return text;
+    const joinedMessages = maybeMessage
+      .filter((item) => typeof item === 'string')
+      .join(', ');
+    if (joinedMessages) return joinedMessages;
   }
 
   return fallback;

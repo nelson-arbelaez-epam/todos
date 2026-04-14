@@ -3,7 +3,7 @@ import {
   Pressable,
   type PressableProps,
 } from 'react-native';
-import { AppText } from '@/components/atoms';
+import { AppText } from '@/components/atoms/AppText/AppText';
 import { colors } from '@/theme';
 import { cn } from '@/utils/cn';
 

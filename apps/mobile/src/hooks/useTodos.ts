@@ -1,6 +1,9 @@
 import type { CreateTodoDto, TodoDto } from '@todos/core/http';
 import { useCallback, useEffect, useState } from 'react';
-import { createTodo as createTodoRequest, listTodos } from '@/services/todos.service';
+import {
+  createTodo as createTodoRequest,
+  listTodos,
+} from '@/services/todos.service';
 import { useSessionStore } from '@/store/session-store';
 
 export function useTodos() {
@@ -35,7 +38,7 @@ export function useTodos() {
       setCreateError(null);
       try {
         const created = await createTodoRequest(payload, currentUser?.idToken);
-        setTodos((prev) => [created, ...prev.filter((todo) => todo.id !== created.id)]);
+        setTodos((prev) => [created, ...prev]);
         return true;
       } catch (err: unknown) {
         setCreateError(err instanceof Error ? err.message : String(err));

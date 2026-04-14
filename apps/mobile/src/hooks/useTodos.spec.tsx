@@ -1,4 +1,9 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react-native';
 import type { TodoDto } from '@todos/core/http';
 import { Pressable, Text, View } from 'react-native';
 import { beforeEach, describe, expect, it, vi } from 'vitest';

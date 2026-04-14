@@ -11,9 +11,7 @@ describe('CreateTodoForm', () => {
 
     fireEvent.press(getByTestId('create-todo-submit'));
 
-    await waitFor(() =>
-      expect(getByText('Title is required.')).toBeTruthy(),
-    );
+    await waitFor(() => expect(getByText('Title is required.')).toBeTruthy());
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
@@ -37,7 +35,9 @@ describe('CreateTodoForm', () => {
       }),
     );
 
-    await waitFor(() => expect(getByTestId('create-todo-title').props.value).toBe(''));
+    await waitFor(() =>
+      expect(getByTestId('create-todo-title').props.value).toBe(''),
+    );
     expect(getByTestId('create-todo-description').props.value).toBe('');
   });
 

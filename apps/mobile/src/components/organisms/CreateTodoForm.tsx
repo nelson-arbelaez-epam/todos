@@ -45,7 +45,7 @@ export function CreateTodoForm({
   return (
     <View className="w-full">
       <AppText variant="heading" weight="bold" className="mb-4">
-        Create todo
+        Create Todo
       </AppText>
 
       <View className="mb-3">

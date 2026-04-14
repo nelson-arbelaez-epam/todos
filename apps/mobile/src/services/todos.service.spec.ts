@@ -110,7 +110,9 @@ describe('todos.service (mobile)', () => {
     expect(url).toContain('/api/v1/todos');
     expect(options.method).toBe('POST');
     expect(options.headers.Authorization).toBe('Bearer token-abc');
-    expect(options.body).toBe(JSON.stringify({ title: 'Created', description: 'Desc' }));
+    expect(options.body).toBe(
+      JSON.stringify({ title: 'Created', description: 'Desc' }),
+    );
   });
 
   it('uses joined validation messages when create response has message array', async () => {
