@@ -1,6 +1,6 @@
 import { View, type ViewProps } from 'react-native';
-import { type ElevationToken } from '../../../theme';
-import { cn } from '../../../utils/cn';
+import { type ElevationToken } from '@/theme';
+import { cn } from '@/utils/cn';
 
 export interface SurfaceProps extends ViewProps {
   elevationLevel?: ElevationToken;

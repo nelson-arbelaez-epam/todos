@@ -1,7 +1,7 @@
 import { View } from 'react-native';
 
-import { AppButton, AppText, Surface } from '../components/atoms';
-import { ScreenLayout } from '../components/templates';
+import { AppButton, AppText, Surface } from '@/components/atoms';
+import { ScreenLayout } from '@/components/templates';
 
 export interface HomeScreenProps {
   currentUserEmail: string;

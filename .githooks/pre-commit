@@ -14,7 +14,7 @@ if [ $biome_exit -ne 0 ]; then
 fi
 
 echo "Running TypeScript type check..."
-yarn workspaces foreach --all --parallel exec 'test -d src && npx tsc --noEmit || true'
+yarn workspaces foreach --all --parallel exec 'npx tsc --noEmit'
 
 tsc_exit=$?
 if [ $tsc_exit -ne 0 ]; then

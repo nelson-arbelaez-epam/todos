@@ -1,8 +1,7 @@
 import { TextInput, type TextInputProps, View } from 'react-native';
-import { colors } from '../../../theme';
-import { cn } from '../../../utils/cn';
-import { AppLabel } from '../AppLabel/AppLabel';
-import { AppText } from '../AppText/AppText';
+import { AppLabel, AppText } from '@/components/atoms';
+import { colors } from '@/theme';
+import { cn } from '@/utils/cn';
 
 export interface AppInputProps extends TextInputProps {
   label?: string;
@@ -12,7 +11,7 @@ export interface AppInputProps extends TextInputProps {
 }
 
 /**
- * AppInput – presentational atom for text input controls.
+ * AppInput – presentational molecule for text input controls.
  * Supports optional label, error message, and hint text.
  * All state is controlled externally; no internal side-effects.
  */

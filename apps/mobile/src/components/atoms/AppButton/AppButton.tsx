@@ -3,9 +3,9 @@ import {
   Pressable,
   type PressableProps,
 } from 'react-native';
-import { colors } from '../../../theme';
-import { cn } from '../../../utils/cn';
-import { AppText } from '../AppText/AppText';
+import { AppText } from '@/components/atoms';
+import { colors } from '@/theme';
+import { cn } from '@/utils/cn';
 
 export type AppButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 export type AppButtonSize = 'sm' | 'md' | 'lg';

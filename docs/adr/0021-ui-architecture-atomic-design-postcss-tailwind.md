@@ -61,6 +61,7 @@ Rules:
 - Pages are containers — they fetch/subscribe to data and pass it into templates and organisms.
 - Cross-cutting shared hooks live in `src/hooks/`.
 - Cross-cutting shared types live in `src/types/` or in `@todos/core` if they are domain contracts.
+- Atom consumers should import from the public atoms index (`src/components/atoms`) rather than deep atom implementation paths such as `src/components/atoms/AppLabel/AppLabel`.
 
 ### Atom primitives and base HTML elements
 
