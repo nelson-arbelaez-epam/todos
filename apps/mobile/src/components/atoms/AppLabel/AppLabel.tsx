@@ -1,5 +1,5 @@
 import type { TextProps } from 'react-native';
-import { AppText } from '../AppText/AppText';
+import { AppText } from '@/components/atoms';
 
 export interface AppLabelProps extends Omit<TextProps, 'children'> {
   children: React.ReactNode;

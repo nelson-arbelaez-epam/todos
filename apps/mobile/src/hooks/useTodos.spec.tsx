@@ -2,14 +2,14 @@ import { render, screen, waitFor } from '@testing-library/react-native';
 import type { TodoDto } from '@todos/core/http';
 import { Text, View } from 'react-native';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import * as TodosService from '../services/todos.service';
+import * as TodosService from '@/services/todos.service';
 import {
   resetSessionStoreForTests,
   useSessionStore,
-} from '../store/session-store';
+} from '@/store/session-store';
 import { useTodos } from './useTodos';
 
-vi.mock('../services/todos.service');
+vi.mock('@/services/todos.service');
 
 const mockListTodos = vi.mocked(TodosService.listTodos);
 

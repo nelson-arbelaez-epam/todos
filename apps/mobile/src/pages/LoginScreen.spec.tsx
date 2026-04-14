@@ -11,7 +11,7 @@ const storeState = {
   login: loginActionMock,
 };
 
-vi.mock('../store/session-store', () => ({
+vi.mock('@/store/session-store', () => ({
   useSessionStore: (selector: (state: typeof storeState) => unknown) =>
     selector(storeState),
 }));

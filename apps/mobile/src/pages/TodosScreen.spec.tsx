@@ -2,8 +2,8 @@ import { render } from '@testing-library/react-native';
 import type { TodoDto } from '@todos/core/http';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('../hooks/useTodos');
-vi.mock('../components/organisms', () => {
+vi.mock('@/hooks/useTodos');
+vi.mock('@/components/organisms', () => {
   const React = require('react');
   const { Text } = require('react-native');
   return {
@@ -12,7 +12,7 @@ vi.mock('../components/organisms', () => {
   };
 });
 
-import * as UseTodos from '../hooks/useTodos';
+import * as UseTodos from '@/hooks/useTodos';
 import TodosScreen from './TodosScreen';
 
 const mockUseTodos = vi.mocked(UseTodos.useTodos);

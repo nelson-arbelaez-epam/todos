@@ -1,7 +1,7 @@
 import type { TodoDto } from '@todos/core/http';
 import { useCallback, useEffect, useState } from 'react';
-import { listTodos } from '../services/todos.service';
-import { useSessionStore } from '../store/session-store';
+import { listTodos } from '@/services/todos.service';
+import { useSessionStore } from '@/store/session-store';
 
 export function useTodos() {
   const [todos, setTodos] = useState<TodoDto[]>([]);

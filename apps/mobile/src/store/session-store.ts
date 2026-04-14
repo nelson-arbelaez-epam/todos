@@ -1,6 +1,6 @@
 import type { LoginUserResponseDto, RegisterUserDto } from '@todos/core/http';
 import { create } from 'zustand';
-import { loginUser, registerUser } from '../services/auth.service';
+import { loginUser, registerUser } from '@/services/auth.service';
 
 interface SessionStoreState {
   isLoading: boolean;

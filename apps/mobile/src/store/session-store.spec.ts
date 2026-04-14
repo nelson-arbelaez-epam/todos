@@ -2,7 +2,7 @@
 
 import type { LoginUserResponseDto } from '@todos/core/http';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import * as authService from '../services/auth.service';
+import * as authService from '@/services/auth.service';
 import { resetSessionStoreForTests, useSessionStore } from './session-store';
 
 vi.mock('../services/auth.service');

@@ -1,6 +1,6 @@
 import type { TodoDto } from '@todos/core/http';
 import { FlatList, RefreshControl, View } from 'react-native';
-import { AppText } from '../../atoms';
+import { AppText } from '@/components/atoms';
 
 export interface TodoListProps {
   todos: TodoDto[];

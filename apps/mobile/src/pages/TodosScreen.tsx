@@ -1,6 +1,6 @@
-import { TodoList } from '../components/organisms';
-import { ScreenLayout } from '../components/templates';
-import { useTodos } from '../hooks/useTodos';
+import { TodoList } from '@/components/organisms';
+import { ScreenLayout } from '@/components/templates';
+import { useTodos } from '@/hooks/useTodos';
 
 export function TodosScreen() {
   const { todos, isLoading, error, refresh } = useTodos();

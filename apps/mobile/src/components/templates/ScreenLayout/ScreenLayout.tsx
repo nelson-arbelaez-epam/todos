@@ -6,8 +6,8 @@ import {
   type ViewProps,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { spacing } from '../../../theme';
-import { cn } from '../../../utils/cn';
+import { spacing } from '@/theme';
+import { cn } from '@/utils/cn';
 
 export interface ScreenLayoutProps extends ViewProps {
   children: React.ReactNode;

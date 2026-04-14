@@ -1,9 +1,9 @@
 import { Link } from 'expo-router';
 import { View } from 'react-native';
-import { AppText } from '../components/atoms';
-import { LoginForm } from '../components/organisms/LoginForm';
-import { ScreenLayout } from '../components/templates';
-import { useSessionStore } from '../store/session-store';
+import { AppText } from '@/components/atoms';
+import { LoginForm } from '@/components/organisms';
+import { ScreenLayout } from '@/components/templates';
+import { useSessionStore } from '@/store/session-store';
 
 /**
  * Page: Container component that wires the session store to the
