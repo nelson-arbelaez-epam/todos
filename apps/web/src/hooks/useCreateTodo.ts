@@ -1,19 +1,14 @@
+import { useQueryClient } from '@tanstack/react-query';
 import type { TodoDto } from '@todos/core/http';
-import {
-  type Dispatch,
-  type SetStateAction,
-  useCallback,
-  useState,
-} from 'react';
+import { useCallback, useState } from 'react';
+import { getTodosQueryKey } from '../query/query-client';
 import { createTodo } from '../services/todos.service';
 import type { CreateTodoFormValues } from '../types/todo-form';
 
-export function useCreateTodo(
-  idToken: string | undefined,
-  setTodos: Dispatch<SetStateAction<TodoDto[] | null>>,
-) {
+export function useCreateTodo(idToken: string | undefined) {
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   const handleCreateTodo = useCallback(
     async (values: CreateTodoFormValues): Promise<void> => {
@@ -21,7 +16,10 @@ export function useCreateTodo(
       setCreateError(null);
       try {
         const created = await createTodo(values, idToken);
-        setTodos((previous) => [created, ...(previous ?? [])]);
+        queryClient.setQueryData<TodoDto[]>(
+          getTodosQueryKey(idToken),
+          (previous) => (previous ? [created, ...previous] : [created]),
+        );
       } catch (err) {
         setCreateError(
           err instanceof Error ? err.message : 'Failed to create todo',
@@ -30,7 +28,7 @@ export function useCreateTodo(
         setIsCreating(false);
       }
     },
-    [idToken, setTodos],
+    [idToken, queryClient],
   );
 
   return { createError, isCreating, handleCreateTodo };

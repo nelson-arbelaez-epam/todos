@@ -5,6 +5,8 @@ import type {
   UpdateTodoDto,
 } from '@todos/core/http';
 
+type HttpError = Error & { status?: number };
+
 function getApiBaseUrl(): string {
   const apiBaseUrl = process.env.EXPO_PUBLIC_TODOS_API_URL;
 
@@ -33,7 +35,9 @@ export async function listTodos(idToken?: string): Promise<TodoDto[]> {
     const json = await response.json().catch(() => ({}));
     const message =
       typeof json.message === 'string' ? json.message : 'Failed to fetch todos';
-    throw new Error(message);
+    const error = new Error(message) as HttpError;
+    error.status = response.status;
+    throw error;
   }
 
   const body = (await response.json()) as TodoListDto;
@@ -78,7 +82,11 @@ export async function createTodo(
 
   if (!response.ok) {
     const json = await response.json().catch(() => ({}));
-    throw new Error(extractErrorMessage(json, 'Failed to create todo'));
+    const error = new Error(
+      extractErrorMessage(json, 'Failed to create todo'),
+    ) as HttpError;
+    error.status = response.status;
+    throw error;
   }
 
   return (await response.json()) as TodoDto;

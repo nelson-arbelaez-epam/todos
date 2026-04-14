@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   act,
   fireEvent,
@@ -6,6 +7,7 @@ import {
   waitFor,
 } from '@testing-library/react-native';
 import type { TodoDto } from '@todos/core/http';
+import type { ReactElement } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as TodosService from '@/services/todos.service';
@@ -20,6 +22,20 @@ vi.mock('@/services/todos.service');
 const mockListTodos = vi.mocked(TodosService.listTodos);
 const mockCreateTodo = vi.mocked(TodosService.createTodo);
 const mockUpdateTodo = vi.mocked(TodosService.updateTodo);
+
+function renderWithQueryClient(ui: ReactElement) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
+
+  return render(
+    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,
+  );
+}
 
 describe('useTodos hook', () => {
   beforeEach(() => {
@@ -64,7 +80,7 @@ describe('useTodos hook', () => {
       );
     }
 
-    render(<TestComp />);
+    renderWithQueryClient(<TestComp />);
 
     await waitFor(() => expect(screen.getByText('Write tests')).toBeTruthy());
     expect(mockListTodos).toHaveBeenCalledWith('token-123');
@@ -78,7 +94,7 @@ describe('useTodos hook', () => {
       return <View>{error ? <Text>{error}</Text> : null}</View>;
     }
 
-    render(<TestComp />);
+    renderWithQueryClient(<TestComp />);
 
     await waitFor(() => expect(screen.getByText('oops')).toBeTruthy());
   });
@@ -121,7 +137,7 @@ describe('useTodos hook', () => {
       );
     }
 
-    render(<TestComp />);
+    renderWithQueryClient(<TestComp />);
 
     await waitFor(() => expect(screen.getByText('create')).toBeTruthy());
     fireEvent.press(screen.getByTestId('create-button'));
@@ -153,7 +169,7 @@ describe('useTodos hook', () => {
       );
     }
 
-    render(<TestComp />);
+    renderWithQueryClient(<TestComp />);
     fireEvent.press(screen.getByTestId('create-button'));
 
     await waitFor(() => expect(screen.getByText('create failed')).toBeTruthy());
@@ -197,7 +213,7 @@ describe('useTodos hook', () => {
       );
     }
 
-    render(<TestComp />);
+    renderWithQueryClient(<TestComp />);
     await waitFor(() => expect(screen.getByText('Old title')).toBeTruthy());
     fireEvent.press(screen.getByTestId('update-button'));
 
@@ -248,7 +264,7 @@ describe('useTodos hook', () => {
       return null;
     }
 
-    render(<TestComp />);
+    renderWithQueryClient(<TestComp />);
 
     let secondResult: boolean | undefined;
 
@@ -292,7 +308,7 @@ describe('useTodos hook', () => {
       );
     }
 
-    render(<TestComp />);
+    renderWithQueryClient(<TestComp />);
     fireEvent.press(screen.getByTestId('update-button'));
 
     await waitFor(() => expect(screen.getByText('update failed')).toBeTruthy());

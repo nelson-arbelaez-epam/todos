@@ -8,6 +8,8 @@ interface ApiError {
   message?: string | string[];
 }
 
+type HttpError = Error & { status?: number };
+
 function resolveApiErrorMessage(body: ApiError, fallback: string): string {
   if (typeof body.message === 'string') {
     return body.message;
@@ -34,7 +36,9 @@ export async function listTodos(idToken?: string): Promise<TodoDto[]> {
   if (!response.ok) {
     const json = (await response.json().catch(() => ({}))) as ApiError;
     const message = resolveApiErrorMessage(json, 'Failed to fetch todos');
-    throw new Error(message);
+    const error = new Error(message) as HttpError;
+    error.status = response.status;
+    throw error;
   }
 
   const body = (await response.json()) as TodoListDto;
@@ -64,7 +68,9 @@ export async function createTodo(
   if (!response.ok) {
     const json = (await response.json().catch(() => ({}))) as ApiError;
     const message = resolveApiErrorMessage(json, 'Failed to create todo');
-    throw new Error(message);
+    const error = new Error(message) as HttpError;
+    error.status = response.status;
+    throw error;
   }
 
   return response.json() as Promise<TodoDto>;

@@ -1,5 +1,7 @@
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { CreateTodoDto, TodoDto, UpdateTodoDto } from '@todos/core/http';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
+import { getTodosQueryKey } from '@/query/query-client';
 import {
   createTodo as createTodoRequest,
   listTodos,
@@ -8,33 +10,22 @@ import {
 import { useSessionStore } from '@/store/session-store';
 
 export function useTodos() {
-  const [todos, setTodos] = useState<TodoDto[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
-  const [updating, setUpdating] = useState<Record<string, boolean>>({});
-  const [error, setError] = useState<string | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
   const [updateError, setUpdateError] = useState<string | null>(null);
+  const [updating, setUpdating] = useState<Record<string, boolean>>({});
   const updatingRef = useRef<Record<string, boolean>>({});
   const currentUser = useSessionStore((s) => s.currentUser);
-
-  const fetchTodos = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const items = await listTodos(currentUser?.idToken);
-      setTodos(items);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : String(err));
-      setTodos([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [currentUser?.idToken]);
-
-  useEffect(() => {
-    void fetchTodos();
-  }, [fetchTodos]);
+  const queryClient = useQueryClient();
+  const {
+    data: todos = [],
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: getTodosQueryKey(currentUser?.idToken),
+    queryFn: () => listTodos(currentUser?.idToken),
+  });
 
   const createTodo = useCallback(
     async (payload: CreateTodoDto): Promise<boolean> => {
@@ -42,7 +33,10 @@ export function useTodos() {
       setCreateError(null);
       try {
         const created = await createTodoRequest(payload, currentUser?.idToken);
-        setTodos((prev) => [created, ...prev]);
+        queryClient.setQueryData<TodoDto[]>(
+          getTodosQueryKey(currentUser?.idToken),
+          (prev) => (prev ? [created, ...prev] : [created]),
+        );
         return true;
       } catch (err: unknown) {
         setCreateError(err instanceof Error ? err.message : String(err));
@@ -51,12 +45,8 @@ export function useTodos() {
         setIsCreating(false);
       }
     },
-    [currentUser?.idToken],
+    [currentUser?.idToken, queryClient],
   );
-
-  const clearUpdateError = useCallback(() => {
-    setUpdateError(null);
-  }, []);
 
   const updateTodo = useCallback(
     async (id: string, payload: UpdateTodoDto): Promise<boolean> => {
@@ -70,8 +60,12 @@ export function useTodos() {
           payload,
           currentUser?.idToken,
         );
-        setTodos((prev) =>
-          prev.map((todo) => (todo.id === id ? updated : todo)),
+        queryClient.setQueryData<TodoDto[]>(
+          getTodosQueryKey(currentUser?.idToken),
+          (prev) =>
+            prev
+              ? prev.map((t) => (t.id === id ? { ...t, ...updated } : t))
+              : [updated],
         );
         return true;
       } catch (err: unknown) {
@@ -86,7 +80,7 @@ export function useTodos() {
         delete updatingRef.current[id];
       }
     },
-    [currentUser?.idToken],
+    [currentUser?.idToken, queryClient],
   );
 
   return {
@@ -94,11 +88,13 @@ export function useTodos() {
     isLoading,
     isCreating,
     updating,
-    error,
-    createError,
     updateError,
-    clearUpdateError,
-    refresh: fetchTodos,
+    error:
+      error instanceof Error ? error.message : error ? String(error) : null,
+    createError,
+    refresh: () => {
+      void refetch();
+    },
     createTodo,
     updateTodo,
   } as const;

@@ -1,5 +1,7 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { ReactElement } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as TodosService from '../services/todos.service';
 import { resetSessionStoreForTests } from '../store/session-store';
@@ -8,6 +10,21 @@ import Todos from './Todos';
 describe('Todos page', () => {
   const listSpy = vi.spyOn(TodosService, 'listTodos');
   const createSpy = vi.spyOn(TodosService, 'createTodo');
+
+  const renderWithQueryClient = (ui: ReactElement) => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+        },
+      },
+    });
+
+    return render(
+      <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,
+    );
+  };
+
   beforeEach(() => {
     resetSessionStoreForTests();
     listSpy.mockReset();
@@ -26,7 +43,7 @@ describe('Todos page', () => {
       },
     ]);
 
-    const { getByText } = render(<Todos />);
+    const { getByText } = renderWithQueryClient(<Todos />);
     expect(getByText('Loading...')).toBeInTheDocument();
 
     await waitFor(() => {
@@ -37,7 +54,7 @@ describe('Todos page', () => {
   it('shows error when service fails', async () => {
     listSpy.mockRejectedValue(new Error('Network failure'));
 
-    const { getByRole } = render(<Todos />);
+    const { getByRole } = renderWithQueryClient(<Todos />);
 
     await waitFor(() => {
       expect(getByRole('alert')).toHaveTextContent('Error: Network failure');
@@ -56,7 +73,9 @@ describe('Todos page', () => {
       updatedAt: new Date(),
     });
 
-    const { getByTestId, getByRole, getByText } = render(<Todos />);
+    const { getByTestId, getByRole, getByText } = renderWithQueryClient(
+      <Todos />,
+    );
 
     await waitFor(() => {
       expect(getByText('No todos')).toBeInTheDocument();
@@ -75,7 +94,9 @@ describe('Todos page', () => {
     listSpy.mockResolvedValue([]);
     createSpy.mockRejectedValue(new Error('Title must not be empty'));
 
-    const { getByTestId, getByRole, getByText } = render(<Todos />);
+    const { getByTestId, getByRole, getByText } = renderWithQueryClient(
+      <Todos />,
+    );
     await waitFor(() => {
       expect(getByText('No todos')).toBeInTheDocument();
     });
