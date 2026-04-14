@@ -1,11 +1,11 @@
 import { Redirect } from 'expo-router';
 
-import { HomeScreen } from '@/pages/HomeScreen';
+import TodosScreen from '@/pages/TodosScreen';
 import { useSessionStore } from '@/store/session-store';
 
 /**
- * Home route – requires an authenticated session.
- * Redirects to /login when no session is active (mirrors web Login redirect).
+ * Root authenticated route.
+ * Redirects to /login when no session is active.
  */
 export default function HomeRoute() {
   const currentUser = useSessionStore((state) => state.currentUser);
@@ -14,5 +14,5 @@ export default function HomeRoute() {
     return <Redirect href="/login" />;
   }
 
-  return <HomeScreen currentUserEmail={currentUser.email} />;
+  return <TodosScreen />;
 }

@@ -1,12 +1,14 @@
-import type { TodoDto } from '@todos/core/http';
+import type { CreateTodoDto, TodoDto } from '@todos/core/http';
 import { useCallback, useEffect, useState } from 'react';
-import { listTodos } from '@/services/todos.service';
+import { createTodo as createTodoRequest, listTodos } from '@/services/todos.service';
 import { useSessionStore } from '@/store/session-store';
 
 export function useTodos() {
   const [todos, setTodos] = useState<TodoDto[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [createError, setCreateError] = useState<string | null>(null);
   const currentUser = useSessionStore((s) => s.currentUser);
 
   const fetchTodos = useCallback(async () => {
@@ -27,5 +29,31 @@ export function useTodos() {
     void fetchTodos();
   }, [fetchTodos]);
 
-  return { todos, isLoading, error, refresh: fetchTodos } as const;
+  const createTodo = useCallback(
+    async (payload: CreateTodoDto): Promise<boolean> => {
+      setIsCreating(true);
+      setCreateError(null);
+      try {
+        const created = await createTodoRequest(payload, currentUser?.idToken);
+        setTodos((prev) => [created, ...prev.filter((todo) => todo.id !== created.id)]);
+        return true;
+      } catch (err: unknown) {
+        setCreateError(err instanceof Error ? err.message : String(err));
+        return false;
+      } finally {
+        setIsCreating(false);
+      }
+    },
+    [currentUser?.idToken],
+  );
+
+  return {
+    todos,
+    isLoading,
+    isCreating,
+    error,
+    createError,
+    refresh: fetchTodos,
+    createTodo,
+  } as const;
 }
