@@ -5,7 +5,7 @@ type RetryableError = {
   response?: { status?: number };
 };
 
-const MAX_RETRY_ATTEMPTS = 2;
+const MAX_RETRY_FAILURE_COUNT = 2;
 const RETRY_BASE_DELAY_MS = 1000;
 
 function getErrorStatus(error: unknown): number | undefined {
@@ -23,7 +23,7 @@ export function shouldRetryQuery(
     return false;
   }
 
-  return failureCount < MAX_RETRY_ATTEMPTS;
+  return failureCount < MAX_RETRY_FAILURE_COUNT;
 }
 
 export function getRetryDelay(attemptIndex: number): number {

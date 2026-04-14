@@ -3,6 +3,8 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { createTodosQueryClient } from '@/query/query-client';
 
+const queryClient = createTodosQueryClient();
+
 /**
  * Root layout – wraps all routes with a header-less Stack navigator.
  * Authentication guards live in each individual route (same pattern as web).
@@ -14,5 +16,3 @@ export default function RootLayout() {
     </QueryClientProvider>
   );
 }
-
-const queryClient = createTodosQueryClient();

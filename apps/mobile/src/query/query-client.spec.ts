@@ -42,7 +42,7 @@ describe('query-client policy (mobile)', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it('retries up to 3 attempts for non-429 failures', async () => {
+  it('retries with capped attempts for non-429 failures', async () => {
     fetchMock.mockResolvedValue({
       ok: false,
       status: 500,
