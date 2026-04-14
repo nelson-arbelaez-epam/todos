@@ -95,8 +95,42 @@ const View = makeComponent('View');
 const Text = makeComponent('Text');
 const TextInput = makeComponent('TextInput');
 const ScrollView = makeComponent('ScrollView');
-const FlatList = makeComponent('FlatList');
+const FlatList = React.forwardRef(function FlatList(
+  { data, renderItem, keyExtractor, ListEmptyComponent, ...props },
+  ref,
+) {
+  if (!Array.isArray(data) || data.length === 0) {
+    return React.createElement(
+      'FlatList',
+      { ...props, ref },
+      ListEmptyComponent ? React.createElement(ListEmptyComponent, null) : null,
+    );
+  }
+
+  return React.createElement(
+    'FlatList',
+    { ...props, ref },
+    data.map((item, index) => {
+      const rendered = renderItem({
+        item,
+        index,
+        separators: {
+          highlight: () => {},
+          unhighlight: () => {},
+          updateProps: () => {},
+        },
+      });
+      const key = keyExtractor
+        ? keyExtractor(item, index)
+        : (item?.id ?? index);
+      return React.isValidElement(rendered)
+        ? React.cloneElement(rendered, { key })
+        : React.createElement('View', { key }, rendered);
+    }),
+  );
+});
 const SectionList = makeComponent('SectionList');
+const RefreshControl = makeComponent('RefreshControl');
 const SafeAreaView = makeComponent('SafeAreaView');
 const TouchableOpacity = makeComponent('TouchableOpacity');
 const TouchableHighlight = makeComponent('TouchableHighlight');
@@ -196,6 +230,7 @@ module.exports = {
   ScrollView,
   FlatList,
   SectionList,
+  RefreshControl,
   SafeAreaView,
   KeyboardAvoidingView,
   TouchableOpacity,

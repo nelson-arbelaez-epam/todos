@@ -24,6 +24,11 @@ describe('TodoList', () => {
     expect(getByText('No todos yet')).toBeTruthy();
   });
 
+  it('renders loading state when isLoading is true', () => {
+    const { getByText } = render(<TodoList todos={sample} isLoading />);
+    expect(getByText('Loading todos…')).toBeTruthy();
+  });
+
   it('renders error state when error provided', () => {
     const { getByText } = render(<TodoList todos={[]} error="oops" />);
     expect(getByText('oops')).toBeTruthy();

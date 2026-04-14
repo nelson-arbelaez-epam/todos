@@ -1,5 +1,5 @@
 import type { TodoDto } from '@todos/core/http';
-import { FlatList, View } from 'react-native';
+import { FlatList, RefreshControl, View } from 'react-native';
 import { AppText } from '../../atoms';
 
 export interface TodoListProps {
@@ -9,7 +9,12 @@ export interface TodoListProps {
   onRefresh?: () => void;
 }
 
-export function TodoList({ todos, isLoading, error }: TodoListProps) {
+export function TodoList({
+  todos,
+  isLoading,
+  error,
+  onRefresh,
+}: TodoListProps) {
   if (isLoading) {
     return (
       <View>
@@ -37,37 +42,20 @@ export function TodoList({ todos, isLoading, error }: TodoListProps) {
       </View>
     );
   }
-  // In test environments the FlatList virtualisation sometimes prevents
-  // synchronous rendering of items. Render a simple mapping when testing
-  // so unit tests can assert on item titles without dealing with
-  // RN virtualization behavior.
-  if (process.env.NODE_ENV === 'test') {
-    return (
-      <View>
-        {todos.map((item) => (
-          <View key={item.id} className="py-2 border-b border-border">
-            <AppText
-              variant="body"
-              weight={item.completed ? 'regular' : 'medium'}
-            >
-              {item.title}
-            </AppText>
-            {item.description ? (
-              <AppText variant="caption" className="text-text-secondary mt-1">
-                {item.description}
-              </AppText>
-            ) : null}
-          </View>
-        ))}
-      </View>
-    );
-  }
 
   return (
     <FlatList
       data={todos}
       initialNumToRender={10}
       keyExtractor={(item) => item.id}
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl
+            refreshing={isLoading || false}
+            onRefresh={onRefresh}
+          />
+        ) : undefined
+      }
       renderItem={({ item }) => (
         <View className="py-2 border-b border-border">
           <AppText
