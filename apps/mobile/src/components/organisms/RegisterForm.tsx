@@ -76,7 +76,7 @@ export function RegisterForm({
       {displayError ? (
         <AppText
           variant="caption"
-          color="#EF4444"
+          color="danger"
           className="mb-3 text-center"
           testID="register-error"
         >

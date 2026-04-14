@@ -41,7 +41,7 @@ describe('AppText', () => {
   });
 
   it('accepts a custom color prop', () => {
-    const { getByText } = render(<AppText color="#FF0000">Red text</AppText>);
+    const { getByText } = render(<AppText color="danger">Red text</AppText>);
     expect(getByText('Red text')).toBeTruthy();
   });
 
