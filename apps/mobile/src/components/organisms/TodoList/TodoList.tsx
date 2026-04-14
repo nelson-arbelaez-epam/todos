@@ -1,5 +1,4 @@
 import type { TodoDto, UpdateTodoDto } from '@todos/core/http';
-import { useState } from 'react';
 import { FlatList, View } from 'react-native';
 import { AppButton, AppText } from '@/components/atoms';
 import { AppInput } from '@/components/molecules';
@@ -9,13 +8,18 @@ export interface TodoListProps {
   isLoading?: boolean;
   error?: string | null;
   onRefresh?: () => void;
-  onToggleComplete?: (todo: TodoDto) => Promise<boolean> | boolean;
-  onUpdateTodo?: (
-    id: string,
-    payload: UpdateTodoDto,
-  ) => Promise<boolean> | boolean;
+  onToggleComplete?: (todo: TodoDto) => Promise<void>;
   isUpdatingTodoId?: string | null;
   updateError?: string | null;
+  editingTodoId?: string | null;
+  editTitle?: string;
+  editDescription?: string;
+  editError?: string | null;
+  onStartEdit?: (todo: TodoDto) => void;
+  onCancelEdit?: () => void;
+  onChangeEditTitle?: (value: string) => void;
+  onChangeEditDescription?: (value: string) => void;
+  onSubmitEdit?: (id: string, payload: UpdateTodoDto) => Promise<void>;
 }
 
 export function TodoList({
@@ -24,49 +28,18 @@ export function TodoList({
   error,
   onRefresh,
   onToggleComplete,
-  onUpdateTodo,
   isUpdatingTodoId,
   updateError,
+  editingTodoId,
+  editTitle,
+  editDescription,
+  editError,
+  onStartEdit,
+  onCancelEdit,
+  onChangeEditTitle,
+  onChangeEditDescription,
+  onSubmitEdit,
 }: TodoListProps) {
-  const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
-  const [editTitle, setEditTitle] = useState('');
-  const [editDescription, setEditDescription] = useState('');
-  const [localEditError, setLocalEditError] = useState<string | null>(null);
-
-  const startEditing = (todo: TodoDto) => {
-    setEditingTodoId(todo.id);
-    setEditTitle(todo.title);
-    setEditDescription(todo.description ?? '');
-    setLocalEditError(null);
-  };
-
-  const cancelEditing = () => {
-    setEditingTodoId(null);
-    setEditTitle('');
-    setEditDescription('');
-    setLocalEditError(null);
-  };
-
-  const submitEdit = async (id: string) => {
-    const trimmedTitle = editTitle.trim();
-    const trimmedDescription = editDescription.trim();
-
-    if (!trimmedTitle) {
-      setLocalEditError('Title is required.');
-      return;
-    }
-
-    setLocalEditError(null);
-    const updated = await onUpdateTodo?.(id, {
-      title: trimmedTitle,
-      description: trimmedDescription || undefined,
-    });
-
-    if (updated) {
-      cancelEditing();
-    }
-  };
-
   if (isLoading) {
     return (
       <View>
@@ -106,11 +79,13 @@ export function TodoList({
         data={todos}
         initialNumToRender={10}
         keyExtractor={(item) => item.id}
-        onRefresh={onRefresh}
-        refreshing={isLoading || false}
+        {...(onRefresh
+          ? { onRefresh, refreshing: isLoading || false }
+          : {})}
         renderItem={({ item }) => {
           const isEditing = editingTodoId === item.id;
           const isUpdating = isUpdatingTodoId === item.id;
+          const hasPendingUpdate = Boolean(isUpdatingTodoId);
 
           return (
             <View className="py-2 border-b border-border">
@@ -118,29 +93,32 @@ export function TodoList({
                 <View className="gap-2">
                   <AppInput
                     label="Title"
-                    value={editTitle}
-                    onChangeText={setEditTitle}
+                    value={editTitle ?? ''}
+                    onChangeText={onChangeEditTitle}
                     editable={!isUpdating}
                     required
                     testID={`todo-edit-title-${item.id}`}
                   />
                   <AppInput
                     label="Description"
-                    value={editDescription}
-                    onChangeText={setEditDescription}
+                    value={editDescription ?? ''}
+                    onChangeText={onChangeEditDescription}
                     editable={!isUpdating}
                     testID={`todo-edit-description-${item.id}`}
                   />
-                  {localEditError ? (
+                  {editError ? (
                     <AppText variant="caption" color="danger">
-                      {localEditError}
+                      {editError}
                     </AppText>
                   ) : null}
                   <View className="flex-row gap-2">
                     <AppButton
                       title="Save"
                       onPress={() => {
-                        void submitEdit(item.id);
+                        void onSubmitEdit?.(item.id, {
+                          title: editTitle,
+                          description: editDescription || undefined,
+                        });
                       }}
                       loading={isUpdating}
                       disabled={isUpdating}
@@ -148,7 +126,7 @@ export function TodoList({
                     />
                     <AppButton
                       title="Cancel"
-                      onPress={cancelEditing}
+                      onPress={onCancelEdit}
                       variant="secondary"
                       size="sm"
                       disabled={isUpdating}
@@ -173,21 +151,23 @@ export function TodoList({
                     <AppButton
                       title={item.completed ? 'Mark active' : 'Complete'}
                       onPress={() => {
-                        void onToggleComplete?.(item);
+                        if (onToggleComplete) {
+                          void onToggleComplete(item);
+                        }
                       }}
                       variant={item.completed ? 'secondary' : 'primary'}
                       size="sm"
                       loading={isUpdating}
-                      disabled={isUpdating}
+                      disabled={hasPendingUpdate}
                     />
                     <AppButton
                       title="Edit"
                       onPress={() => {
-                        startEditing(item);
+                        onStartEdit?.(item);
                       }}
                       variant="ghost"
                       size="sm"
-                      disabled={isUpdating}
+                      disabled={hasPendingUpdate}
                     />
                   </View>
                 </View>

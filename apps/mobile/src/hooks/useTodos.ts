@@ -1,5 +1,5 @@
 import type { CreateTodoDto, TodoDto, UpdateTodoDto } from '@todos/core/http';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   createTodo as createTodoRequest,
   listTodos,
@@ -15,6 +15,7 @@ export function useTodos() {
   const [error, setError] = useState<string | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
   const [updateError, setUpdateError] = useState<string | null>(null);
+  const isUpdatingRef = useRef(false);
   const currentUser = useSessionStore((s) => s.currentUser);
 
   const fetchTodos = useCallback(async () => {
@@ -55,6 +56,11 @@ export function useTodos() {
 
   const updateTodo = useCallback(
     async (id: string, payload: UpdateTodoDto): Promise<boolean> => {
+      if (isUpdatingRef.current) {
+        return false;
+      }
+
+      isUpdatingRef.current = true;
       setIsUpdatingTodoId(id);
       setUpdateError(null);
       try {
@@ -65,7 +71,8 @@ export function useTodos() {
         setUpdateError(err instanceof Error ? err.message : String(err));
         return false;
       } finally {
-        setIsUpdatingTodoId((currentId) => (currentId === id ? null : currentId));
+        isUpdatingRef.current = false;
+        setIsUpdatingTodoId(null);
       }
     },
     [currentUser?.idToken],

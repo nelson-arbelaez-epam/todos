@@ -10,11 +10,13 @@ vi.mock('@/components/organisms', () => {
     CreateTodoForm: () => React.createElement(Text, null, 'create-form'),
     TodoList: (props: {
       todos?: TodoDto[];
-      onToggleComplete?: (todo: TodoDto) => Promise<boolean> | boolean;
-      onUpdateTodo?: (
+      onToggleComplete?: (todo: TodoDto) => Promise<void>;
+      onStartEdit?: (todo: TodoDto) => void;
+      onChangeEditTitle?: (value: string) => void;
+      onSubmitEdit?: (
         id: string,
         payload: { title?: string; description?: string; completed?: boolean },
-      ) => Promise<boolean> | boolean;
+      ) => Promise<void>;
     }) =>
       React.createElement(
         View,
@@ -33,16 +35,39 @@ vi.mock('@/components/organisms', () => {
         React.createElement(
           Pressable,
           {
-            testID: 'edit-todo',
+            testID: 'start-edit-todo',
             onPress: () => {
               if (props.todos?.[0]) {
-                void props.onUpdateTodo?.(props.todos[0].id, {
+                props.onStartEdit?.(props.todos[0]);
+              }
+            },
+          },
+          React.createElement(Text, null, 'start-edit'),
+        ),
+        React.createElement(
+          Pressable,
+          {
+            testID: 'change-edit-title',
+            onPress: () => {
+              props.onChangeEditTitle?.('Updated title');
+            },
+          },
+          React.createElement(Text, null, 'change-title'),
+        ),
+        React.createElement(
+          Pressable,
+          {
+            testID: 'submit-edit-todo',
+            onPress: () => {
+              if (props.todos?.[0]) {
+                void props.onSubmitEdit?.(props.todos[0].id, {
                   title: 'Updated title',
+                  description: undefined,
                 });
               }
             },
           },
-          React.createElement(Text, null, 'edit'),
+          React.createElement(Text, null, 'submit-edit'),
         ),
       ),
   };
@@ -117,7 +142,9 @@ describe('TodosScreen', () => {
     const { getByTestId } = render(<TodosScreen />);
 
     fireEvent.press(getByTestId('toggle-complete'));
-    fireEvent.press(getByTestId('edit-todo'));
+    fireEvent.press(getByTestId('start-edit-todo'));
+    fireEvent.press(getByTestId('change-edit-title'));
+    fireEvent.press(getByTestId('submit-edit-todo'));
 
     await waitFor(() =>
       expect(updateTodo).toHaveBeenNthCalledWith(1, '1', { completed: true }),
@@ -125,6 +152,7 @@ describe('TodosScreen', () => {
     await waitFor(() =>
       expect(updateTodo).toHaveBeenNthCalledWith(2, '1', {
         title: 'Updated title',
+        description: undefined,
       }),
     );
   });
