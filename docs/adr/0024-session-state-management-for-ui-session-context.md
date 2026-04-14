@@ -192,9 +192,10 @@ changing backend auth contracts.
 
 - **Web**: browser storage (for example `localStorage`) is an untrusted, non-secure cache.
   - Do **not** persist sensitive auth/session tokens in browser storage.
-  - If persistent token-backed sessions are required on web, migrate to a more secure
-    browser-backed approach when possible (for example HttpOnly cookie-backed sessions).
-  - Persist only non-sensitive session metadata needed for UX restoration.
+  - If persistent token-backed sessions are required on web, migrate to a server-managed
+    approach when possible (for example server-issued HttpOnly cookie-based sessions).
+  - Persist only non-sensitive metadata needed for UX restoration (for example last-used
+    email or UI preferences), never bearer tokens or equivalent credentials.
   - Use a versioned key (for example `todos-session:v1`) so future schema changes can be
     invalidated safely.
 - **Mobile**: use a platform adapter that can be swapped by runtime constraints.
