@@ -7,10 +7,13 @@ export function TodosScreen() {
     todos,
     isLoading,
     isCreating,
+    isUpdatingTodoId,
     error,
     createError,
+    updateError,
     refresh,
     createTodo,
+    updateTodo,
   } = useTodos();
 
   return (
@@ -25,6 +28,12 @@ export function TodosScreen() {
         isLoading={isLoading}
         error={error}
         onRefresh={refresh}
+        isUpdatingTodoId={isUpdatingTodoId}
+        updateError={updateError}
+        onUpdateTodo={updateTodo}
+        onToggleComplete={(todo) =>
+          updateTodo(todo.id, { completed: !todo.completed })
+        }
       />
     </ScreenLayout>
   );

@@ -18,6 +18,7 @@ vi.mock('@/services/todos.service');
 
 const mockListTodos = vi.mocked(TodosService.listTodos);
 const mockCreateTodo = vi.mocked(TodosService.createTodo);
+const mockUpdateTodo = vi.mocked(TodosService.updateTodo);
 
 describe('useTodos hook', () => {
   beforeEach(() => {
@@ -155,5 +156,81 @@ describe('useTodos hook', () => {
     fireEvent.press(screen.getByTestId('create-button'));
 
     await waitFor(() => expect(screen.getByText('create failed')).toBeTruthy());
+  });
+
+  it('updates todo and replaces item in list', async () => {
+    const initialItems: TodoDto[] = [
+      {
+        id: '1',
+        title: 'Old title',
+        description: 'Old desc',
+        completed: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ];
+
+    mockListTodos.mockResolvedValue(initialItems);
+    mockUpdateTodo.mockResolvedValue({
+      ...initialItems[0],
+      title: 'Updated title',
+      completed: true,
+    });
+
+    function TestComp() {
+      const { todos, updateTodo } = useTodos();
+      return (
+        <View>
+          <Pressable
+            testID="update-button"
+            onPress={() => {
+              void updateTodo('1', { title: 'Updated title', completed: true });
+            }}
+          >
+            <Text>update</Text>
+          </Pressable>
+          {todos.map((t) => (
+            <Text key={t.id}>{t.title}</Text>
+          ))}
+        </View>
+      );
+    }
+
+    render(<TestComp />);
+    await waitFor(() => expect(screen.getByText('Old title')).toBeTruthy());
+    fireEvent.press(screen.getByTestId('update-button'));
+
+    await waitFor(() => expect(screen.getByText('Updated title')).toBeTruthy());
+    expect(mockUpdateTodo).toHaveBeenCalledWith(
+      '1',
+      { title: 'Updated title', completed: true },
+      undefined,
+    );
+  });
+
+  it('exposes update error when update request fails', async () => {
+    mockUpdateTodo.mockRejectedValue(new Error('update failed'));
+
+    function TestComp() {
+      const { updateTodo, updateError } = useTodos();
+      return (
+        <View>
+          <Pressable
+            testID="update-button"
+            onPress={() => {
+              void updateTodo('1', { completed: true });
+            }}
+          >
+            <Text>update</Text>
+          </Pressable>
+          {updateError ? <Text>{updateError}</Text> : null}
+        </View>
+      );
+    }
+
+    render(<TestComp />);
+    fireEvent.press(screen.getByTestId('update-button'));
+
+    await waitFor(() => expect(screen.getByText('update failed')).toBeTruthy());
   });
 });
