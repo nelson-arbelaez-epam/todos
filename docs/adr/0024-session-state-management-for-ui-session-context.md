@@ -213,8 +213,9 @@ changing backend auth contracts.
 
 #### Logout invalidation and cleanup
 
-- `logout` must clear in-memory state and remove persisted session state via the active
-  platform adapter.
+- `logout` should always clear in-memory state.
+- In the follow-up persistence implementation, `logout` must also remove persisted session
+  state via the active platform adapter.
 - Logout should also clear store error state so UI does not surface stale auth failures
   after sign-out.
 - Any follow-up cross-store cleanup (for example user-scoped cache/state) is triggered by
