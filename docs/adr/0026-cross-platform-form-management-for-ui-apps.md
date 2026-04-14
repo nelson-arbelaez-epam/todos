@@ -32,6 +32,9 @@ Weights:
 
 Scores are from 1 (worst) to 5 (best).
 
+The single score shown under each option is a quick qualitative summary. The weighted
+scorecard is the authoritative decision input because it maps each criterion to its weight.
+
 ## Options Considered
 
 ### Option A - React Hook Form + `@hookform/resolvers` + Zod
