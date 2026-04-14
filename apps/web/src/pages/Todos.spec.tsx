@@ -4,19 +4,15 @@ import * as TodosService from '../services/todos.service';
 import { resetSessionStoreForTests } from '../store/session-store';
 import Todos from './Todos';
 
-vi.mock('../services/todos.service', () => ({
-  listTodos: vi.fn(),
-}));
-
 describe('Todos page', () => {
+  const listSpy = vi.spyOn(TodosService, 'listTodos');
   beforeEach(() => {
     resetSessionStoreForTests();
-    TodosService.listTodos.mockReset();
+    listSpy.mockReset();
   });
 
   it('shows loading then renders todos', async () => {
-    const svc = TodosService;
-    svc.listTodos.mockResolvedValue([
+    listSpy.mockResolvedValue([
       {
         id: '1',
         title: 'One',
@@ -36,8 +32,7 @@ describe('Todos page', () => {
   });
 
   it('shows error when service fails', async () => {
-    const svc = TodosService;
-    svc.listTodos.mockRejectedValue(new Error('Network failure'));
+    listSpy.mockRejectedValue(new Error('Network failure'));
 
     const { getByRole } = render(<Todos />);
 
