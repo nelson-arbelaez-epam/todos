@@ -53,7 +53,9 @@ export const useSessionStore = create<SessionStoreState>((set, get) => ({
       set({ isLoading: false });
     }
   },
+  /** Clears in-memory session state. Persistence cleanup is handled by adapter integration. */
   logout: () => set({ currentUser: null, error: null }),
+  /** Returns the current session snapshot used during hydration orchestration. */
   hydrateSession: () => get().currentUser,
   resetError: () => set({ error: null }),
   clearCurrentUser: () => set({ currentUser: null }),
