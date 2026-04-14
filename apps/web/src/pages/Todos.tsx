@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
+import PaginationControls from '../components/molecules/PaginationControls/PaginationControls';
 import CreateTodoForm from '../components/organisms/CreateTodoForm/CreateTodoForm';
 import TodoList from '../components/organisms/TodoList/TodoList';
 import { useCreateTodo } from '../hooks/useCreateTodo';
@@ -49,27 +50,16 @@ const Todos = () => {
       )}
       {!isLoading && !error && todos && <TodoList todos={todos} />}
       {!isLoading && !error && (
-        <div className="mt-4 flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() =>
-              setPage((currentPage) => Math.max(1, currentPage - 1))
-            }
-            disabled={!canGoToPreviousPage}
-          >
-            Previous
-          </button>
-          <span>
-            Page {page} of {totalPages}
-          </span>
-          <button
-            type="button"
-            onClick={() => setPage((currentPage) => currentPage + 1)}
-            disabled={!canGoToNextPage}
-          >
-            Next
-          </button>
-        </div>
+        <PaginationControls
+          page={page}
+          totalPages={totalPages}
+          canGoToPreviousPage={canGoToPreviousPage}
+          canGoToNextPage={canGoToNextPage}
+          onPreviousPage={() =>
+            setPage((currentPage) => Math.max(1, currentPage - 1))
+          }
+          onNextPage={() => setPage((currentPage) => currentPage + 1)}
+        />
       )}
     </div>
   );

@@ -164,7 +164,7 @@ describe('Todos page', () => {
       expect(getByText('Page one item')).toBeInTheDocument();
     });
 
-    await user.click(getByRole('button', { name: 'Next' }));
+    await user.click(getByRole('button', { name: 'Go to next page' }));
 
     await waitFor(() => {
       expect(getByText('Page two item')).toBeInTheDocument();

@@ -24,7 +24,7 @@ function getApiBaseUrl(): string {
 }
 
 /**
- * List active todos for the current user. Returns a paginated response.
+ * List todos for the current user with optional pagination. Returns a paginated response.
  */
 export async function listTodos(
   idToken?: string,

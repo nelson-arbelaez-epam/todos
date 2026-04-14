@@ -33,7 +33,6 @@ describe('TodosScreen', () => {
       updateError: null,
       updating: {},
       page: 1,
-      total: 1,
       totalPages: 1,
       canGoToPreviousPage: false,
       canGoToNextPage: false,

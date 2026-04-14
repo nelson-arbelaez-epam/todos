@@ -25,7 +25,7 @@ function resolveApiErrorMessage(body: ApiError, fallback: string): string {
 }
 
 /**
- * List active todos for the current user. Returns a paginated response.
+ * List todos for the current user with optional pagination. Returns a paginated response.
  * Include `idToken` (Firebase JWT) as `Authorization: Bearer <token>` when present.
  */
 export async function listTodos(

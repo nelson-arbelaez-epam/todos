@@ -33,8 +33,7 @@ export function useTodos() {
       }),
   });
   const todos = data?.items ?? [];
-  const total = data?.total ?? 0;
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_LIMIT));
+  const totalPages = Math.max(1, Math.ceil((data?.total ?? 0) / PAGE_LIMIT));
 
   const createTodo = useCallback(
     async (payload: CreateTodoDto): Promise<boolean> => {
@@ -108,12 +107,13 @@ export function useTodos() {
   return {
     todos,
     page,
-    total,
     totalPages,
     canGoToPreviousPage: page > 1,
     canGoToNextPage: page < totalPages,
     nextPage: () => {
-      setPage((currentPage) => Math.min(totalPages, currentPage + 1));
+      if (page < totalPages) {
+        setPage((currentPage) => currentPage + 1);
+      }
     },
     previousPage: () => {
       setPage((currentPage) => Math.max(1, currentPage - 1));
