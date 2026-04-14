@@ -183,6 +183,71 @@ Platform-specific differences are allowed only in persistence and runtime integr
 example, web may use browser storage while mobile may use platform-secure storage, but
 both must preserve the same store-vs-transport and DTO-boundary rules.
 
+### Session Persistence & Hydration Strategy (Spike Follow-up)
+
+This section defines the implementation strategy for persistence and restoration without
+changing backend auth contracts.
+
+#### Persistence adapters by platform
+
+- **Web**: browser storage (for example `localStorage`) is an untrusted, non-secure cache.
+  - Do **not** persist sensitive auth/session tokens in browser storage.
+  - If persistent token-backed sessions are required on web, migrate to a server-managed
+    approach when possible (for example server-issued HttpOnly cookie-based sessions).
+  - Persist only non-sensitive metadata needed for UX restoration (for example last-used
+    email or UI preferences), never bearer tokens or equivalent credentials.
+  - Use a versioned key (for example `todos-session:v1`) so future schema changes can be
+    invalidated safely.
+- **Mobile**: use a platform adapter that can be swapped by runtime constraints.
+  - Default target is secure platform storage (for example Expo SecureStore) for session
+    token-bearing payloads.
+  - Keep adapter wiring in app infrastructure and keep session orchestration in the store.
+
+#### Hydration contract and lifecycle
+
+- Keep `hydrateSession` as a store action owned by the session store boundary.
+- Hydration lifecycle at app bootstrap:
+  1. Read persisted state from the platform adapter.
+  2. Validate parsed payload shape against expected DTO fields.
+  3. If valid, restore `currentUser`; otherwise clear persisted state and continue signed
+     out.
+  4. Ensure hydration completion is deterministic before route guards decide navigation.
+- Hydration must be idempotent: repeated calls should not duplicate side effects or mutate
+  valid state unexpectedly.
+
+#### Logout invalidation and cleanup
+
+- `logout` should always clear in-memory state.
+- In the follow-up persistence implementation, `logout` must also remove persisted session
+  state via the active platform adapter.
+- Logout should also clear store error state so UI does not surface stale auth failures
+  after sign-out.
+- Any follow-up cross-store cleanup (for example user-scoped cache/state) is triggered by
+  container orchestration after logout state transition, not by transport modules.
+
+#### Stale/corrupt persisted-state handling
+
+- Treat persistence input as untrusted.
+- Treat all browser storage content as attacker-controlled in XSS scenarios.
+- If payload parsing fails, required fields are missing, or persisted schema version is not
+  supported, clear persisted data and continue in anonymous state.
+- Do not throw uncaught errors from hydration into UI render paths; surface recoverable
+  error state only when needed for diagnostics.
+
+#### Test strategy (unit + integration)
+
+- **Unit (store-level)**:
+  - verifies `hydrateSession` restores valid state;
+  - verifies invalid/corrupt payloads are ignored and cleared;
+  - verifies `logout` clears both memory and persistence adapter side effects.
+- **Integration (app-level)**:
+  - cold start with persisted session routes user to authenticated surface;
+  - cold start with corrupt/expired state routes user to login without crashing;
+  - logout from authenticated surface removes access to protected routes on next
+    navigation/bootstrap.
+- Keep shared behavior assertions equivalent across `apps/web` and `apps/mobile`; only the
+  persistence adapter implementation differs.
+
 ## Consequences
 
 - New session features should build on a single store per app, typically under

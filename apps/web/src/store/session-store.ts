@@ -53,7 +53,7 @@ export const useSessionStore = create<SessionStoreState>()((set, get) => ({
       set({ isLoading: false });
     }
   },
-  /** Clears both in-memory and persisted session data from localStorage. */
+  /** Clears in-memory session state. */
   logout: () => {
     set({ currentUser: null, error: null });
   },

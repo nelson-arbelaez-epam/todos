@@ -1,4 +1,8 @@
-import type { LoginUserResponseDto, RegisterUserDto } from '@todos/core/http';
+import type {
+  LoginUserDto,
+  LoginUserResponseDto,
+  RegisterUserDto,
+} from '@todos/core/http';
 import { create } from 'zustand';
 import { loginUser, registerUser } from '@/services/auth.service';
 
@@ -7,7 +11,9 @@ interface SessionStoreState {
   error: string | null;
   currentUser: LoginUserResponseDto | null;
   register: (payload: RegisterUserDto) => Promise<void>;
-  login: (payload: { email: string; password: string }) => Promise<void>;
+  login: (payload: LoginUserDto) => Promise<void>;
+  logout: () => void;
+  hydrateSession: () => LoginUserResponseDto | null;
   resetError: () => void;
   clearCurrentUser: () => void;
 }
@@ -18,7 +24,7 @@ const initialSessionState = {
   currentUser: null,
 } as const;
 
-export const useSessionStore = create<SessionStoreState>((set) => ({
+export const useSessionStore = create<SessionStoreState>((set, get) => ({
   ...initialSessionState,
   register: async (payload) => {
     set({ isLoading: true, error: null });
@@ -47,6 +53,10 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
       set({ isLoading: false });
     }
   },
+  /** Clears in-memory session state. */
+  logout: () => set({ currentUser: null, error: null }),
+  /** Returns the current session snapshot used during hydration orchestration. */
+  hydrateSession: () => get().currentUser,
   resetError: () => set({ error: null }),
   clearCurrentUser: () => set({ currentUser: null }),
 }));
