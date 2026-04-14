@@ -124,7 +124,7 @@ Organise components using Atomic Design adapted to this project:
 | **Templates** | Page-level layout wrappers; no data fetching | MainLayout, AuthLayout | `src/components/templates/` |
 | **Pages** | Route-bound containers that wire data into templates/organisms | Home, About, Login | `src/pages/` |
 
-Import direction is strictly top-down: atoms ← molecules ← organisms ← templates ← pages. Cross-cutting hooks live in `src/hooks/`; shared types live in `src/types/` or in `@todos/core` for domain contracts.
+Import direction is strictly top-down: atoms ← molecules ← organisms ← templates ← pages. Atom consumers should import from the public atoms index (`src/components/atoms`) rather than nested atom paths like `src/components/atoms/AppLabel/AppLabel`. Cross-cutting hooks live in `src/hooks/`; shared types live in `src/types/` or in `@todos/core` for domain contracts.
 
 ### Styling: PostCSS and Tailwind-like Utilities
 
