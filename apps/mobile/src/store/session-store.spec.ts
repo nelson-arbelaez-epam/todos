@@ -128,4 +128,28 @@ describe('useSessionStore', () => {
     useSessionStore.getState().resetError();
     expect(useSessionStore.getState().error).toBeNull();
   });
+
+  it('clears current user and error on logout', () => {
+    useSessionStore.setState({
+      currentUser: { uid: 'u', email: 'e', idToken: 't', expiresIn: '1' },
+      error: 'some-error',
+    });
+
+    useSessionStore.getState().logout();
+
+    expect(useSessionStore.getState().currentUser).toBeNull();
+    expect(useSessionStore.getState().error).toBeNull();
+  });
+
+  it('returns current session snapshot from hydrateSession', () => {
+    const session: LoginUserResponseDto = {
+      uid: 'uid-hydrate',
+      email: 'hydrate@example.com',
+      idToken: 'token-hydrate',
+      expiresIn: '3600',
+    };
+    useSessionStore.setState({ currentUser: session });
+
+    expect(useSessionStore.getState().hydrateSession()).toEqual(session);
+  });
 });

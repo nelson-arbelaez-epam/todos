@@ -166,4 +166,10 @@ describe('useSessionStore – login / logout', () => {
     expect(useSessionStore.getState().currentUser).toBeNull();
     expect(useSessionStore.getState().error).toBeNull();
   });
+
+  it('returns current session snapshot from hydrateSession', () => {
+    useSessionStore.setState({ currentUser: session });
+
+    expect(useSessionStore.getState().hydrateSession()).toEqual(session);
+  });
 });
