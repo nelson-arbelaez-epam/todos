@@ -50,7 +50,7 @@ export function AppInput({
       />
 
       {hasError ? (
-        <AppText variant="caption" color={colors.danger} className="mt-1">
+        <AppText variant="caption" color="danger" className="mt-1">
           {error}
         </AppText>
       ) : hint ? (

@@ -36,7 +36,7 @@ The workflow is divided into small, testable skills. Default autonomy is `medium
 1. `discover` → resolve `issue`: fetch title, body, labels, linked issues; infer `owner/repo` from git remote and list affected packages/files.
 2. `compliance-check` → read `.github/constitution.md` and `docs/adr/**` and enforce boundaries. If a violation is detected, produce a blocking report and stop automated changes.
 3. `research-web` (optional/autonomy-dependent) → fetch up to 3 authoritative docs and summarize best-practices for this task.
-4. `scaffold` → write `.cache/pr_<issue>_body.md` and `.pbi/<issue>-<slug>.md` (working tree only).
+4. `scaffold` → write `.cache/pr_<issue>_body.md` and `.cache/pbi/<issue>-<slug>.md` (working tree only).
 5. Iteratively run: `lint-fix` (show diff), `test` (report failures), `commit-chunk` (approve per chunk or auto-commit if `autonomy=high`).
 6. `push` + `create-pr` (if `--create-pr=true` and final confirmation granted) → push branch, open PR, append PR URL to artifacts, record commit SHAs.
 7. `wait-checks` (optional) → poll GitHub status runs for the created PR and report results (timeboxed).
@@ -49,7 +49,7 @@ Use these concrete commands for this repository (adapt where necessary):
 - Resolve issue: `gh issue view <N> --json title,body,labels,assignees,comments -q .`
 - Infer repo: `git config --get remote.origin.url` → parse `owner/repo`
 - Branch creation: `git checkout -b "${PREFIX}/issue-${N}-${slug}"`
-- Scaffold files (working tree): create `.cache/pr_${N}_body.md` and `.pbi/${N}-${slug}.md`
+- Scaffold files (working tree): create `.cache/pr_${N}_body.md` and `.cache/pbi/${N}-${slug}.md`
 - Lint/format check: `biome check` (show output). For autofix proposals use `biome format` or linter `--fix` but only apply on approval.
 - Typecheck: `npx -y tsc -p <package>/tsconfig.json --noEmit` or workspace `tsc`.
 - Targeted tests: `yarn workspace @todos/mobile test` or `npx vitest -c apps/mobile/vitest.config.ts --run`
@@ -73,14 +73,14 @@ Outputs
 Produce the following artifacts in the working tree and the agent output (but do NOT commit unless user approves or `autonomy=high` with consent):
 
 - `.cache/pr_<issue>_body.md` — suggested PR body with acceptance criteria mapping and checklist.
-- `.pbi/<issue>-<slug>.md` — PBI placeholder with Issue link and planned change summary.
+- `.cache/pbi/<issue>-<slug>.md` — PBI placeholder with Issue link and planned change summary.
 - `branch` suggestion and exact `git` commands to create, stage, commit, and push the changes.
 - Suggested `commit` messages using `feat(<issue>): <summary>` convention.
 - Validation summary: lint/format/type/test outputs (PASS/FAIL) with commands to reproduce.
 - Acceptance checklist mapping PR/issue criteria to verification steps and tests.
 - `.cache/dev_info_<issue>.json` — structured audit trail: autonomy level, consent, files created, local commit SHAs, commands run, research citations, and PR URL if created.
 
-When the user approves commit/push/PR creation (or `autonomy=high` with consent), the assistant will run the exact commands and append the PR URL to the `.pbi` file and the `.cache` PR body and update `.cache/dev_info_<issue>.json`.
+When the user approves commit/push/PR creation (or `autonomy=high` with consent), the assistant will run the exact commands and append the PR URL to the `.cache/pbi` file and the `.cache` PR body and update `.cache/dev_info_<issue>.json`.
 
 Skill Templates
 
@@ -90,7 +90,7 @@ Each skill should be callable with inputs and must output a JSON summary. Use th
 
 `compliance-check` -> inputs: `{ "affected": ["apps/mobile"] }` -> outputs: `{ "ok": true, "violations": [] }`
 
-`scaffold` -> inputs: `{ "issue": 40, "branch": "dev/issue-40-login" }` -> outputs: `{ "files": [".cache/pr_40_body.md",".pbi/40-login.md"] }`
+`scaffold` -> inputs: `{ "issue": 40, "branch": "dev/issue-40-login" }` -> outputs: `{ "files": [".cache/pr_40_body.md",".cache/pbi/40-login.md"] }`
 
 `lint-fix` -> inputs: `{ "files": ["apps/mobile/src/components/LoginForm.tsx"] }` -> outputs: `{ "fixed": true, "diff": "--- a/... +++ b/..." }`
 
