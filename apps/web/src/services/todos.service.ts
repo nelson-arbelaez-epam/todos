@@ -1,8 +1,22 @@
-import type { TodoDto, TodoListDto } from '@todos/core/http';
+import type { CreateTodoDto, TodoDto, TodoListDto } from '@todos/core/http';
 
 // VITE_ prefix is required for Vite to expose the variable in the browser bundle.
 const API_BASE_URL =
   import.meta.env.VITE_TODOS_API_URL ?? 'http://localhost:3000';
+
+interface ApiError {
+  message?: string | string[];
+}
+
+function resolveApiErrorMessage(body: ApiError, fallback: string): string {
+  if (typeof body.message === 'string') {
+    return body.message;
+  }
+  if (Array.isArray(body.message) && body.message.length > 0) {
+    return body.message[0] ?? fallback;
+  }
+  return fallback;
+}
 
 /**
  * List active todos for the current user. Returns the items array.
@@ -18,12 +32,40 @@ export async function listTodos(idToken?: string): Promise<TodoDto[]> {
 
   const response = await fetch(url, { headers });
   if (!response.ok) {
-    const json = await response.json().catch(() => ({}));
-    const message =
-      typeof json.message === 'string' ? json.message : 'Failed to fetch todos';
+    const json = (await response.json().catch(() => ({}))) as ApiError;
+    const message = resolveApiErrorMessage(json, 'Failed to fetch todos');
     throw new Error(message);
   }
 
   const body = (await response.json()) as TodoListDto;
   return body.items ?? [];
+}
+
+/**
+ * Create a new todo for the current user.
+ */
+export async function createTodo(
+  payload: CreateTodoDto,
+  idToken?: string,
+): Promise<TodoDto> {
+  const url = `${API_BASE_URL}/api/v1/todos`;
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (idToken) headers.Authorization = `Bearer ${idToken}`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const json = (await response.json().catch(() => ({}))) as ApiError;
+    const message = resolveApiErrorMessage(json, 'Failed to create todo');
+    throw new Error(message);
+  }
+
+  return response.json() as Promise<TodoDto>;
 }

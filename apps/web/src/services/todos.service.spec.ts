@@ -61,6 +61,16 @@ describe('todos.service', () => {
     );
   });
 
+  it('uses first message when API returns an array of messages', async () => {
+    fetchMock.mockResolvedValue({
+      ok: false,
+      json: async () => ({ message: ['title should not be empty'] }),
+    });
+    await expect(TodosService.listTodos()).rejects.toThrow(
+      'title should not be empty',
+    );
+  });
+
   it('sends Authorization header when idToken provided', async () => {
     fetchMock.mockResolvedValue({
       ok: true,
@@ -72,5 +82,40 @@ describe('todos.service', () => {
     const call = fetchMock.mock.calls[0];
     console.log(call[1].headers);
     expect(call[1].headers.Authorization).toBe('Bearer token-123');
+  });
+
+  it('creates todo when response is ok', async () => {
+    const todo = {
+      id: 'todo-1',
+      title: 'Buy milk',
+      completed: false,
+      createdAt: '2020-01-01',
+      updatedAt: '2020-01-01',
+    };
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => todo,
+    });
+
+    const result = await TodosService.createTodo({ title: 'Buy milk' });
+    expect(result).toEqual(todo);
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/api/v1/todos'),
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ title: 'Buy milk' }),
+      }),
+    );
+  });
+
+  it('throws create-specific fallback message on failed create', async () => {
+    fetchMock.mockResolvedValue({
+      ok: false,
+      json: async () => ({}),
+    });
+
+    await expect(TodosService.createTodo({ title: 'Buy milk' })).rejects.toThrow(
+      'Failed to create todo',
+    );
   });
 });
