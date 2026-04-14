@@ -1,17 +1,15 @@
 import { type FormEvent, useState } from 'react';
+import type { CreateTodoFormValues } from '../../../types/todo-form';
 import Button from '../../atoms/Button/Button';
 import Text from '../../atoms/Text/Text';
 import FormField from '../../molecules/FormField/FormField';
 
-export interface CreateTodoFormValues {
-  title: string;
-  description?: string;
-}
+export type { CreateTodoFormValues } from '../../../types/todo-form';
 
 export interface CreateTodoFormProps {
   isLoading: boolean;
   error: string | null;
-  onSubmit: (values: CreateTodoFormValues) => void;
+  onSubmit: (values: CreateTodoFormValues) => Promise<void> | void;
 }
 
 export default function CreateTodoForm({
@@ -23,7 +21,7 @@ export default function CreateTodoForm({
   const [description, setDescription] = useState('');
   const [validationError, setValidationError] = useState<string | null>(null);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setValidationError(null);
 
@@ -35,7 +33,7 @@ export default function CreateTodoForm({
       return;
     }
 
-    onSubmit({
+    await onSubmit({
       title: trimmedTitle,
       description: trimmedDescription || undefined,
     });
@@ -58,7 +56,7 @@ export default function CreateTodoForm({
       {displayError && (
         <p
           role="alert"
-          className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-600"
+          className="rounded-md border border-[var(--error-border)] bg-[var(--error-bg)] px-3 py-2 text-sm text-[var(--error)]"
         >
           {displayError}
         </p>

@@ -1,19 +1,20 @@
 import type { TodoDto } from '@todos/core/http';
 import { useEffect, useState } from 'react';
-import CreateTodoForm, {
-  type CreateTodoFormValues,
-} from '../components/organisms/CreateTodoForm/CreateTodoForm';
+import CreateTodoForm from '../components/organisms/CreateTodoForm/CreateTodoForm';
 import TodoList from '../components/organisms/TodoList/TodoList';
-import { createTodo, listTodos } from '../services/todos.service';
+import { useCreateTodo } from '../hooks/useCreateTodo';
+import { listTodos } from '../services/todos.service';
 import { useSessionStore } from '../store/session-store';
 
 const Todos = () => {
   const currentUser = useSessionStore((s) => s.currentUser);
   const [todos, setTodos] = useState<TodoDto[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [createError, setCreateError] = useState<string | null>(null);
+  const { createError, isCreating, handleCreateTodo } = useCreateTodo(
+    currentUser?.idToken,
+    setTodos,
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -34,21 +35,6 @@ const Todos = () => {
       mounted = false;
     };
   }, [currentUser?.idToken]);
-
-  const handleCreateTodo = async (values: CreateTodoFormValues) => {
-    setIsCreating(true);
-    setCreateError(null);
-    try {
-      const created = await createTodo(values, currentUser?.idToken);
-      setTodos((previous) => [created, ...(previous ?? [])]);
-    } catch (err) {
-      setCreateError(
-        err instanceof Error ? err.message : 'Failed to create todo',
-      );
-    } finally {
-      setIsCreating(false);
-    }
-  };
 
   return (
     <div>

@@ -114,8 +114,30 @@ describe('todos.service', () => {
       json: async () => ({}),
     });
 
-    await expect(TodosService.createTodo({ title: 'Buy milk' })).rejects.toThrow(
-      'Failed to create todo',
-    );
+    await expect(
+      TodosService.createTodo({ title: 'Buy milk' }),
+    ).rejects.toThrow('Failed to create todo');
+  });
+
+  it('uses fallback message when create error message array is empty', async () => {
+    fetchMock.mockResolvedValue({
+      ok: false,
+      json: async () => ({ message: [] }),
+    });
+
+    await expect(
+      TodosService.createTodo({ title: 'Buy milk' }),
+    ).rejects.toThrow('Failed to create todo');
+  });
+
+  it('uses string message when create API returns one', async () => {
+    fetchMock.mockResolvedValue({
+      ok: false,
+      json: async () => ({ message: 'create failed' }),
+    });
+
+    await expect(
+      TodosService.createTodo({ title: 'Buy milk' }),
+    ).rejects.toThrow('create failed');
   });
 });
