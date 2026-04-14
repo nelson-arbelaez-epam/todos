@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { View } from 'react-native';
-import { AppButton, AppInput, AppText } from '../atoms';
+import { AppButton, AppText } from '@/components/atoms';
+import { AppInput } from '@/components/molecules';
 
 export interface LoginFormProps {
   onSubmit: (email: string, password: string) => void;
