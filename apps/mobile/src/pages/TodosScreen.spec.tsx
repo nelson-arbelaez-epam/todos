@@ -103,4 +103,56 @@ describe('TodosScreen', () => {
       }),
     );
   });
+
+  it('trims title and description before calling updateTodo', async () => {
+    const updateTodo = vi.fn().mockResolvedValue(true);
+    const mockValue: ReturnType<typeof UseTodos.useTodos> = {
+      todos: [
+        {
+          id: '1',
+          title: 'Write tests',
+          description: undefined,
+          completed: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ],
+      isLoading: false,
+      isCreating: false,
+      error: null,
+      createError: null,
+      updateError: null,
+      updating: {},
+      page: 1,
+      total: 1,
+      totalPages: 1,
+      canGoToPreviousPage: false,
+      canGoToNextPage: false,
+      previousPage: vi.fn(),
+      nextPage: vi.fn(),
+      refresh: vi.fn(),
+      createTodo: vi.fn(),
+      updateTodo,
+      clearUpdateError: vi.fn(),
+    };
+
+    mockUseTodos.mockReturnValue(mockValue);
+
+    const { getByTestId } = render(<TodosScreen />);
+
+    fireEvent.press(getByTestId('edit-todo-1'));
+    fireEvent.changeText(getByTestId('todo-edit-title-1'), '  Trimmed title  ');
+    fireEvent.changeText(
+      getByTestId('todo-edit-description-1'),
+      '  Trimmed desc  ',
+    );
+    fireEvent.press(getByTestId('todo-submit-edit-1'));
+
+    await waitFor(() =>
+      expect(updateTodo).toHaveBeenCalledWith('1', {
+        title: 'Trimmed title',
+        description: 'Trimmed desc',
+      }),
+    );
+  });
 });

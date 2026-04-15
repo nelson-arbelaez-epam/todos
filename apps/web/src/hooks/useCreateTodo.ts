@@ -43,7 +43,9 @@ export function useCreateTodo({
     try {
       await mutation.mutateAsync(values);
     } catch {
-      // Error is captured in mutation.error; no rethrow needed
+      // `mutateAsync` re-throws on failure; the error is already captured in
+      // `mutation.error` and exposed via the `createError` return value.
+      // Callers must read `createError` rather than relying on a thrown promise.
     }
   };
 

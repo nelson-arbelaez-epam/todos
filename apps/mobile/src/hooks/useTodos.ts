@@ -18,6 +18,9 @@ const PAGE_LIMIT = 20;
 
 export function useTodos() {
   const [page, setPage] = useState(1);
+  // `updating` (state) drives the UI loading indicator per todo item.
+  // `updatingRef` (ref) is the synchronous concurrency guard inside updateTodo —
+  // it blocks a second update for the same id while the first is in flight.
   const [updating, setUpdating] = useState<Record<string, boolean>>({});
   const updatingRef = useRef<Record<string, boolean>>({});
   const currentUser = useSessionStore((s) => s.currentUser);
@@ -99,6 +102,11 @@ export function useTodos() {
     id: string,
     payload: UpdateTodoDto,
   ): Promise<boolean> => {
+    // In JavaScript's single-threaded model, the check-and-set below is atomic
+    // within one synchronous turn, so concurrent calls issued by the same event
+    // loop tick are safely blocked. Calls from separate user interactions
+    // (e.g., two rapid taps) are sequential and the ref is set before the first
+    // await yields control.
     if (updatingRef.current[id]) return false;
     updatingRef.current[id] = true;
     try {
