@@ -103,6 +103,7 @@ Rules:
 Formalised in [ADR 0021](../docs/adr/0021-ui-architecture-atomic-design-postcss-tailwind.md). The rules below apply to all UI code in `apps/web` and `apps/mobile`.
 
 Session context state management is formalised in [ADR 0024](../docs/adr/0024-session-state-management-for-ui-session-context.md).
+Cross-platform UI form management is formalised in [ADR 0026](../docs/adr/0026-cross-platform-form-management-for-ui-apps.md).
 
 ### Component Isolation
 
@@ -149,6 +150,13 @@ Import direction is strictly top-down: atoms ← molecules ← organisms ← tem
 - **TanStack Query is for server-state management**, not the source of truth for local auth/session lifecycle transitions.
 - **Redux Toolkit requires an ADR-approved exception** when justified by cross-domain global-state complexity.
 - **The same session-state rule applies to `apps/web` and `apps/mobile`**; platform-specific persistence may differ, but the store boundary and direct DTO usage rules do not.
+
+### UI Form Management Standard
+
+- **React Hook Form + `@hookform/resolvers` + Zod is the default for non-trivial forms** in `apps/web` and `apps/mobile`.
+- **Local `useState` forms are allowed for trivial UI-only flows** that do not need shared validation/reuse patterns.
+- **Form orchestration belongs to container hooks/pages**; presentational components remain prop-driven and side-effect free.
+- **Backend validation remains authoritative**; client-side validation is UX support and must not replace backend contracts.
 
 ### UI Adoption Checklist
 
