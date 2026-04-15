@@ -1,4 +1,5 @@
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -206,6 +207,69 @@ describe('useTodos hook', () => {
       { title: 'Updated title', completed: true },
       undefined,
     );
+  });
+
+  it('blocks concurrent update requests for the same todo', async () => {
+    const initialItems: TodoDto[] = [
+      {
+        id: '1',
+        title: 'Old title',
+        description: 'Old desc',
+        completed: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ];
+
+    mockListTodos.mockResolvedValue(initialItems);
+
+    let resolveUpdate: ((value: TodoDto) => void) | null = null;
+    mockUpdateTodo.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveUpdate = resolve;
+        }),
+    );
+
+    useSessionStore.setState({
+      currentUser: {
+        uid: 'u',
+        email: 'e',
+        idToken: 'token-123',
+        expiresIn: '3600',
+      },
+    });
+
+    let updateTodoFn: ReturnType<typeof useTodos>['updateTodo'];
+
+    function TestComp() {
+      const { updateTodo } = useTodos();
+      updateTodoFn = updateTodo;
+      return null;
+    }
+
+    render(<TestComp />);
+
+    let secondResult: boolean | undefined;
+
+    await act(async () => {
+      const firstPromise = updateTodoFn('1', {
+        title: 'Updated title',
+        completed: true,
+      });
+      secondResult = await updateTodoFn('1', {
+        title: 'Updated title',
+        completed: true,
+      });
+      expect(secondResult).toBe(false);
+      expect(mockUpdateTodo).toHaveBeenCalledTimes(1);
+      resolveUpdate?.({
+        ...initialItems[0],
+        title: 'Updated title',
+        completed: true,
+      });
+      await firstPromise;
+    });
   });
 
   it('exposes update error when update request fails', async () => {

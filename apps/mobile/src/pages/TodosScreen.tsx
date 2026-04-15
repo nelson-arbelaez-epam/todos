@@ -1,5 +1,5 @@
 import type { TodoDto, UpdateTodoDto } from '@todos/core/http';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { CreateTodoForm } from '@/components/organisms';
 import { ScreenLayout, TodoList } from '@/components/templates';
 import { useTodos } from '@/hooks/useTodos';
@@ -16,7 +16,7 @@ export function TodosScreen() {
     refresh,
     createTodo,
     updateTodo,
-    lastUpdatedTodoId,
+    clearUpdateError,
   } = useTodos();
   const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
@@ -24,24 +24,12 @@ export function TodosScreen() {
   const [editError, setEditError] = useState<string | null>(null);
 
   const handleStartEdit = (todo: TodoDto) => {
+    clearUpdateError();
     setEditingTodoId(todo.id);
     setEditTitle(todo.title);
     setEditDescription(todo.description ?? '');
     setEditError(null);
-    // Clear updateError on edit start
-    // (handled by useTodos, but can also clear local error state here if needed)
   };
-  // Clear updateError when editing a different todo
-  useEffect(() => {
-    if (
-      editingTodoId &&
-      lastUpdatedTodoId &&
-      editingTodoId !== lastUpdatedTodoId
-    ) {
-      // Optionally clear updateError here if desired
-      // setUpdateError(null); // Not available directly, but can be handled in hook if needed
-    }
-  }, [editingTodoId, lastUpdatedTodoId]);
 
   const handleCancelEdit = () => {
     setEditingTodoId(null);

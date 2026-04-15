@@ -1,5 +1,5 @@
 import type { CreateTodoDto, TodoDto, UpdateTodoDto } from '@todos/core/http';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   createTodo as createTodoRequest,
   listTodos,
@@ -15,10 +15,7 @@ export function useTodos() {
   const [error, setError] = useState<string | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
   const [updateError, setUpdateError] = useState<string | null>(null);
-  // Track last updated todo for error scoping
-  const [lastUpdatedTodoId, setLastUpdatedTodoId] = useState<string | null>(
-    null,
-  );
+  const updatingRef = useRef<Record<string, boolean>>({});
   const currentUser = useSessionStore((s) => s.currentUser);
 
   const fetchTodos = useCallback(async () => {
@@ -57,12 +54,16 @@ export function useTodos() {
     [currentUser?.idToken],
   );
 
+  const clearUpdateError = useCallback(() => {
+    setUpdateError(null);
+  }, []);
+
   const updateTodo = useCallback(
     async (id: string, payload: UpdateTodoDto): Promise<boolean> => {
-      if (updating[id]) return false;
+      if (updatingRef.current[id]) return false;
+      updatingRef.current[id] = true;
       setUpdating((u) => ({ ...u, [id]: true }));
       setUpdateError(null);
-      setLastUpdatedTodoId(id);
       try {
         const updated = await updateTodoRequest(
           id,
@@ -82,9 +83,10 @@ export function useTodos() {
           delete copy[id];
           return copy;
         });
+        delete updatingRef.current[id];
       }
     },
-    [currentUser?.idToken, updating],
+    [currentUser?.idToken],
   );
 
   return {
@@ -95,7 +97,7 @@ export function useTodos() {
     error,
     createError,
     updateError,
-    lastUpdatedTodoId,
+    clearUpdateError,
     refresh: fetchTodos,
     createTodo,
     updateTodo,

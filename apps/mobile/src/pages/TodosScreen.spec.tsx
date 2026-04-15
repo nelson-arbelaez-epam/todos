@@ -32,10 +32,10 @@ describe('TodosScreen', () => {
       createError: null,
       updateError: null,
       updating: {},
-      lastUpdatedTodoId: null,
       refresh: vi.fn(),
       createTodo: vi.fn(),
       updateTodo: vi.fn(),
+      clearUpdateError: vi.fn(),
     };
 
     mockUseTodos.mockReturnValue(mockValue);
@@ -65,10 +65,10 @@ describe('TodosScreen', () => {
       createError: null,
       updateError: null,
       updating: {},
-      lastUpdatedTodoId: null,
       refresh: vi.fn(),
       createTodo: vi.fn(),
       updateTodo,
+      clearUpdateError: vi.fn(),
     };
 
     mockUseTodos.mockReturnValue(mockValue);

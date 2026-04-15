@@ -71,7 +71,7 @@ export function TodoList({
 
   return (
     <View>
-      {updateError ? (
+      {updateError && !editingTodoId ? (
         <AppText variant="caption" color="danger" className="mb-2">
           {updateError}
         </AppText>
@@ -91,7 +91,7 @@ export function TodoList({
               isUpdating={isUpdating}
               editTitle={editTitle ?? ''}
               editDescription={editDescription ?? ''}
-              editError={editError}
+              editError={editError ?? updateError}
               onChangeEditTitle={onChangeEditTitle}
               onChangeEditDescription={onChangeEditDescription}
               onSubmitEdit={onSubmitEdit}
