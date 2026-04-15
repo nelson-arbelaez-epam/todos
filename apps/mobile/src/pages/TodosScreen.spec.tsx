@@ -1,77 +1,7 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
-import type { TodoDto } from '@todos/core/http';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/hooks/useTodos');
-vi.mock('@/components/organisms', () => {
-  const React = require('react');
-  const { Pressable, Text, View } = require('react-native');
-  return {
-    CreateTodoForm: () => React.createElement(Text, null, 'create-form'),
-    TodoList: (props: {
-      todos?: TodoDto[];
-      onToggleComplete?: (todo: TodoDto) => Promise<void>;
-      onStartEdit?: (todo: TodoDto) => void;
-      onChangeEditTitle?: (value: string) => void;
-      onSubmitEdit?: (
-        id: string,
-        payload: { title?: string; description?: string; completed?: boolean },
-      ) => Promise<void>;
-    }) =>
-      React.createElement(
-        View,
-        null,
-        React.createElement(Text, null, props.todos?.[0]?.title ?? ''),
-        React.createElement(
-          Pressable,
-          {
-            testID: 'toggle-complete',
-            onPress: () => {
-              if (props.todos?.[0]) void props.onToggleComplete?.(props.todos[0]);
-            },
-          },
-          React.createElement(Text, null, 'toggle'),
-        ),
-        React.createElement(
-          Pressable,
-          {
-            testID: 'start-edit-todo',
-            onPress: () => {
-              if (props.todos?.[0]) {
-                props.onStartEdit?.(props.todos[0]);
-              }
-            },
-          },
-          React.createElement(Text, null, 'start-edit'),
-        ),
-        React.createElement(
-          Pressable,
-          {
-            testID: 'change-edit-title',
-            onPress: () => {
-              props.onChangeEditTitle?.('Updated title');
-            },
-          },
-          React.createElement(Text, null, 'change-title'),
-        ),
-        React.createElement(
-          Pressable,
-          {
-            testID: 'submit-edit-todo',
-            onPress: () => {
-              if (props.todos?.[0]) {
-                void props.onSubmitEdit?.(props.todos[0].id, {
-                  title: 'Updated title',
-                  description: undefined,
-                });
-              }
-            },
-          },
-          React.createElement(Text, null, 'submit-edit'),
-        ),
-      ),
-  };
-});
 
 import * as UseTodos from '@/hooks/useTodos';
 import TodosScreen from './TodosScreen';
@@ -97,10 +27,12 @@ describe('TodosScreen', () => {
       ],
       isLoading: false,
       isCreating: false,
-      isUpdatingTodoId: null,
+      // removed isUpdatingTodoId (now using updating map)
       error: null,
       createError: null,
       updateError: null,
+      updating: {},
+      lastUpdatedTodoId: null,
       refresh: vi.fn(),
       createTodo: vi.fn(),
       updateTodo: vi.fn(),
@@ -108,8 +40,8 @@ describe('TodosScreen', () => {
 
     mockUseTodos.mockReturnValue(mockValue);
 
-    const { getByText } = render(<TodosScreen />);
-    expect(getByText('create-form')).toBeTruthy();
+    const { getByText, getByTestId } = render(<TodosScreen />);
+    expect(getByTestId('create-todo-title')).toBeTruthy();
     expect(getByText('Write tests')).toBeTruthy();
   });
 
@@ -128,10 +60,12 @@ describe('TodosScreen', () => {
       ],
       isLoading: false,
       isCreating: false,
-      isUpdatingTodoId: null,
+      // removed isUpdatingTodoId (now using updating map)
       error: null,
       createError: null,
       updateError: null,
+      updating: {},
+      lastUpdatedTodoId: null,
       refresh: vi.fn(),
       createTodo: vi.fn(),
       updateTodo,
@@ -141,10 +75,10 @@ describe('TodosScreen', () => {
 
     const { getByTestId } = render(<TodosScreen />);
 
-    fireEvent.press(getByTestId('toggle-complete'));
-    fireEvent.press(getByTestId('start-edit-todo'));
-    fireEvent.press(getByTestId('change-edit-title'));
-    fireEvent.press(getByTestId('submit-edit-todo'));
+    fireEvent.press(getByTestId('toggle-complete-1'));
+    fireEvent.press(getByTestId('edit-todo-1'));
+    fireEvent.changeText(getByTestId('todo-edit-title-1'), 'Updated title');
+    fireEvent.press(getByTestId('todo-submit-edit-1'));
 
     await waitFor(() =>
       expect(updateTodo).toHaveBeenNthCalledWith(1, '1', { completed: true }),

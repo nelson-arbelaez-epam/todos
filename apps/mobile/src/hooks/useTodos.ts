@@ -1,5 +1,5 @@
 import type { CreateTodoDto, TodoDto, UpdateTodoDto } from '@todos/core/http';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   createTodo as createTodoRequest,
   listTodos,
@@ -11,11 +11,14 @@ export function useTodos() {
   const [todos, setTodos] = useState<TodoDto[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
-  const [isUpdatingTodoId, setIsUpdatingTodoId] = useState<string | null>(null);
+  const [updating, setUpdating] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<string | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
   const [updateError, setUpdateError] = useState<string | null>(null);
-  const isUpdatingRef = useRef(false);
+  // Track last updated todo for error scoping
+  const [lastUpdatedTodoId, setLastUpdatedTodoId] = useState<string | null>(
+    null,
+  );
   const currentUser = useSessionStore((s) => s.currentUser);
 
   const fetchTodos = useCallback(async () => {
@@ -56,36 +59,43 @@ export function useTodos() {
 
   const updateTodo = useCallback(
     async (id: string, payload: UpdateTodoDto): Promise<boolean> => {
-      if (isUpdatingRef.current) {
-        return false;
-      }
-
-      isUpdatingRef.current = true;
-      setIsUpdatingTodoId(id);
+      if (updating[id]) return false;
+      setUpdating((u) => ({ ...u, [id]: true }));
       setUpdateError(null);
+      setLastUpdatedTodoId(id);
       try {
-        const updated = await updateTodoRequest(id, payload, currentUser?.idToken);
-        setTodos((prev) => prev.map((todo) => (todo.id === id ? updated : todo)));
+        const updated = await updateTodoRequest(
+          id,
+          payload,
+          currentUser?.idToken,
+        );
+        setTodos((prev) =>
+          prev.map((todo) => (todo.id === id ? updated : todo)),
+        );
         return true;
       } catch (err: unknown) {
         setUpdateError(err instanceof Error ? err.message : String(err));
         return false;
       } finally {
-        isUpdatingRef.current = false;
-        setIsUpdatingTodoId(null);
+        setUpdating((u) => {
+          const copy = { ...u };
+          delete copy[id];
+          return copy;
+        });
       }
     },
-    [currentUser?.idToken],
+    [currentUser?.idToken, updating],
   );
 
   return {
     todos,
     isLoading,
     isCreating,
-    isUpdatingTodoId,
+    updating,
     error,
     createError,
     updateError,
+    lastUpdatedTodoId,
     refresh: fetchTodos,
     createTodo,
     updateTodo,

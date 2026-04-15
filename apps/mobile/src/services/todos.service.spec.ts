@@ -163,8 +163,8 @@ describe('todos.service (mobile)', () => {
       json: async () => ({}),
     });
 
-    await expect(TodosService.updateTodo('2', { completed: true })).rejects.toThrow(
-      'Failed to update todo',
-    );
+    await expect(
+      TodosService.updateTodo('2', { completed: true }),
+    ).rejects.toThrow('Failed to update todo');
   });
 });
