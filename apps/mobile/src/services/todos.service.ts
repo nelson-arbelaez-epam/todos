@@ -1,4 +1,9 @@
-import type { CreateTodoDto, TodoDto, TodoListDto } from '@todos/core/http';
+import type {
+  CreateTodoDto,
+  TodoDto,
+  TodoListDto,
+  UpdateTodoDto,
+} from '@todos/core/http';
 
 function getApiBaseUrl(): string {
   const apiBaseUrl = process.env.EXPO_PUBLIC_TODOS_API_URL;
@@ -74,6 +79,35 @@ export async function createTodo(
   if (!response.ok) {
     const json = await response.json().catch(() => ({}));
     throw new Error(extractErrorMessage(json, 'Failed to create todo'));
+  }
+
+  return (await response.json()) as TodoDto;
+}
+
+/**
+ * Update an existing todo for the current user.
+ */
+export async function updateTodo(
+  id: string,
+  payload: UpdateTodoDto,
+  idToken?: string,
+): Promise<TodoDto> {
+  const url = `${getApiBaseUrl()}/api/v1/todos/${id}`;
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (idToken) headers.Authorization = `Bearer ${idToken}`;
+
+  const response = await fetch(url, {
+    method: 'PATCH',
+    headers,
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const json = await response.json().catch(() => ({}));
+    throw new Error(extractErrorMessage(json, 'Failed to update todo'));
   }
 
   return (await response.json()) as TodoDto;

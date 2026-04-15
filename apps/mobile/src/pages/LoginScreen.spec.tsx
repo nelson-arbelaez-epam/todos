@@ -1,10 +1,8 @@
-import { render } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { LoginScreen } from './LoginScreen';
 
-const loginFormMock = vi.fn();
 const loginActionMock = vi.fn();
-
 const storeState = {
   isLoading: false,
   error: null as null | string,
@@ -16,47 +14,26 @@ vi.mock('@/store/session-store', () => ({
     selector(storeState),
 }));
 
-vi.mock('../components/organisms/LoginForm', () => ({
-  LoginForm: (props: unknown) => {
-    loginFormMock(props);
-    return null;
-  },
-}));
-
 describe('LoginScreen', () => {
   beforeEach(() => {
-    loginFormMock.mockReset();
     loginActionMock.mockReset();
     storeState.isLoading = false;
     storeState.error = null;
   });
 
-  it('wires isLoading and error from store into LoginForm props', () => {
+  it('shows loading and error state in LoginForm', () => {
     storeState.isLoading = true;
     storeState.error = 'Login failed';
-
     render(<LoginScreen />);
-
-    expect(loginFormMock).toHaveBeenCalledOnce();
-    expect(loginFormMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        isLoading: true,
-        errorMessage: 'Login failed',
-        onSubmit: expect.any(Function),
-      }),
-    );
+    expect(screen.getByText('Sign in')).toBeTruthy();
+    expect(screen.getByText('Login failed')).toBeTruthy();
   });
 
-  it('maps LoginForm submit args to login payload object', () => {
+  it('submits the form via user input and button press', () => {
     render(<LoginScreen />);
-
-    const props = loginFormMock.mock.calls[0]?.[0] as {
-      onSubmit: (email: string, password: string) => void;
-    };
-
-    props.onSubmit('user@example.com', 'password123');
-
-    expect(loginActionMock).toHaveBeenCalledOnce();
+    fireEvent.changeText(screen.getByTestId('login-email'), 'user@example.com');
+    fireEvent.changeText(screen.getByTestId('login-password'), 'password123');
+    fireEvent.press(screen.getByTestId('login-submit'));
     expect(loginActionMock).toHaveBeenCalledWith({
       email: 'user@example.com',
       password: 'password123',

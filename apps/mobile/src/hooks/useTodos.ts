@@ -1,8 +1,9 @@
-import type { CreateTodoDto, TodoDto } from '@todos/core/http';
-import { useCallback, useEffect, useState } from 'react';
+import type { CreateTodoDto, TodoDto, UpdateTodoDto } from '@todos/core/http';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   createTodo as createTodoRequest,
   listTodos,
+  updateTodo as updateTodoRequest,
 } from '@/services/todos.service';
 import { useSessionStore } from '@/store/session-store';
 
@@ -10,8 +11,11 @@ export function useTodos() {
   const [todos, setTodos] = useState<TodoDto[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [updating, setUpdating] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<string | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [updateError, setUpdateError] = useState<string | null>(null);
+  const updatingRef = useRef<Record<string, boolean>>({});
   const currentUser = useSessionStore((s) => s.currentUser);
 
   const fetchTodos = useCallback(async () => {
@@ -50,13 +54,52 @@ export function useTodos() {
     [currentUser?.idToken],
   );
 
+  const clearUpdateError = useCallback(() => {
+    setUpdateError(null);
+  }, []);
+
+  const updateTodo = useCallback(
+    async (id: string, payload: UpdateTodoDto): Promise<boolean> => {
+      if (updatingRef.current[id]) return false;
+      updatingRef.current[id] = true;
+      setUpdating((u) => ({ ...u, [id]: true }));
+      setUpdateError(null);
+      try {
+        const updated = await updateTodoRequest(
+          id,
+          payload,
+          currentUser?.idToken,
+        );
+        setTodos((prev) =>
+          prev.map((todo) => (todo.id === id ? updated : todo)),
+        );
+        return true;
+      } catch (err: unknown) {
+        setUpdateError(err instanceof Error ? err.message : String(err));
+        return false;
+      } finally {
+        setUpdating((u) => {
+          const copy = { ...u };
+          delete copy[id];
+          return copy;
+        });
+        delete updatingRef.current[id];
+      }
+    },
+    [currentUser?.idToken],
+  );
+
   return {
     todos,
     isLoading,
     isCreating,
+    updating,
     error,
     createError,
+    updateError,
+    clearUpdateError,
     refresh: fetchTodos,
     createTodo,
+    updateTodo,
   } as const;
 }
