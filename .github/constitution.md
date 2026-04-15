@@ -103,7 +103,6 @@ Rules:
 Formalised in [ADR 0021](../docs/adr/0021-ui-architecture-atomic-design-postcss-tailwind.md). The rules below apply to all UI code in `apps/web` and `apps/mobile`.
 
 Session context state management is formalised in [ADR 0024](../docs/adr/0024-session-state-management-for-ui-session-context.md).
-Cross-platform UI form management is formalised in [ADR 0026](../docs/adr/0026-cross-platform-form-management-for-ui-apps.md).
 
 ### Component Isolation
 
@@ -151,12 +150,20 @@ Import direction is strictly top-down: atoms ← molecules ← organisms ← tem
 - **Redux Toolkit requires an ADR-approved exception** when justified by cross-domain global-state complexity.
 - **The same session-state rule applies to `apps/web` and `apps/mobile`**; platform-specific persistence may differ, but the store boundary and direct DTO usage rules do not.
 
-### UI Form Management Standard
+### UI Form Management and Shared Validation Standard
 
+Formalised in [ADR 0026](../docs/adr/0026-cross-platform-form-management-for-ui-apps.md).
+
+- **Zod is the single source of truth for validation rules** across the full stack.
+  Zod schemas for all HTTP payloads live in `@todos/core/http` and are exported alongside the inferred TypeScript types.
 - **React Hook Form + `@hookform/resolvers` + Zod is the default for non-trivial forms** in `apps/web` and `apps/mobile`.
-- **Local `useState` forms are allowed for trivial UI-only flows** that do not need shared validation/reuse patterns.
+  Form orchestration hooks live in `src/hooks/forms/`; they import schemas directly from `@todos/core/http`.
+- **The NestJS API uses `nestjs-zod`** to derive DTO classes from the same Zod schemas (`createZodDto()`) and validates requests with `ZodValidationPipe`.
+  This ensures client and server apply identical constraints without duplication.
+- **Local `useState` forms are allowed for trivial UI-only flows** that do not need shared validation or reuse patterns.
 - **Form orchestration belongs to container hooks/pages**; presentational components remain prop-driven and side-effect free.
 - **Backend validation remains authoritative**; client-side validation is UX support and must not replace backend contracts.
+  Backend error responses must be mapped back to field/form errors in the container hook.
 
 ### UI Adoption Checklist
 
@@ -169,6 +176,7 @@ Use this checklist when reviewing or creating UI code in PRs:
 - [ ] New design token values are added to the `:root` CSS custom property block (and mirrored in `tailwind.config.js` once Tailwind is adopted).
 - [ ] Cross-app domain types go in `@todos/core`; UI-only types go in `src/types/`.
 - [ ] Service/store transport boundaries use canonical DTOs from `@todos/core/http` directly rather than `Pick`/`Omit`-derived aliases.
+- [ ] Form validation uses Zod schemas from `@todos/core/http`; new validation rules are added there first, not in app-local files.
 - [ ] Each new component has a corresponding unit test (Vitest + React Testing Library for web; React Native Testing Library for mobile).
 
 ## AI Consistency Rules
