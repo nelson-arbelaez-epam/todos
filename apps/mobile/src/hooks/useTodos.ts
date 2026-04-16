@@ -127,7 +127,7 @@ export function useTodos() {
         getTodosQueryKey(currentUser?.uid, page, PAGE_LIMIT),
         (prev) =>
           prev
-            ? { ...prev, items: prev.items.filter((t) => t.id !== id), total: Math.max(0, prev.total - 1) }
+            ? { ...prev, items: prev.items.filter((t) => t.id !== id) }
             : prev,
       );
     },

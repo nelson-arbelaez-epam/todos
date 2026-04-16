@@ -105,8 +105,6 @@ describe('TodoList', () => {
 
     fireEvent.press(getByTestId(`archive-todo-${sample[0].id}`));
 
-    await waitFor(() =>
-      expect(onArchive).toHaveBeenCalledWith(sample[0]),
-    );
+    await waitFor(() => expect(onArchive).toHaveBeenCalledWith(sample[0]));
   });
 });

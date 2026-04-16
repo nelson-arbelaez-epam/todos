@@ -198,8 +198,6 @@ describe('TodosScreen', () => {
 
     fireEvent.press(getByTestId('archive-todo-1'));
 
-    await waitFor(() =>
-      expect(archiveTodo).toHaveBeenCalledWith('1'),
-    );
+    await waitFor(() => expect(archiveTodo).toHaveBeenCalledWith('1'));
   });
 });

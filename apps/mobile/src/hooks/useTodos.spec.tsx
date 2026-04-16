@@ -543,9 +543,7 @@ describe('useTodos hook', () => {
     await waitFor(() => expect(screen.getByText('To archive')).toBeTruthy());
     fireEvent.press(screen.getByTestId('archive-button'));
 
-    await waitFor(() =>
-      expect(screen.queryByText('To archive')).toBeNull(),
-    );
+    await waitFor(() => expect(screen.queryByText('To archive')).toBeNull());
     expect(mockArchiveTodo).toHaveBeenCalledWith('1', 'token-123');
   });
 });
