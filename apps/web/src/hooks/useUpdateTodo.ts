@@ -23,7 +23,9 @@ export function useUpdateTodo({
   // The guard is set in `onMutate` so it is enforced even if the mutation
   // is triggered directly rather than through `handleUpdateTodo`.
   const [updating, setUpdating] = useState<Record<string, boolean>>({});
-  const [updateErrors, setUpdateErrors] = useState<Record<string, string | null>>({});
+  const [updateErrors, setUpdateErrors] = useState<
+    Record<string, string | null>
+  >({});
   const updatingRef = useRef<Record<string, boolean>>({});
   const queryClient = useQueryClient();
 
@@ -80,9 +82,10 @@ export function useUpdateTodo({
     id: string,
     payload: UpdateTodoDto,
   ): Promise<boolean> => {
-    // In JavaScript's single-threaded model this check is atomic within one
-    // synchronous turn. The guard is set in `onMutate` to cover all call paths.
+    // Set the guard synchronously here for atomicity (single-threaded check-and-set),
+    // AND it is also set in `onMutate` to cover any call paths that bypass this function.
     if (updatingRef.current[id]) return false;
+    updatingRef.current[id] = true;
     try {
       await mutation.mutateAsync({ id, payload });
       return true;

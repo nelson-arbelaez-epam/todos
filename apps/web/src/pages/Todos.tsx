@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
 import type { TodoDto, UpdateTodoDto } from '@todos/core/http';
+import { useState } from 'react';
 import PaginationControls from '../components/molecules/PaginationControls/PaginationControls';
 import CreateTodoForm from '../components/organisms/CreateTodoForm/CreateTodoForm';
 import TodoList from '../components/organisms/TodoList/TodoList';
@@ -84,10 +84,13 @@ const Todos = () => {
           {error instanceof Error ? error.message : 'Failed to load todos'}
         </div>
       )}
+      {/* Show per-item errors for todos that are NOT in edit mode (those show inline). */}
       {Object.entries(updateErrors)
         .filter(([id, err]) => err && id !== editingTodoId)
         .map(([id, err]) => (
-          <div key={id} role="alert">{err}</div>
+          <div key={id} role="alert">
+            {err}
+          </div>
         ))}
       {!isLoading && !error && todos && (
         <TodoList

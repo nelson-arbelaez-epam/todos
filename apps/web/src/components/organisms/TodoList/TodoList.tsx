@@ -1,6 +1,6 @@
 import type { TodoDto, UpdateTodoDto } from '@todos/core/http';
-import EditTodoForm from '../EditTodoForm/EditTodoForm';
 import TodoItem from '../../molecules/todo-item/TodoItem';
+import EditTodoForm from '../EditTodoForm/EditTodoForm';
 
 export interface TodoListProps {
   todos: TodoDto[];

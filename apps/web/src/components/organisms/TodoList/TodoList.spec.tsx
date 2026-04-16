@@ -29,7 +29,9 @@ describe('TodoList', () => {
     const onToggleComplete = vi.fn();
     render(<TodoList todos={[mockTodo]} onToggleComplete={onToggleComplete} />);
 
-    await user.click(screen.getByRole('button', { name: `complete-${mockTodo.id}` }));
+    await user.click(
+      screen.getByRole('button', { name: `complete-${mockTodo.id}` }),
+    );
     expect(onToggleComplete).toHaveBeenCalledWith(mockTodo);
   });
 
@@ -38,7 +40,9 @@ describe('TodoList', () => {
     const onStartEdit = vi.fn();
     render(<TodoList todos={[mockTodo]} onStartEdit={onStartEdit} />);
 
-    await user.click(screen.getByRole('button', { name: `edit-${mockTodo.id}` }));
+    await user.click(
+      screen.getByRole('button', { name: `edit-${mockTodo.id}` }),
+    );
     expect(onStartEdit).toHaveBeenCalledWith(mockTodo);
   });
 
