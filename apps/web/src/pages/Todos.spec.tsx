@@ -3,8 +3,8 @@ import { render, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactElement } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import * as TodosService from '../services/todos.service';
 import { getTodosQueryKey } from '../query/query-client';
+import * as TodosService from '../services/todos.service';
 import { resetSessionStoreForTests } from '../store/session-store';
 import Todos from './Todos';
 
@@ -356,7 +356,9 @@ describe('Todos page', () => {
 
     await waitFor(async () => {
       const alerts = await findAllByRole('alert');
-      expect(alerts.some((el) => el.textContent?.includes('Archive failed'))).toBe(true);
+      expect(
+        alerts.some((el) => el.textContent?.includes('Archive failed')),
+      ).toBe(true);
     });
   });
 
@@ -464,9 +466,7 @@ describe('Todos page', () => {
       </QueryClientProvider>,
     );
 
-    await waitFor(() =>
-      expect(getByText('Page 1 Todo 1')).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(getByText('Page 1 Todo 1')).toBeInTheDocument());
 
     // Archive an item from page 1
     await user.click(
@@ -490,9 +490,7 @@ describe('Todos page', () => {
     // (with staleTime: Infinity it would be served from cache if not invalidated)
     await user.click(getByRole('button', { name: 'Go to next page' }));
 
-    await waitFor(() =>
-      expect(getByText('Page 2 Todo')).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(getByText('Page 2 Todo')).toBeInTheDocument());
 
     const page2CallsAfter = listSpy.mock.calls.filter(
       ([, params]) => (params as { page?: number })?.page === 2,
