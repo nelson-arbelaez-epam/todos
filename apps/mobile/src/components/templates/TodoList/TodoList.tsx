@@ -21,6 +21,7 @@ export interface TodoListProps {
   onChangeEditTitle?: (value: string) => void;
   onChangeEditDescription?: (value: string) => void;
   onSubmitEdit?: (id: string, payload: UpdateTodoDto) => Promise<void>;
+  onArchive?: (todo: TodoDto) => Promise<void>;
 }
 
 export function TodoList({
@@ -40,6 +41,7 @@ export function TodoList({
   onChangeEditTitle,
   onChangeEditDescription,
   onSubmitEdit,
+  onArchive,
 }: TodoListProps) {
   if (isLoading) {
     return (
@@ -103,6 +105,7 @@ export function TodoList({
               isUpdating={isUpdating}
               onToggleComplete={onToggleComplete}
               onStartEdit={onStartEdit}
+              onArchive={onArchive}
             />
           );
         }}

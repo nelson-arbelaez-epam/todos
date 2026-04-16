@@ -22,6 +22,7 @@ vi.mock('@/services/todos.service');
 const mockListTodos = vi.mocked(TodosService.listTodos);
 const mockCreateTodo = vi.mocked(TodosService.createTodo);
 const mockUpdateTodo = vi.mocked(TodosService.updateTodo);
+const mockArchiveTodo = vi.mocked(TodosService.archiveTodo);
 
 const emptyPage: TodoListDto = { items: [], total: 0, page: 1, limit: 20 };
 
@@ -484,5 +485,67 @@ describe('useTodos hook', () => {
     fireEvent.press(screen.getByTestId('update-button'));
 
     await waitFor(() => expect(screen.getByText('update failed')).toBeTruthy());
+  });
+
+  it('archives todo and removes it from the list', async () => {
+    const initialItems: TodoDto[] = [
+      {
+        id: '1',
+        title: 'To archive',
+        description: undefined,
+        completed: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ];
+
+    mockListTodos.mockResolvedValue({
+      items: initialItems,
+      total: 1,
+      page: 1,
+      limit: 20,
+    });
+    mockArchiveTodo.mockResolvedValue({
+      ...initialItems[0],
+      archivedAt: new Date(),
+    });
+
+    useSessionStore.setState({
+      currentUser: {
+        uid: 'u',
+        email: 'e',
+        idToken: 'token-123',
+        expiresIn: '3600',
+      },
+    });
+
+    function TestComp() {
+      const { todos, archiveTodo } = useTodos();
+      return (
+        <View>
+          <Pressable
+            testID="archive-button"
+            onPress={() => {
+              void archiveTodo('1');
+            }}
+          >
+            <Text>archive</Text>
+          </Pressable>
+          {todos.map((t) => (
+            <Text key={t.id}>{t.title}</Text>
+          ))}
+        </View>
+      );
+    }
+
+    renderWithQueryClient(<TestComp />);
+
+    await waitFor(() => expect(screen.getByText('To archive')).toBeTruthy());
+    fireEvent.press(screen.getByTestId('archive-button'));
+
+    await waitFor(() =>
+      expect(screen.queryByText('To archive')).toBeNull(),
+    );
+    expect(mockArchiveTodo).toHaveBeenCalledWith('1', 'token-123');
   });
 });

@@ -47,4 +47,16 @@ describe('TodoItem', () => {
 
     expect(onStartEdit).toHaveBeenCalledWith(todo);
   });
+
+  it('calls onArchive when archive pressed', () => {
+    const onArchive = vi.fn().mockResolvedValue(undefined);
+
+    const { getByTestId } = render(
+      <TodoItem todo={todo} isUpdating={false} onArchive={onArchive} />,
+    );
+
+    fireEvent.press(getByTestId(`archive-todo-${todo.id}`));
+
+    expect(onArchive).toHaveBeenCalledWith(todo);
+  });
 });

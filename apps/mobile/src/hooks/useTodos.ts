@@ -8,6 +8,7 @@ import type {
 import { useRef, useState } from 'react';
 import { getTodosQueryKey } from '@/query/query-client';
 import {
+  archiveTodo as archiveTodoRequest,
   createTodo as createTodoRequest,
   listTodos,
   updateTodo as updateTodoRequest,
@@ -119,6 +120,28 @@ export function useTodos() {
 
   const clearUpdateError = () => updateMutation.reset();
 
+  const archiveMutation = useMutation<TodoDto, Error, string>({
+    mutationFn: (id) => archiveTodoRequest(id, currentUser?.idToken),
+    onSuccess: (_archived, id) => {
+      queryClient.setQueryData<TodoListDto>(
+        getTodosQueryKey(currentUser?.uid, page, PAGE_LIMIT),
+        (prev) =>
+          prev
+            ? { ...prev, items: prev.items.filter((t) => t.id !== id), total: Math.max(0, prev.total - 1) }
+            : prev,
+      );
+    },
+  });
+
+  const archiveTodo = async (id: string): Promise<boolean> => {
+    try {
+      await archiveMutation.mutateAsync(id);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   return {
     todos,
     page,
@@ -145,5 +168,6 @@ export function useTodos() {
     },
     createTodo,
     updateTodo,
+    archiveTodo,
   } as const;
 }

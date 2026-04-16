@@ -23,6 +23,7 @@ export function TodosScreen() {
     refresh,
     createTodo,
     updateTodo,
+    archiveTodo,
     clearUpdateError,
   } = useTodos();
   const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
@@ -90,6 +91,9 @@ export function TodosScreen() {
         onSubmitEdit={handleSubmitEdit}
         onToggleComplete={async (todo) => {
           await updateTodo(todo.id, { completed: !todo.completed });
+        }}
+        onArchive={async (todo) => {
+          await archiveTodo(todo.id);
         }}
       />
       <PaginationControls

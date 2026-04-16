@@ -7,6 +7,7 @@ export interface TodoItemProps {
   isUpdating: boolean;
   onToggleComplete?: (todo: TodoDto) => Promise<void>;
   onStartEdit?: (todo: TodoDto) => void;
+  onArchive?: (todo: TodoDto) => Promise<void>;
 }
 
 export function TodoItem({
@@ -14,6 +15,7 @@ export function TodoItem({
   isUpdating,
   onToggleComplete,
   onStartEdit,
+  onArchive,
 }: TodoItemProps) {
   return (
     <View className="py-2 border-b border-border">
@@ -49,6 +51,18 @@ export function TodoItem({
             testID={`edit-todo-${todo.id}`}
             onPress={() => {
               onStartEdit?.(todo);
+            }}
+            variant="ghost"
+            size="sm"
+            disabled={isUpdating}
+          />
+          <AppButton
+            title="Archive"
+            testID={`archive-todo-${todo.id}`}
+            onPress={() => {
+              if (onArchive) {
+                void onArchive(todo);
+              }
             }}
             variant="ghost"
             size="sm"
