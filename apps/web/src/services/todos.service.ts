@@ -1,4 +1,9 @@
-import type { CreateTodoDto, TodoDto, TodoListDto } from '@todos/core/http';
+import type {
+  CreateTodoDto,
+  TodoDto,
+  TodoListDto,
+  UpdateTodoDto,
+} from '@todos/core/http';
 
 // VITE_ prefix is required for Vite to expose the variable in the browser bundle.
 const API_BASE_URL =
@@ -83,6 +88,38 @@ export async function createTodo(
   if (!response.ok) {
     const json = (await response.json().catch(() => ({}))) as ApiError;
     const message = resolveApiErrorMessage(json, 'Failed to create todo');
+    const error = new Error(message) as HttpError;
+    error.status = response.status;
+    throw error;
+  }
+
+  return response.json() as Promise<TodoDto>;
+}
+
+/**
+ * Update an existing todo for the current user.
+ */
+export async function updateTodo(
+  id: string,
+  payload: UpdateTodoDto,
+  idToken?: string,
+): Promise<TodoDto> {
+  const url = `${API_BASE_URL}/api/v1/todos/${encodeURIComponent(id)}`;
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (idToken) headers.Authorization = `Bearer ${idToken}`;
+
+  const response = await fetch(url, {
+    method: 'PATCH',
+    headers,
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const json = (await response.json().catch(() => ({}))) as ApiError;
+    const message = resolveApiErrorMessage(json, 'Failed to update todo');
     const error = new Error(message) as HttpError;
     error.status = response.status;
     throw error;

@@ -153,4 +153,68 @@ describe('todos.service', () => {
       TodosService.createTodo({ title: 'Buy milk' }),
     ).rejects.toThrow('create failed');
   });
+
+  it('updates todo and returns updated record when response is ok', async () => {
+    const updated = {
+      id: 'todo-1',
+      title: 'Updated title',
+      completed: true,
+      createdAt: '2020-01-01',
+      updatedAt: '2020-01-02',
+    };
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => updated,
+    });
+
+    const result = await TodosService.updateTodo(
+      'todo-1',
+      { title: 'Updated title', completed: true },
+      'token-abc',
+    );
+    expect(result).toEqual(updated);
+
+    const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toContain('/api/v1/todos/todo-1');
+    expect(options.method).toBe('PATCH');
+    expect((options.headers as Record<string, string>).Authorization).toBe(
+      'Bearer token-abc',
+    );
+    expect(JSON.parse(options.body as string)).toEqual({
+      title: 'Updated title',
+      completed: true,
+    });
+  });
+
+  it('throws error with message from body when update response not ok', async () => {
+    fetchMock.mockResolvedValue({
+      ok: false,
+      json: async () => ({ message: 'Todo not found' }),
+    });
+
+    await expect(
+      TodosService.updateTodo('missing-id', { title: 'x' }),
+    ).rejects.toThrow('Todo not found');
+  });
+
+  it('throws generic fallback message when update fails with no message', async () => {
+    fetchMock.mockResolvedValue({
+      ok: false,
+      json: async () => ({}),
+    });
+
+    await expect(
+      TodosService.updateTodo('todo-1', { completed: true }),
+    ).rejects.toThrow('Failed to update todo');
+  });
+
+  it('URL-encodes the todo id in updateTodo', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({ id: 'has space', title: 't', completed: false }),
+    });
+
+    await TodosService.updateTodo('has space', { title: 't' });
+    expect(fetchMock.mock.calls[0][0]).toContain('/api/v1/todos/has%20space');
+  });
 });

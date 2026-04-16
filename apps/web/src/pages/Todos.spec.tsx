@@ -10,6 +10,7 @@ import Todos from './Todos';
 describe('Todos page', () => {
   const listSpy = vi.spyOn(TodosService, 'listTodos');
   const createSpy = vi.spyOn(TodosService, 'createTodo');
+  const updateSpy = vi.spyOn(TodosService, 'updateTodo');
 
   const renderWithQueryClient = (ui: ReactElement) => {
     const queryClient = new QueryClient({
@@ -29,6 +30,7 @@ describe('Todos page', () => {
     resetSessionStoreForTests();
     listSpy.mockReset();
     createSpy.mockReset();
+    updateSpy.mockReset();
   });
 
   it('shows loading then renders todos', async () => {
@@ -170,5 +172,119 @@ describe('Todos page', () => {
       expect(getByText('Page two item')).toBeInTheDocument();
     });
     expect(listSpy).toHaveBeenLastCalledWith(undefined, { page: 2, limit: 20 });
+  });
+
+  it('toggles todo complete status when Complete button is clicked', async () => {
+    const user = userEvent.setup();
+    const todo = {
+      id: 'todo-toggle',
+      title: 'Toggle me',
+      description: undefined,
+      completed: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    listSpy.mockResolvedValue({
+      items: [todo],
+      total: 1,
+      page: 1,
+      limit: 20,
+    });
+    updateSpy.mockResolvedValue({ ...todo, completed: true });
+
+    const { getByRole, getByText } = renderWithQueryClient(<Todos />);
+    await waitFor(() => {
+      expect(getByText('Toggle me')).toBeInTheDocument();
+    });
+
+    await user.click(getByRole('button', { name: `complete-${todo.id}` }));
+
+    await waitFor(() => {
+      expect(updateSpy).toHaveBeenCalledWith(
+        todo.id,
+        { completed: true },
+        undefined,
+      );
+    });
+  });
+
+  it('opens edit form when Edit button is clicked and saves changes', async () => {
+    const user = userEvent.setup();
+    const todo = {
+      id: 'todo-edit',
+      title: 'Editable todo',
+      description: undefined,
+      completed: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    listSpy.mockResolvedValue({
+      items: [todo],
+      total: 1,
+      page: 1,
+      limit: 20,
+    });
+    updateSpy.mockResolvedValue({ ...todo, title: 'Updated title' });
+
+    const { getByRole, getByText, getByTestId } = renderWithQueryClient(
+      <Todos />,
+    );
+    await waitFor(() => {
+      expect(getByText('Editable todo')).toBeInTheDocument();
+    });
+
+    await user.click(getByRole('button', { name: `edit-${todo.id}` }));
+
+    // Edit form should appear
+    expect(getByRole('button', { name: /save/i })).toBeInTheDocument();
+
+    const titleInput = getByTestId(`form-field--editTodoTitle-${todo.id}`);
+    await user.clear(titleInput);
+    await user.type(titleInput, 'Updated title');
+
+    await user.click(getByRole('button', { name: /save/i }));
+
+    await waitFor(() => {
+      expect(updateSpy).toHaveBeenCalledWith(
+        todo.id,
+        { title: 'Updated title', description: undefined },
+        undefined,
+      );
+    });
+  });
+
+  it('closes edit form when Cancel is clicked', async () => {
+    const user = userEvent.setup();
+    const todo = {
+      id: 'todo-cancel',
+      title: 'Cancel edit',
+      description: undefined,
+      completed: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    listSpy.mockResolvedValue({
+      items: [todo],
+      total: 1,
+      page: 1,
+      limit: 20,
+    });
+
+    const { getByRole, getByText } = renderWithQueryClient(<Todos />);
+    await waitFor(() => {
+      expect(getByText('Cancel edit')).toBeInTheDocument();
+    });
+
+    await user.click(getByRole('button', { name: `edit-${todo.id}` }));
+    expect(getByRole('button', { name: /save/i })).toBeInTheDocument();
+
+    await user.click(getByRole('button', { name: /cancel/i }));
+
+    // Edit form should be gone; normal todo item buttons should be back
+    await waitFor(() => {
+      expect(
+        getByRole('button', { name: `edit-${todo.id}` }),
+      ).toBeInTheDocument();
+    });
   });
 });
