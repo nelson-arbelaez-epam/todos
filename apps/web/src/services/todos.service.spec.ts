@@ -217,4 +217,63 @@ describe('todos.service', () => {
     await TodosService.updateTodo('has space', { title: 't' });
     expect(fetchMock.mock.calls[0][0]).toContain('/api/v1/todos/has%20space');
   });
+
+  it('archives a todo and returns the archived record when response is ok', async () => {
+    const archived = {
+      id: 'todo-1',
+      title: 'Buy milk',
+      completed: false,
+      archivedAt: '2026-01-01T00:00:00.000Z',
+      createdAt: '2020-01-01',
+      updatedAt: '2026-01-01',
+    };
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => archived,
+    });
+
+    const result = await TodosService.archiveTodo('todo-1', 'token-abc');
+    expect(result).toEqual(archived);
+
+    const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toContain('/api/v1/todos/todo-1/archive');
+    expect(options.method).toBe('PATCH');
+    expect((options.headers as Record<string, string>).Authorization).toBe(
+      'Bearer token-abc',
+    );
+  });
+
+  it('throws error with message from body when archive response not ok', async () => {
+    fetchMock.mockResolvedValue({
+      ok: false,
+      json: async () => ({ message: 'Todo not found' }),
+    });
+
+    await expect(TodosService.archiveTodo('missing-id')).rejects.toThrow(
+      'Todo not found',
+    );
+  });
+
+  it('throws generic fallback message when archive fails with no message', async () => {
+    fetchMock.mockResolvedValue({
+      ok: false,
+      json: async () => ({}),
+    });
+
+    await expect(TodosService.archiveTodo('todo-1')).rejects.toThrow(
+      'Failed to archive todo',
+    );
+  });
+
+  it('URL-encodes the todo id in archiveTodo', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({ id: 'has space', title: 't', completed: false }),
+    });
+
+    await TodosService.archiveTodo('has space');
+    expect(fetchMock.mock.calls[0][0]).toContain(
+      '/api/v1/todos/has%20space/archive',
+    );
+  });
 });

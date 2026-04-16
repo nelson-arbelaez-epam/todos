@@ -68,6 +68,18 @@ describe('TodoItem', () => {
     expect(onStartEdit).toHaveBeenCalledWith(todo);
   });
 
+  it('calls onArchive when Archive button is clicked', async () => {
+    const user = userEvent.setup();
+    const todo = { id: '8', title: 'To archive', completed: false } as TodoDto;
+    const onArchive = vi.fn();
+    render(<TodoItem todo={todo} onArchive={onArchive} />);
+
+    await user.click(
+      screen.getByRole('button', { name: `archive-${todo.id}` }),
+    );
+    expect(onArchive).toHaveBeenCalledWith(todo);
+  });
+
   it('disables buttons when isUpdating is true', () => {
     const todo = { id: '6', title: 'Loading', completed: false } as TodoDto;
     render(<TodoItem todo={todo} isUpdating={true} />);

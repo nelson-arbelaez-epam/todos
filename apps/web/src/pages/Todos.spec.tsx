@@ -11,6 +11,7 @@ describe('Todos page', () => {
   const listSpy = vi.spyOn(TodosService, 'listTodos');
   const createSpy = vi.spyOn(TodosService, 'createTodo');
   const updateSpy = vi.spyOn(TodosService, 'updateTodo');
+  const archiveSpy = vi.spyOn(TodosService, 'archiveTodo');
 
   const renderWithQueryClient = (ui: ReactElement) => {
     const queryClient = new QueryClient({
@@ -31,6 +32,7 @@ describe('Todos page', () => {
     listSpy.mockReset();
     createSpy.mockReset();
     updateSpy.mockReset();
+    archiveSpy.mockReset();
   });
 
   it('shows loading then renders todos', async () => {
@@ -286,5 +288,108 @@ describe('Todos page', () => {
         getByRole('button', { name: `edit-${todo.id}` }),
       ).toBeInTheDocument();
     });
+  });
+
+  it('archives todo and removes it from the list when Archive button is clicked', async () => {
+    const user = userEvent.setup();
+    const todo = {
+      id: 'todo-archive',
+      title: 'Archive me',
+      description: undefined,
+      completed: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    listSpy.mockResolvedValue({
+      items: [todo],
+      total: 1,
+      page: 1,
+      limit: 20,
+    });
+    archiveSpy.mockResolvedValue({
+      ...todo,
+      archivedAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const { getByRole, getByText, queryByText } = renderWithQueryClient(
+      <Todos />,
+    );
+    await waitFor(() => {
+      expect(getByText('Archive me')).toBeInTheDocument();
+    });
+
+    await user.click(getByRole('button', { name: `archive-${todo.id}` }));
+
+    await waitFor(() => {
+      expect(archiveSpy).toHaveBeenCalledWith(todo.id, undefined);
+      expect(queryByText('Archive me')).not.toBeInTheDocument();
+    });
+  });
+
+  it('shows archive error when archive request fails', async () => {
+    const user = userEvent.setup();
+    const todo = {
+      id: 'todo-archive-err',
+      title: 'Archive fails',
+      description: undefined,
+      completed: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    listSpy.mockResolvedValue({
+      items: [todo],
+      total: 1,
+      page: 1,
+      limit: 20,
+    });
+    archiveSpy.mockRejectedValue(new Error('Archive failed'));
+
+    const { getByRole, getByText, findAllByRole } = renderWithQueryClient(
+      <Todos />,
+    );
+    await waitFor(() => {
+      expect(getByText('Archive fails')).toBeInTheDocument();
+    });
+
+    await user.click(getByRole('button', { name: `archive-${todo.id}` }));
+
+    await waitFor(async () => {
+      const alerts = await findAllByRole('alert');
+      expect(alerts.some((el) => el.textContent?.includes('Archive failed'))).toBe(true);
+    });
+  });
+
+  it('excludes archived todos from the active list', async () => {
+    const activeTodo = {
+      id: 'active-1',
+      title: 'Active todo',
+      description: undefined,
+      completed: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    const archivedTodo = {
+      id: 'archived-1',
+      title: 'Archived todo',
+      description: undefined,
+      completed: false,
+      archivedAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    listSpy.mockResolvedValue({
+      items: [activeTodo, archivedTodo],
+      total: 2,
+      page: 1,
+      limit: 20,
+    });
+
+    const { getByText, queryByText } = renderWithQueryClient(<Todos />);
+
+    await waitFor(() => {
+      expect(getByText('Active todo')).toBeInTheDocument();
+    });
+    expect(queryByText('Archived todo')).not.toBeInTheDocument();
   });
 });

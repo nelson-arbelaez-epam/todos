@@ -7,6 +7,7 @@ export interface TodoItemProps {
   isUpdating?: boolean;
   onToggleComplete?: (todo: TodoDto) => void;
   onStartEdit?: (todo: TodoDto) => void;
+  onArchive?: (todo: TodoDto) => void;
 }
 
 const TodoItem = ({
@@ -14,6 +15,7 @@ const TodoItem = ({
   isUpdating = false,
   onToggleComplete,
   onStartEdit,
+  onArchive,
 }: TodoItemProps) => (
   <article className="flex items-start gap-3 p-3 border-b">
     <Checkbox
@@ -56,6 +58,15 @@ const TodoItem = ({
         aria-label={`edit-${todo.id}`}
       >
         Edit
+      </Button>
+      <Button
+        size="sm"
+        variant="ghost"
+        onClick={() => onArchive?.(todo)}
+        disabled={isUpdating}
+        aria-label={`archive-${todo.id}`}
+      >
+        Archive
       </Button>
     </div>
   </article>

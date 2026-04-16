@@ -11,6 +11,7 @@ export interface TodoListProps {
   onStartEdit?: (todo: TodoDto) => void;
   onCancelEdit?: () => void;
   onSubmitEdit?: (id: string, payload: UpdateTodoDto) => Promise<void>;
+  onArchive?: (todo: TodoDto) => void;
 }
 
 const TodoList = ({
@@ -22,6 +23,7 @@ const TodoList = ({
   onStartEdit,
   onCancelEdit,
   onSubmitEdit,
+  onArchive,
 }: TodoListProps) => {
   if (!todos || todos.length === 0) {
     return <div>No todos</div>;
@@ -49,6 +51,7 @@ const TodoList = ({
                 isUpdating={isUpdating}
                 onToggleComplete={onToggleComplete}
                 onStartEdit={onStartEdit}
+                onArchive={onArchive}
               />
             )}
           </li>
