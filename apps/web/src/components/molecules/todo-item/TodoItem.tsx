@@ -19,7 +19,11 @@ const TodoItem = ({
     <Checkbox
       checked={todo.completed}
       onChange={() => onToggleComplete?.(todo)}
-      aria-label={`completed-${todo.id}`}
+      aria-label={
+        todo.completed
+          ? `Mark "${todo.title}" as active`
+          : `Mark "${todo.title}" as complete`
+      }
       disabled={isUpdating}
     />
     <div className="flex-1">
@@ -38,7 +42,9 @@ const TodoItem = ({
         variant={todo.completed ? 'secondary' : 'primary'}
         onClick={() => onToggleComplete?.(todo)}
         disabled={isUpdating}
-        aria-label={todo.completed ? `mark-active-${todo.id}` : `complete-${todo.id}`}
+        aria-label={
+          todo.completed ? `mark-active-${todo.id}` : `complete-${todo.id}`
+        }
       >
         {todo.completed ? 'Mark active' : 'Complete'}
       </Button>

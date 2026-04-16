@@ -96,7 +96,9 @@ describe('EditTodoForm', () => {
       />,
     );
 
-    expect(screen.getByRole('alert')).toHaveTextContent('Server error occurred');
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Server error occurred',
+    );
   });
 
   it('calls onCancel when Cancel button is clicked', async () => {

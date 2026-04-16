@@ -1,11 +1,11 @@
 import type { TodoDto, UpdateTodoDto } from '@todos/core/http';
-import EditTodoForm from '../EditTodoForm/EditTodoForm';
 import TodoItem from '../../molecules/todo-item/TodoItem';
+import EditTodoForm from '../EditTodoForm/EditTodoForm';
 
 export interface TodoListProps {
   todos: TodoDto[];
   updating?: Record<string, boolean>;
-  updateError?: string | null;
+  updateErrors?: Record<string, string | null>;
   editingTodoId?: string | null;
   onToggleComplete?: (todo: TodoDto) => void;
   onStartEdit?: (todo: TodoDto) => void;
@@ -16,7 +16,7 @@ export interface TodoListProps {
 const TodoList = ({
   todos,
   updating = {},
-  updateError,
+  updateErrors = {},
   editingTodoId,
   onToggleComplete,
   onStartEdit,
@@ -39,7 +39,7 @@ const TodoList = ({
               <EditTodoForm
                 todo={t}
                 isUpdating={isUpdating}
-                updateError={updateError}
+                updateError={updateErrors[t.id] ?? null}
                 onSubmit={onSubmitEdit}
                 onCancel={onCancelEdit}
               />
