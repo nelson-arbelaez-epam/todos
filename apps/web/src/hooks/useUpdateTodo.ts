@@ -20,7 +20,10 @@ export function useUpdateTodo({
   // `updating` drives per-item loading indicators in the UI.
   // `updatingRef` is the synchronous concurrency guard — blocks a second
   // update for the same id while the first is still in flight.
+  // The guard is set in `onMutate` so it is enforced even if the mutation
+  // is triggered directly rather than through `handleUpdateTodo`.
   const [updating, setUpdating] = useState<Record<string, boolean>>({});
+  const [updateErrors, setUpdateErrors] = useState<Record<string, string | null>>({});
   const updatingRef = useRef<Record<string, boolean>>({});
   const queryClient = useQueryClient();
 
@@ -31,9 +34,16 @@ export function useUpdateTodo({
   >({
     mutationFn: ({ id, payload }) => updateTodo(id, payload, idToken),
     onMutate: ({ id }) => {
+      // Set the guard here so any caller path (including mutation.mutate) is protected.
+      updatingRef.current[id] = true;
       setUpdating((u) => ({ ...u, [id]: true }));
     },
     onSuccess: (updated) => {
+      setUpdateErrors((e) => {
+        const copy = { ...e };
+        delete copy[updated.id];
+        return copy;
+      });
       queryClient.setQueryData<TodoListDto>(
         getTodosQueryKey(ownerId, page, limit),
         (previous) =>
@@ -46,6 +56,12 @@ export function useUpdateTodo({
               }
             : previous,
       );
+    },
+    onError: (error, variables) => {
+      const id = variables?.id;
+      if (id) {
+        setUpdateErrors((e) => ({ ...e, [id]: error.message }));
+      }
     },
     onSettled: (_data, _error, variables) => {
       const id = variables?.id;
@@ -64,25 +80,34 @@ export function useUpdateTodo({
     id: string,
     payload: UpdateTodoDto,
   ): Promise<boolean> => {
-    // In JavaScript's single-threaded model, the check-and-set below is atomic
-    // within one synchronous turn, preventing concurrent updates for the same id.
+    // In JavaScript's single-threaded model this check is atomic within one
+    // synchronous turn. The guard is set in `onMutate` to cover all call paths.
     if (updatingRef.current[id]) return false;
-    updatingRef.current[id] = true;
     try {
       await mutation.mutateAsync({ id, payload });
       return true;
     } catch {
-      // `mutateAsync` re-throws on failure; the error is already captured in
-      // `mutation.error` and exposed via the `updateError` return value.
+      // `mutateAsync` re-throws on failure; the error is captured per-id in
+      // `updateErrors` and exposed via the `updateErrors` return value.
       return false;
     }
   };
 
-  const clearUpdateError = () => mutation.reset();
+  const clearUpdateError = (id?: string) => {
+    if (id) {
+      setUpdateErrors((e) => {
+        const copy = { ...e };
+        delete copy[id];
+        return copy;
+      });
+    } else {
+      setUpdateErrors({});
+    }
+  };
 
   return {
     updating,
-    updateError: mutation.error?.message ?? null,
+    updateErrors,
     isUpdating: mutation.isPending,
     handleUpdateTodo,
     clearUpdateError,

@@ -24,7 +24,7 @@ const Todos = () => {
     limit: PAGE_LIMIT,
   });
 
-  const { updating, updateError, handleUpdateTodo, clearUpdateError } =
+  const { updating, updateErrors, handleUpdateTodo, clearUpdateError } =
     useUpdateTodo({
       idToken: currentUser?.idToken,
       ownerId: currentUser?.uid,
@@ -51,7 +51,7 @@ const Todos = () => {
   };
 
   const handleStartEdit = (todo: TodoDto) => {
-    clearUpdateError();
+    clearUpdateError(todo.id);
     setEditingTodoId(todo.id);
   };
 
@@ -84,14 +84,16 @@ const Todos = () => {
           {error instanceof Error ? error.message : 'Failed to load todos'}
         </div>
       )}
-      {updateError && !editingTodoId && (
-        <div role="alert">{updateError}</div>
-      )}
+      {Object.entries(updateErrors)
+        .filter(([id, err]) => err && id !== editingTodoId)
+        .map(([id, err]) => (
+          <div key={id} role="alert">{err}</div>
+        ))}
       {!isLoading && !error && todos && (
         <TodoList
           todos={todos}
           updating={updating}
-          updateError={updateError}
+          updateErrors={updateErrors}
           editingTodoId={editingTodoId}
           onToggleComplete={handleToggleComplete}
           onStartEdit={handleStartEdit}

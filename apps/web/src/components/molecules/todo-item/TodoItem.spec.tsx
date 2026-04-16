@@ -17,10 +17,10 @@ describe('TodoItem', () => {
     expect(screen.getByText('a description')).toBeInTheDocument();
   });
 
-  it('renders checkbox with aria-label and checked state', () => {
+  it('renders checkbox with descriptive aria-label and checked state', () => {
     const todo = { id: 'abc', title: 'Task', completed: true } as TodoDto;
     render(<TodoItem todo={todo} />);
-    const checkbox = screen.getByLabelText('completed-abc') as HTMLInputElement;
+    const checkbox = screen.getByLabelText('Mark "Task" as active') as HTMLInputElement;
     expect(checkbox).toBeInTheDocument();
     expect(checkbox.checked).toBe(true);
   });
