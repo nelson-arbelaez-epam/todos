@@ -29,40 +29,24 @@ describe('todos.service (mobile)', () => {
 
     fetchMock.mockResolvedValue({
       ok: true,
-      json: async () => ({ items }),
+      json: async () => ({ items, total: 1, page: 1, limit: 20 }),
     });
 
     const res = await TodosService.listTodos();
-    expect(res).toEqual(items);
+    expect(res).toEqual({ items, total: 1, page: 1, limit: 20 });
     expect(fetchMock.mock.calls[0][0]).toContain('/api/v1/todos');
   });
 
-  it('filters archived todos by default', async () => {
-    const items = [
-      {
-        id: '1',
-        title: 'Active',
-        completed: false,
-        createdAt: '2020-01-01',
-        updatedAt: '2020-01-01',
-      },
-      {
-        id: '2',
-        title: 'Archived',
-        completed: false,
-        archivedAt: '2020-02-01',
-        createdAt: '2020-01-01',
-        updatedAt: '2020-01-01',
-      },
-    ];
-
+  it('adds page and limit query params when provided', async () => {
     fetchMock.mockResolvedValue({
       ok: true,
-      json: async () => ({ items }),
+      json: async () => ({ items: [], total: 0, page: 2, limit: 10 }),
     });
 
-    const res = await TodosService.listTodos();
-    expect(res).toEqual([items[0]]);
+    await TodosService.listTodos(undefined, { page: 2, limit: 10 });
+    expect(fetchMock.mock.calls[0][0]).toContain(
+      '/api/v1/todos?page=2&limit=10',
+    );
   });
 
   it('throws error with message from body when response not ok', async () => {

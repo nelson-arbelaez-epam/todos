@@ -11,6 +11,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@tanstack/react-query": "5.99.0",
     "@todos/branding": "workspace:*",
     "@todos/core": "workspace:^",
     "react": "^19.2.4",

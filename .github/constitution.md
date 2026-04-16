@@ -150,6 +150,19 @@ Import direction is strictly top-down: atoms ← molecules ← organisms ← tem
 - **Redux Toolkit requires an ADR-approved exception** when justified by cross-domain global-state complexity.
 - **The same session-state rule applies to `apps/web` and `apps/mobile`**; platform-specific persistence may differ, but the store boundary and direct DTO usage rules do not.
 
+### UI Server-State Standard (TanStack Query)
+
+Formalised in [ADR 0027](../docs/adr/0027-tanstack-query-for-server-state.md).
+
+- **TanStack Query (`@tanstack/react-query`) is the standard for all server-state data fetching and mutation** in `apps/web` and `apps/mobile`.
+- **`useQuery` is used for read operations** (listing todos, etc.) with paginated results returned as `TodoListDto`.
+- **`useMutation` is required for all write operations** (create, update, delete). Manual `useState`-based loading/error tracking for mutations is not permitted.
+- **Query cache keys use the authenticated user `uid`** — never the `idToken` (JWT), which is a sensitive credential and rotates.  
+  Key shape: `['todos', uid, page, limit]`.
+- **After a successful mutation, update the query cache** with `queryClient.setQueryData` instead of triggering a full refetch.
+- **`QueryClientProvider` must wrap each app root** (`main.tsx` / `_layout.tsx`). Use the shared `createQueryClient()` factory from `src/query/query-client.ts`.
+- **TanStack Query manages remote server state only.** Local UI state (auth session, form state, transient selection) stays in Zustand or `useState` per ADR 0024.
+
 ### UI Form Management and Shared Validation Standard
 
 Formalised in [ADR 0026](../docs/adr/0026-cross-platform-form-management-for-ui-apps.md).
@@ -177,6 +190,8 @@ Use this checklist when reviewing or creating UI code in PRs:
 - [ ] Cross-app domain types go in `@todos/core`; UI-only types go in `src/types/`.
 - [ ] Service/store transport boundaries use canonical DTOs from `@todos/core/http` directly rather than `Pick`/`Omit`-derived aliases.
 - [ ] Form validation uses Zod schemas from `@todos/core/http`; new validation rules are added there first, not in app-local files.
+- [ ] Server-state fetches use `useQuery`; server-state mutations use `useMutation` from TanStack Query.
+
 - [ ] Each new component has a corresponding unit test (Vitest + React Testing Library for web; React Native Testing Library for mobile).
 
 ## AI Consistency Rules

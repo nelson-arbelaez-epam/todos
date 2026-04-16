@@ -1,5 +1,6 @@
 import type { TodoDto, UpdateTodoDto } from '@todos/core/http';
 import { useState } from 'react';
+import { PaginationControls } from '@/components/molecules';
 import { CreateTodoForm } from '@/components/organisms';
 import { ScreenLayout, TodoList } from '@/components/templates';
 import { useTodos } from '@/hooks/useTodos';
@@ -13,6 +14,12 @@ export function TodosScreen() {
     error,
     createError,
     updateError,
+    page,
+    totalPages,
+    canGoToPreviousPage,
+    canGoToNextPage,
+    previousPage,
+    nextPage,
     refresh,
     createTodo,
     updateTodo,
@@ -84,6 +91,14 @@ export function TodosScreen() {
         onToggleComplete={async (todo) => {
           await updateTodo(todo.id, { completed: !todo.completed });
         }}
+      />
+      <PaginationControls
+        page={page}
+        totalPages={totalPages}
+        canGoToPreviousPage={canGoToPreviousPage}
+        canGoToNextPage={canGoToNextPage}
+        onPreviousPage={previousPage}
+        onNextPage={nextPage}
       />
     </ScreenLayout>
   );

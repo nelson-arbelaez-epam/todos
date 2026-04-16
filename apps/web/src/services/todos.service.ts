@@ -8,6 +8,12 @@ interface ApiError {
   message?: string | string[];
 }
 
+type HttpError = Error & { status?: number };
+interface ListTodosParams {
+  page?: number;
+  limit?: number;
+}
+
 function resolveApiErrorMessage(body: ApiError, fallback: string): string {
   if (typeof body.message === 'string') {
     return body.message;
@@ -19,11 +25,23 @@ function resolveApiErrorMessage(body: ApiError, fallback: string): string {
 }
 
 /**
- * List active todos for the current user. Returns the items array.
+ * List todos for the current user with optional pagination. Returns a paginated response.
  * Include `idToken` (Firebase JWT) as `Authorization: Bearer <token>` when present.
  */
-export async function listTodos(idToken?: string): Promise<TodoDto[]> {
-  const url = `${API_BASE_URL}/api/v1/todos`;
+export async function listTodos(
+  idToken?: string,
+  params: ListTodosParams = {},
+): Promise<TodoListDto> {
+  const search = new URLSearchParams();
+  if (params.page !== undefined) {
+    search.set('page', String(params.page));
+  }
+  if (params.limit !== undefined) {
+    search.set('limit', String(params.limit));
+  }
+
+  const queryString = search.toString();
+  const url = `${API_BASE_URL}/api/v1/todos${queryString ? `?${queryString}` : ''}`;
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -34,11 +52,12 @@ export async function listTodos(idToken?: string): Promise<TodoDto[]> {
   if (!response.ok) {
     const json = (await response.json().catch(() => ({}))) as ApiError;
     const message = resolveApiErrorMessage(json, 'Failed to fetch todos');
-    throw new Error(message);
+    const error = new Error(message) as HttpError;
+    error.status = response.status;
+    throw error;
   }
 
-  const body = (await response.json()) as TodoListDto;
-  return body.items ?? [];
+  return (await response.json()) as TodoListDto;
 }
 
 /**
@@ -64,7 +83,9 @@ export async function createTodo(
   if (!response.ok) {
     const json = (await response.json().catch(() => ({}))) as ApiError;
     const message = resolveApiErrorMessage(json, 'Failed to create todo');
-    throw new Error(message);
+    const error = new Error(message) as HttpError;
+    error.status = response.status;
+    throw error;
   }
 
   return response.json() as Promise<TodoDto>;

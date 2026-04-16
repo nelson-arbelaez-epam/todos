@@ -1,3 +1,4 @@
+import { QueryClientProvider } from '@tanstack/react-query';
 import sharedFaviconUrl from '@todos/branding/favicon.svg?url';
 import '@todos/branding/tokens.css';
 import { StrictMode } from 'react';
@@ -5,6 +6,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import './index.css';
 import App from './App.tsx';
+import { createTodosQueryClient } from './query/query-client';
 
 const existingFavicon =
   document.querySelector<HTMLLinkElement>("link[rel='icon']");
@@ -23,10 +25,14 @@ if (!rootElement) {
   throw new Error('Root element not found');
 }
 
+const queryClient = createTodosQueryClient();
+
 createRoot(rootElement).render(
   <StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </QueryClientProvider>
   </StrictMode>,
 );
