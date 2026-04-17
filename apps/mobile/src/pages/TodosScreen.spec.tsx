@@ -43,7 +43,10 @@ describe('TodosScreen', () => {
       createTodo: vi.fn(),
       updateTodo: vi.fn(),
       archiveTodo: vi.fn(),
+      archiving: {},
+      archiveError: null,
       clearUpdateError: vi.fn(),
+      clearArchiveError: vi.fn(),
     };
 
     mockUseTodos.mockReturnValue(mockValue);
@@ -83,7 +86,10 @@ describe('TodosScreen', () => {
       createTodo: vi.fn(),
       updateTodo,
       archiveTodo: vi.fn(),
+      archiving: {},
+      archiveError: null,
       clearUpdateError: vi.fn(),
+      clearArchiveError: vi.fn(),
     };
 
     mockUseTodos.mockReturnValue(mockValue);
@@ -136,7 +142,10 @@ describe('TodosScreen', () => {
       createTodo: vi.fn(),
       updateTodo,
       archiveTodo: vi.fn(),
+      archiving: {},
+      archiveError: null,
       clearUpdateError: vi.fn(),
+      clearArchiveError: vi.fn(),
     };
 
     mockUseTodos.mockReturnValue(mockValue);
@@ -189,7 +198,10 @@ describe('TodosScreen', () => {
       createTodo: vi.fn(),
       updateTodo: vi.fn(),
       archiveTodo,
+      archiving: {},
+      archiveError: null,
       clearUpdateError: vi.fn(),
+      clearArchiveError: vi.fn(),
     };
 
     mockUseTodos.mockReturnValue(mockValue);

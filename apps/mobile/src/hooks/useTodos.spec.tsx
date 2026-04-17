@@ -499,12 +499,21 @@ describe('useTodos hook', () => {
       },
     ];
 
-    mockListTodos.mockResolvedValue({
-      items: initialItems,
-      total: 1,
-      page: 1,
-      limit: 20,
-    });
+    // First call: initial load; subsequent calls (after invalidation): empty
+    mockListTodos
+      .mockResolvedValueOnce({
+        items: initialItems,
+        total: 1,
+        page: 1,
+        limit: 20,
+      })
+      .mockResolvedValue({
+        items: [],
+        total: 0,
+        page: 1,
+        limit: 20,
+      });
+
     mockArchiveTodo.mockResolvedValue({
       ...initialItems[0],
       archivedAt: new Date(),
@@ -545,5 +554,102 @@ describe('useTodos hook', () => {
 
     await waitFor(() => expect(screen.queryByText('To archive')).toBeNull());
     expect(mockArchiveTodo).toHaveBeenCalledWith('1', 'token-123');
+  });
+
+  it('exposes archiveError when archive request fails', async () => {
+    mockArchiveTodo.mockRejectedValue(new Error('archive failed'));
+
+    function TestComp() {
+      const { archiveTodo, archiveError } = useTodos();
+      return (
+        <View>
+          <Pressable
+            testID="archive-button"
+            onPress={() => {
+              void archiveTodo('1');
+            }}
+          >
+            <Text>archive</Text>
+          </Pressable>
+          {archiveError ? <Text>{archiveError}</Text> : null}
+        </View>
+      );
+    }
+
+    renderWithQueryClient(<TestComp />);
+    fireEvent.press(screen.getByTestId('archive-button'));
+
+    await waitFor(() => expect(screen.getByText('archive failed')).toBeTruthy());
+  });
+
+  it('invalidates current and later pages after archiving', async () => {
+    const initialItems: TodoDto[] = [
+      {
+        id: '1',
+        title: 'Item on page 1',
+        description: undefined,
+        completed: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ];
+
+    // First call returns 21 items total (2 pages)
+    mockListTodos.mockResolvedValue({
+      items: initialItems,
+      total: 21,
+      page: 1,
+      limit: 20,
+    });
+    mockArchiveTodo.mockResolvedValue({
+      ...initialItems[0],
+      archivedAt: new Date(),
+    });
+
+    useSessionStore.setState({
+      currentUser: {
+        uid: 'u',
+        email: 'e',
+        idToken: 'token-123',
+        expiresIn: '3600',
+      },
+    });
+
+    function TestComp() {
+      const { todos, archiveTodo } = useTodos();
+      return (
+        <View>
+          <Pressable
+            testID="archive-button"
+            onPress={() => {
+              void archiveTodo('1');
+            }}
+          >
+            <Text>archive</Text>
+          </Pressable>
+          {todos.map((t) => (
+            <Text key={t.id}>{t.title}</Text>
+          ))}
+        </View>
+      );
+    }
+
+    renderWithQueryClient(<TestComp />);
+    await waitFor(() =>
+      expect(screen.getByText('Item on page 1')).toBeTruthy(),
+    );
+
+    // Change mock so next call returns updated data
+    mockListTodos.mockResolvedValue({
+      items: [],
+      total: 20,
+      page: 1,
+      limit: 20,
+    });
+
+    fireEvent.press(screen.getByTestId('archive-button'));
+
+    // After archive, invalidateQueries triggers a refetch — listTodos called again
+    await waitFor(() => expect(mockListTodos).toHaveBeenCalledTimes(2));
   });
 });

@@ -24,6 +24,8 @@ export function TodosScreen() {
     createTodo,
     updateTodo,
     archiveTodo,
+    archiving,
+    archiveError,
     clearUpdateError,
   } = useTodos();
   const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
@@ -80,6 +82,8 @@ export function TodosScreen() {
         onRefresh={refresh}
         updating={updating}
         updateError={updateError}
+        archiving={archiving}
+        archiveError={archiveError}
         editingTodoId={editingTodoId}
         editTitle={editTitle}
         editDescription={editDescription}

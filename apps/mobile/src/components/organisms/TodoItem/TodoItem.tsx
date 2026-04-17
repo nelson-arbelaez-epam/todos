@@ -5,6 +5,7 @@ import { AppButton, AppText } from '@/components/atoms';
 export interface TodoItemProps {
   todo: TodoDto;
   isUpdating: boolean;
+  isArchiving?: boolean;
   onToggleComplete?: (todo: TodoDto) => Promise<void>;
   onStartEdit?: (todo: TodoDto) => void;
   onArchive?: (todo: TodoDto) => Promise<void>;
@@ -13,6 +14,7 @@ export interface TodoItemProps {
 export function TodoItem({
   todo,
   isUpdating,
+  isArchiving = false,
   onToggleComplete,
   onStartEdit,
   onArchive,
@@ -66,7 +68,8 @@ export function TodoItem({
             }}
             variant="ghost"
             size="sm"
-            disabled={isUpdating}
+            loading={isArchiving}
+            disabled={isUpdating || isArchiving}
           />
         </View>
       </View>
