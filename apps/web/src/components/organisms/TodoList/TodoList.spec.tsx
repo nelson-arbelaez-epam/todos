@@ -46,6 +46,17 @@ describe('TodoList', () => {
     expect(onStartEdit).toHaveBeenCalledWith(mockTodo);
   });
 
+  it('calls onArchive when Archive button is clicked', async () => {
+    const user = userEvent.setup();
+    const onArchive = vi.fn();
+    render(<TodoList todos={[mockTodo]} onArchive={onArchive} />);
+
+    await user.click(
+      screen.getByRole('button', { name: `archive-${mockTodo.id}` }),
+    );
+    expect(onArchive).toHaveBeenCalledWith(mockTodo);
+  });
+
   it('renders EditTodoForm when editingTodoId matches a todo', () => {
     const onSubmitEdit = vi.fn().mockResolvedValue(undefined);
     const onCancelEdit = vi.fn();

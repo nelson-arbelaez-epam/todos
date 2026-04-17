@@ -4,6 +4,7 @@ import { useState } from 'react';
 import PaginationControls from '../components/molecules/PaginationControls/PaginationControls';
 import CreateTodoForm from '../components/organisms/CreateTodoForm/CreateTodoForm';
 import TodoList from '../components/organisms/TodoList/TodoList';
+import { useArchiveTodo } from '../hooks/useArchiveTodo';
 import { useCreateTodo } from '../hooks/useCreateTodo';
 import { useUpdateTodo } from '../hooks/useUpdateTodo';
 import { getTodosQueryKey } from '../query/query-client';
@@ -32,6 +33,13 @@ const Todos = () => {
       limit: PAGE_LIMIT,
     });
 
+  const { archiving, archiveErrors, handleArchiveTodo } = useArchiveTodo({
+    idToken: currentUser?.idToken,
+    ownerId: currentUser?.uid,
+    page,
+    limit: PAGE_LIMIT,
+  });
+
   const { data, isLoading, error } = useQuery({
     queryKey: getTodosQueryKey(currentUser?.uid, page, PAGE_LIMIT),
     queryFn: () =>
@@ -40,7 +48,7 @@ const Todos = () => {
         limit: PAGE_LIMIT,
       }),
   });
-  const todos = data?.items ?? [];
+  const todos = (data?.items ?? []).filter((t) => !t.archivedAt);
   const total = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_LIMIT));
   const canGoToPreviousPage = page > 1;
@@ -69,6 +77,10 @@ const Todos = () => {
     }
   };
 
+  const handleArchive = (todo: TodoDto) => {
+    void handleArchiveTodo(todo.id);
+  };
+
   return (
     <div>
       <h1 className="text-2xl font-semibold mb-4">Todos</h1>
@@ -92,16 +104,24 @@ const Todos = () => {
             {err}
           </div>
         ))}
+      {Object.entries(archiveErrors)
+        .filter(([, err]) => err)
+        .map(([id, err]) => (
+          <div key={id} role="alert">
+            {err}
+          </div>
+        ))}
       {!isLoading && !error && todos && (
         <TodoList
           todos={todos}
-          updating={updating}
+          updating={{ ...updating, ...archiving }}
           updateErrors={updateErrors}
           editingTodoId={editingTodoId}
           onToggleComplete={handleToggleComplete}
           onStartEdit={handleStartEdit}
           onCancelEdit={handleCancelEdit}
           onSubmitEdit={handleSubmitEdit}
+          onArchive={handleArchive}
         />
       )}
       {!isLoading && !error && (
