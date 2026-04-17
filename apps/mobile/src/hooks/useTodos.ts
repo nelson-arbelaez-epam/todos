@@ -128,7 +128,8 @@ export function useTodos() {
       setArchiving((a) => ({ ...a, [id]: true }));
     },
     onSuccess: (_archived, id) => {
-      // Optimistically remove the item and decrement total for instant feedback.
+      // Remove the archived item from the current page cache immediately
+      // so the UI updates without waiting for the refetch below.
       queryClient.setQueryData<TodoListDto>(
         getTodosQueryKey(currentUser?.uid, page, PAGE_LIMIT),
         (prev) =>

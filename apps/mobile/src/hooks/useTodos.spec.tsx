@@ -579,7 +579,9 @@ describe('useTodos hook', () => {
     renderWithQueryClient(<TestComp />);
     fireEvent.press(screen.getByTestId('archive-button'));
 
-    await waitFor(() => expect(screen.getByText('archive failed')).toBeTruthy());
+    await waitFor(() =>
+      expect(screen.getByText('archive failed')).toBeTruthy(),
+    );
   });
 
   it('invalidates current and later pages after archiving', async () => {
