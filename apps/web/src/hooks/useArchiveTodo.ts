@@ -27,6 +27,9 @@ export function useArchiveTodo({
   const mutation = useMutation<TodoDto, Error, { id: string }>({
     mutationFn: ({ id }) => archiveTodo(id, idToken),
     onMutate: ({ id }) => {
+      // Canonical location for the concurrency guard — set synchronously before
+      // the async work starts so any call path (including direct mutation.mutate)
+      // is protected.
       archivingRef.current[id] = true;
       setArchiving((a) => ({ ...a, [id]: true }));
     },
@@ -36,7 +39,7 @@ export function useArchiveTodo({
         delete copy[archived.id];
         return copy;
       });
-      // Remove the archived todo from the active list immediately.
+      // Update the current page immediately for instant UI feedback.
       queryClient.setQueryData<TodoListDto>(
         getTodosQueryKey(ownerId, page, limit),
         (previous) =>
@@ -48,6 +51,19 @@ export function useArchiveTodo({
               }
             : previous,
       );
+      // Invalidate this page and all later pages so pagination totals stay
+      // consistent across the cache after the item count changes.
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          const key = query.queryKey as unknown[];
+          return (
+            key[0] === 'todos' &&
+            key[1] === (ownerId ?? null) &&
+            typeof key[2] === 'number' &&
+            (key[2] as number) >= page
+          );
+        },
+      });
     },
     onError: (error, variables) => {
       const id = variables?.id;
@@ -69,8 +85,9 @@ export function useArchiveTodo({
   });
 
   const handleArchiveTodo = async (id: string): Promise<boolean> => {
+    // Guard checked here; the ref is set in onMutate which fires synchronously
+    // inside mutateAsync before any async work begins.
     if (archivingRef.current[id]) return false;
-    archivingRef.current[id] = true;
     try {
       await mutation.mutateAsync({ id });
       return true;
@@ -82,7 +99,6 @@ export function useArchiveTodo({
   return {
     archiving,
     archiveErrors,
-    isArchiving: mutation.isPending,
     handleArchiveTodo,
   };
 }
