@@ -1,0 +1,163 @@
+# docker-compose.dev.yml
+#
+# Docker Compose configuration for local development.
+#
+# Splits the dev stack into focused services:
+#   package-builder  — watches and rebuilds shared packages in the background
+#   api              — NestJS Todos API          (http://localhost:3000)
+#   mcp              — NestJS MCP server         (http://localhost:3010)
+#   web              — Vite React frontend       (http://localhost:5173)
+#
+# Mobile development is NOT containerised; see the README for local mobile instructions.
+#
+# Prerequisites:
+#   1. Docker Desktop / Docker Engine + Compose plugin >= 2.24
+#   2. Run `yarn install` on the host to populate the workspace node_modules
+#   3. Copy `.env.example` to `.env` and fill in your Firebase credentials
+#
+# Quick start:
+#   docker compose -f docker-compose.dev.yml up
+#
+# Start a single service (and its dependencies):
+#   docker compose -f docker-compose.dev.yml up web
+#
+# Tear down:
+#   docker compose -f docker-compose.dev.yml down
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # package-builder
+  # Runs `yarn dev:packages` to watch and recompile all shared packages
+  # (@todos/core, @todos/store, @todos/firebase, @todos/branding) whenever
+  # their sources change.  API and MCP services depend on this being healthy
+  # (i.e. the initial build has completed) before they start.
+  # ---------------------------------------------------------------------------
+  package-builder:
+    image: node:22-slim
+    working_dir: /workspace
+    command: >
+      sh -c "corepack enable && yarn dev:packages"
+    volumes:
+      - .:/workspace
+    environment:
+      NODE_ENV: development
+    restart: on-failure
+    healthcheck:
+      test:
+        - CMD
+        - sh
+        - -c
+        - >-
+          test -f /workspace/packages/core/dist/index.js &&
+          test -f /workspace/packages/store/dist/index.js &&
+          test -f /workspace/packages/firebase/dist/index.js
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 90s
+
+  # ---------------------------------------------------------------------------
+  # api
+  # NestJS Todos API in watch mode.  Requires Firebase credentials supplied via
+  # the .env / .env.local files (see .env.example).
+  # ---------------------------------------------------------------------------
+  api:
+    image: node:22-slim
+    working_dir: /workspace
+    command: >
+      sh -c "corepack enable && yarn workspace @todos/api start:dev"
+    volumes:
+      - .:/workspace
+    ports:
+      - "${API_PORT:-3000}:3000"
+    env_file:
+      - path: .env
+        required: false
+      - path: .env.local
+        required: false
+    environment:
+      NODE_ENV: development
+      PORT: "3000"
+    depends_on:
+      package-builder:
+        condition: service_healthy
+    restart: on-failure
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - -qO-
+        - http://localhost:3000/api/v1/health
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+
+  # ---------------------------------------------------------------------------
+  # mcp
+  # NestJS MCP server in watch mode.  Talks to the `api` service over the
+  # internal Docker network (TODOS_API_URL is always overridden to the
+  # service name regardless of what is set in .env).
+  # ---------------------------------------------------------------------------
+  mcp:
+    image: node:22-slim
+    working_dir: /workspace
+    command: >
+      sh -c "corepack enable && yarn workspace @todos/mcp start:dev"
+    volumes:
+      - .:/workspace
+    ports:
+      - "${MCP_PORT:-3010}:3010"
+    env_file:
+      - path: .env
+        required: false
+      - path: .env.local
+        required: false
+    environment:
+      NODE_ENV: development
+      PORT: "3010"
+      # Always use the Docker-network service name so MCP can reach the API.
+      TODOS_API_URL: "http://api:3000"
+    depends_on:
+      package-builder:
+        condition: service_healthy
+    restart: on-failure
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - -qO-
+        - http://localhost:3010/health
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+
+  # ---------------------------------------------------------------------------
+  # web
+  # Vite React development server with HMR.  The VITE_TODOS_API_URL is set to
+  # the host-facing URL (http://localhost:<port>) because API calls are made
+  # from the browser, not from within the Docker network.
+  # ---------------------------------------------------------------------------
+  web:
+    image: node:22-slim
+    working_dir: /workspace
+    command: >
+      sh -c "corepack enable && yarn workspace @todos/web dev --host 0.0.0.0 --port 5173"
+    volumes:
+      - .:/workspace
+    ports:
+      - "${WEB_PORT:-5173}:5173"
+    env_file:
+      - path: .env
+        required: false
+      - path: .env.local
+        required: false
+    environment:
+      NODE_ENV: development
+      # Browser-facing URL — must use localhost, not the Docker network name.
+      VITE_TODOS_API_URL: "http://localhost:${API_PORT:-3000}"
+    depends_on:
+      - package-builder
+    restart: on-failure
