@@ -134,3 +134,30 @@ export async function updateTodo(
 
   return (await response.json()) as TodoDto;
 }
+
+/**
+ * Archive (soft-delete) an existing todo for the current user.
+ */
+export async function archiveTodo(
+  id: string,
+  idToken?: string,
+): Promise<TodoDto> {
+  const url = `${getApiBaseUrl()}/api/v1/todos/${id}/archive`;
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (idToken) headers.Authorization = `Bearer ${idToken}`;
+
+  const response = await fetch(url, {
+    method: 'PATCH',
+    headers,
+  });
+
+  if (!response.ok) {
+    const json = await response.json().catch(() => ({}));
+    throw new Error(extractErrorMessage(json, 'Failed to archive todo'));
+  }
+
+  return (await response.json()) as TodoDto;
+}

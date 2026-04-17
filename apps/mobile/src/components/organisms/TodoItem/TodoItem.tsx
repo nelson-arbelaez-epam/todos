@@ -5,15 +5,19 @@ import { AppButton, AppText } from '@/components/atoms';
 export interface TodoItemProps {
   todo: TodoDto;
   isUpdating: boolean;
+  isArchiving?: boolean;
   onToggleComplete?: (todo: TodoDto) => Promise<void>;
   onStartEdit?: (todo: TodoDto) => void;
+  onArchive?: (todo: TodoDto) => Promise<void>;
 }
 
 export function TodoItem({
   todo,
   isUpdating,
+  isArchiving = false,
   onToggleComplete,
   onStartEdit,
+  onArchive,
 }: TodoItemProps) {
   return (
     <View className="py-2 border-b border-border">
@@ -53,6 +57,19 @@ export function TodoItem({
             variant="ghost"
             size="sm"
             disabled={isUpdating}
+          />
+          <AppButton
+            title="Archive"
+            testID={`archive-todo-${todo.id}`}
+            onPress={() => {
+              if (onArchive) {
+                void onArchive(todo);
+              }
+            }}
+            variant="ghost"
+            size="sm"
+            loading={isArchiving}
+            disabled={isUpdating || isArchiving}
           />
         </View>
       </View>

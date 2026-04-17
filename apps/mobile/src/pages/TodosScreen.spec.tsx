@@ -42,7 +42,11 @@ describe('TodosScreen', () => {
       refresh: vi.fn(),
       createTodo: vi.fn(),
       updateTodo: vi.fn(),
+      archiveTodo: vi.fn(),
+      archiving: {},
+      archiveError: null,
       clearUpdateError: vi.fn(),
+      clearArchiveError: vi.fn(),
     };
 
     mockUseTodos.mockReturnValue(mockValue);
@@ -81,7 +85,11 @@ describe('TodosScreen', () => {
       refresh: vi.fn(),
       createTodo: vi.fn(),
       updateTodo,
+      archiveTodo: vi.fn(),
+      archiving: {},
+      archiveError: null,
       clearUpdateError: vi.fn(),
+      clearArchiveError: vi.fn(),
     };
 
     mockUseTodos.mockReturnValue(mockValue);
@@ -133,7 +141,11 @@ describe('TodosScreen', () => {
       refresh: vi.fn(),
       createTodo: vi.fn(),
       updateTodo,
+      archiveTodo: vi.fn(),
+      archiving: {},
+      archiveError: null,
       clearUpdateError: vi.fn(),
+      clearArchiveError: vi.fn(),
     };
 
     mockUseTodos.mockReturnValue(mockValue);
@@ -154,5 +166,50 @@ describe('TodosScreen', () => {
         description: 'Trimmed desc',
       }),
     );
+  });
+
+  it('wires archive action to archiveTodo', async () => {
+    const archiveTodo = vi.fn().mockResolvedValue(true);
+    const mockValue: ReturnType<typeof UseTodos.useTodos> = {
+      todos: [
+        {
+          id: '1',
+          title: 'Write tests',
+          description: undefined,
+          completed: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ],
+      isLoading: false,
+      isCreating: false,
+      error: null,
+      createError: null,
+      updateError: null,
+      updating: {},
+      page: 1,
+      total: 1,
+      totalPages: 1,
+      canGoToPreviousPage: false,
+      canGoToNextPage: false,
+      previousPage: vi.fn(),
+      nextPage: vi.fn(),
+      refresh: vi.fn(),
+      createTodo: vi.fn(),
+      updateTodo: vi.fn(),
+      archiveTodo,
+      archiving: {},
+      archiveError: null,
+      clearUpdateError: vi.fn(),
+      clearArchiveError: vi.fn(),
+    };
+
+    mockUseTodos.mockReturnValue(mockValue);
+
+    const { getByTestId } = render(<TodosScreen />);
+
+    fireEvent.press(getByTestId('archive-todo-1'));
+
+    await waitFor(() => expect(archiveTodo).toHaveBeenCalledWith('1'));
   });
 });

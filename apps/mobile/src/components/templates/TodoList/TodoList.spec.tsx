@@ -96,4 +96,30 @@ describe('TodoList', () => {
     );
     expect(getByText('failed')).toBeTruthy();
   });
+
+  it('calls onArchive when archive button is pressed', async () => {
+    const onArchive = vi.fn().mockResolvedValue(undefined);
+    const { getByTestId } = render(
+      <TodoList todos={sample} onArchive={onArchive} />,
+    );
+
+    fireEvent.press(getByTestId(`archive-todo-${sample[0].id}`));
+
+    await waitFor(() => expect(onArchive).toHaveBeenCalledWith(sample[0]));
+  });
+
+  it('renders archiveError when provided', () => {
+    const { getByText } = render(
+      <TodoList todos={sample} archiveError="archive failed" />,
+    );
+    expect(getByText('archive failed')).toBeTruthy();
+  });
+
+  it('disables Archive button for item whose id is in archiving map', () => {
+    const { getByTestId } = render(
+      <TodoList todos={sample} archiving={{ [sample[0].id]: true }} />,
+    );
+    const archiveButton = getByTestId(`archive-todo-${sample[0].id}`);
+    expect(archiveButton.props.accessibilityState?.disabled).toBe(true);
+  });
 });

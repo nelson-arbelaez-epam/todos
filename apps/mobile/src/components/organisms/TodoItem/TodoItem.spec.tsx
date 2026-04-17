@@ -47,4 +47,25 @@ describe('TodoItem', () => {
 
     expect(onStartEdit).toHaveBeenCalledWith(todo);
   });
+
+  it('calls onArchive when archive pressed', () => {
+    const onArchive = vi.fn().mockResolvedValue(undefined);
+
+    const { getByTestId } = render(
+      <TodoItem todo={todo} isUpdating={false} onArchive={onArchive} />,
+    );
+
+    fireEvent.press(getByTestId(`archive-todo-${todo.id}`));
+
+    expect(onArchive).toHaveBeenCalledWith(todo);
+  });
+
+  it('disables and shows loading on Archive button when isArchiving is true', () => {
+    const { getByTestId } = render(
+      <TodoItem todo={todo} isUpdating={false} isArchiving />,
+    );
+
+    const archiveButton = getByTestId(`archive-todo-${todo.id}`);
+    expect(archiveButton.props.accessibilityState?.disabled).toBe(true);
+  });
 });

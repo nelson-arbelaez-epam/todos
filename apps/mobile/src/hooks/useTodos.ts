@@ -8,6 +8,7 @@ import type {
 import { useRef, useState } from 'react';
 import { getTodosQueryKey } from '@/query/query-client';
 import {
+  archiveTodo as archiveTodoRequest,
   createTodo as createTodoRequest,
   listTodos,
   updateTodo as updateTodoRequest,
@@ -119,6 +120,63 @@ export function useTodos() {
 
   const clearUpdateError = () => updateMutation.reset();
 
+  const [archiving, setArchiving] = useState<Record<string, boolean>>({});
+
+  const archiveMutation = useMutation<TodoDto, Error, string>({
+    mutationFn: (id) => archiveTodoRequest(id, currentUser?.idToken),
+    onMutate: (id) => {
+      setArchiving((a) => ({ ...a, [id]: true }));
+    },
+    onSuccess: (_archived, id) => {
+      // Remove the archived item from the current page cache immediately
+      // so the UI updates without waiting for the refetch below.
+      queryClient.setQueryData<TodoListDto>(
+        getTodosQueryKey(currentUser?.uid, page, PAGE_LIMIT),
+        (prev) =>
+          prev
+            ? {
+                ...prev,
+                items: prev.items.filter((t) => t.id !== id),
+                total: Math.max(0, prev.total - 1),
+              }
+            : prev,
+      );
+      // Invalidate the current page and all higher-numbered pages so that
+      // server-driven totals and pagination boundaries are refreshed.
+      const ownerId = currentUser?.uid ?? null;
+      void queryClient.invalidateQueries({
+        predicate: (query) => {
+          const key = query.queryKey;
+          return (
+            Array.isArray(key) &&
+            key[0] === 'todos' &&
+            key[1] === ownerId &&
+            typeof key[2] === 'number' &&
+            key[2] >= page
+          );
+        },
+      });
+    },
+    onSettled: (_data, _error, id) => {
+      setArchiving((a) => {
+        const copy = { ...a };
+        delete copy[id];
+        return copy;
+      });
+    },
+  });
+
+  const archiveTodo = async (id: string): Promise<boolean> => {
+    try {
+      await archiveMutation.mutateAsync(id);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const clearArchiveError = () => archiveMutation.reset();
+
   return {
     todos,
     page,
@@ -145,5 +203,9 @@ export function useTodos() {
     },
     createTodo,
     updateTodo,
+    archiveTodo,
+    archiving,
+    archiveError: archiveMutation.error?.message ?? null,
+    clearArchiveError,
   } as const;
 }

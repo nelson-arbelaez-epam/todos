@@ -21,6 +21,9 @@ export interface TodoListProps {
   onChangeEditTitle?: (value: string) => void;
   onChangeEditDescription?: (value: string) => void;
   onSubmitEdit?: (id: string, payload: UpdateTodoDto) => Promise<void>;
+  archiving?: Record<string, boolean>;
+  archiveError?: string | null;
+  onArchive?: (todo: TodoDto) => Promise<void>;
 }
 
 export function TodoList({
@@ -40,6 +43,9 @@ export function TodoList({
   onChangeEditTitle,
   onChangeEditDescription,
   onSubmitEdit,
+  archiving = {},
+  archiveError,
+  onArchive,
 }: TodoListProps) {
   if (isLoading) {
     return (
@@ -76,6 +82,11 @@ export function TodoList({
           {updateError}
         </AppText>
       ) : null}
+      {archiveError ? (
+        <AppText variant="caption" color="danger" className="mb-2">
+          {archiveError}
+        </AppText>
+      ) : null}
       <FlatList
         data={todos}
         initialNumToRender={10}
@@ -84,6 +95,7 @@ export function TodoList({
         renderItem={({ item }) => {
           const isEditing = editingTodoId === item.id;
           const isUpdating = !!updating[item.id];
+          const isArchiving = !!archiving[item.id];
 
           return isEditing ? (
             <TodoInlineForm
@@ -101,8 +113,10 @@ export function TodoList({
             <TodoItem
               todo={item}
               isUpdating={isUpdating}
+              isArchiving={isArchiving}
               onToggleComplete={onToggleComplete}
               onStartEdit={onStartEdit}
+              onArchive={onArchive}
             />
           );
         }}
