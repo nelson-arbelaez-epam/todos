@@ -13,6 +13,7 @@
     "test:e2e:smoke": "echo 'Playwright not yet installed — see docs/e2e-guide.md'"
   },
   "dependencies": {
+    "@tanstack/react-query": "5.99.0",
     "@todos/branding": "workspace:*",
     "@todos/core": "workspace:^",
     "react": "^19.2.4",
@@ -30,10 +31,14 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
+    "@vitest/coverage-v8": "4.1.2",
+    "autoprefixer": "^10.4.27",
     "globals": "^17.4.0",
     "jsdom": "^26.1.0",
+    "postcss": "^8.5.9",
+    "tailwindcss": "3",
     "typescript": "~5.9.3",
     "vite": "^8.0.1",
-    "vitest": "latest"
+    "vitest": "4.1.2"
   }
 }

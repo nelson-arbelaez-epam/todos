@@ -124,7 +124,7 @@ Organise components using Atomic Design adapted to this project:
 | **Templates** | Page-level layout wrappers; no data fetching | MainLayout, AuthLayout | `src/components/templates/` |
 | **Pages** | Route-bound containers that wire data into templates/organisms | Home, About, Login | `src/pages/` |
 
-Import direction is strictly top-down: atoms ← molecules ← organisms ← templates ← pages. Cross-cutting hooks live in `src/hooks/`; shared types live in `src/types/` or in `@todos/core` for domain contracts.
+Import direction is strictly top-down: atoms ← molecules ← organisms ← templates ← pages. Atom consumers should import from the public atoms index (`src/components/atoms`) rather than nested atom paths like `src/components/atoms/AppLabel/AppLabel`. Cross-cutting hooks live in `src/hooks/`; shared types live in `src/types/` or in `@todos/core` for domain contracts.
 
 ### Styling: PostCSS and Tailwind-like Utilities
 
@@ -150,6 +150,34 @@ Import direction is strictly top-down: atoms ← molecules ← organisms ← tem
 - **Redux Toolkit requires an ADR-approved exception** when justified by cross-domain global-state complexity.
 - **The same session-state rule applies to `apps/web` and `apps/mobile`**; platform-specific persistence may differ, but the store boundary and direct DTO usage rules do not.
 
+### UI Server-State Standard (TanStack Query)
+
+Formalised in [ADR 0027](../docs/adr/0027-tanstack-query-for-server-state.md).
+
+- **TanStack Query (`@tanstack/react-query`) is the standard for all server-state data fetching and mutation** in `apps/web` and `apps/mobile`.
+- **`useQuery` is used for read operations** (listing todos, etc.) with paginated results returned as `TodoListDto`.
+- **`useMutation` is required for all write operations** (create, update, delete). Manual `useState`-based loading/error tracking for mutations is not permitted.
+- **Query cache keys use the authenticated user `uid`** — never the `idToken` (JWT), which is a sensitive credential and rotates.  
+  Key shape: `['todos', uid, page, limit]`.
+- **After a successful mutation, update the query cache** with `queryClient.setQueryData` instead of triggering a full refetch.
+- **`QueryClientProvider` must wrap each app root** (`main.tsx` / `_layout.tsx`). Use the shared `createQueryClient()` factory from `src/query/query-client.ts`.
+- **TanStack Query manages remote server state only.** Local UI state (auth session, form state, transient selection) stays in Zustand or `useState` per ADR 0024.
+
+### UI Form Management and Shared Validation Standard
+
+Formalised in [ADR 0026](../docs/adr/0026-cross-platform-form-management-for-ui-apps.md).
+
+- **Zod is the single source of truth for validation rules** across the full stack.
+  Zod schemas for all HTTP payloads live in `@todos/core/http` and are exported alongside the inferred TypeScript types.
+- **React Hook Form + `@hookform/resolvers` + Zod is the default for non-trivial forms** in `apps/web` and `apps/mobile`.
+  Form orchestration hooks live in `src/hooks/forms/`; they import schemas directly from `@todos/core/http`.
+- **The NestJS API uses `nestjs-zod`** to derive DTO classes from the same Zod schemas (`createZodDto()`) and validates requests with `ZodValidationPipe`.
+  This ensures client and server apply identical constraints without duplication.
+- **Local `useState` forms are allowed for trivial UI-only flows** that do not need shared validation or reuse patterns.
+- **Form orchestration belongs to container hooks/pages**; presentational components remain prop-driven and side-effect free.
+- **Backend validation remains authoritative**; client-side validation is UX support and must not replace backend contracts.
+  Backend error responses must be mapped back to field/form errors in the container hook.
+
 ### UI Adoption Checklist
 
 Use this checklist when reviewing or creating UI code in PRs:
@@ -161,6 +189,9 @@ Use this checklist when reviewing or creating UI code in PRs:
 - [ ] New design token values are added to the `:root` CSS custom property block (and mirrored in `tailwind.config.js` once Tailwind is adopted).
 - [ ] Cross-app domain types go in `@todos/core`; UI-only types go in `src/types/`.
 - [ ] Service/store transport boundaries use canonical DTOs from `@todos/core/http` directly rather than `Pick`/`Omit`-derived aliases.
+- [ ] Form validation uses Zod schemas from `@todos/core/http`; new validation rules are added there first, not in app-local files.
+- [ ] Server-state fetches use `useQuery`; server-state mutations use `useMutation` from TanStack Query.
+
 - [ ] Each new component has a corresponding unit test (Vitest + React Testing Library for web; React Native Testing Library for mobile).
 
 ## AI Consistency Rules

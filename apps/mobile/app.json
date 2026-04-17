@@ -21,6 +21,11 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true
-    }
+    },
+    "scheme": "todos",
+    "experiments": {
+      "typedRoutes": true
+    },
+    "plugins": ["expo-router"]
   }
 }

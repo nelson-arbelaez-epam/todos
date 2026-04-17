@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { describe, expect, it, vi } from 'vitest';
 import { RegisterForm } from './RegisterForm';
 
 describe('RegisterForm', () => {
@@ -8,9 +9,11 @@ describe('RegisterForm', () => {
   it('renders all form fields and submit button', () => {
     render(<RegisterForm isLoading={false} error={null} onSubmit={noop} />);
 
-    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/confirm password/i)).toBeInTheDocument();
+    expect(screen.getByTestId('form-field--email')).toBeInTheDocument();
+    expect(screen.getByTestId('form-field--password')).toBeInTheDocument();
+    expect(
+      screen.getByTestId('form-field--confirmPassword'),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: /register/i }),
     ).toBeInTheDocument();
@@ -34,10 +37,13 @@ describe('RegisterForm', () => {
     const user = userEvent.setup();
     render(<RegisterForm isLoading={false} error={null} onSubmit={noop} />);
 
-    await user.type(screen.getByLabelText(/email/i), 'user@example.com');
-    await user.type(screen.getByLabelText(/^password$/i), 'password123');
     await user.type(
-      screen.getByLabelText(/confirm password/i),
+      screen.getByTestId('form-field--email'),
+      'user@example.com',
+    );
+    await user.type(screen.getByTestId('form-field--password'), 'password123');
+    await user.type(
+      screen.getByTestId('form-field--confirmPassword'),
       'differentpass',
     );
     await user.click(screen.getByRole('button', { name: /register/i }));
@@ -51,9 +57,12 @@ describe('RegisterForm', () => {
     const user = userEvent.setup();
     render(<RegisterForm isLoading={false} error={null} onSubmit={noop} />);
 
-    await user.type(screen.getByLabelText(/email/i), 'user@example.com');
-    await user.type(screen.getByLabelText(/^password$/i), 'abc');
-    await user.type(screen.getByLabelText(/confirm password/i), 'abc');
+    await user.type(
+      screen.getByTestId('form-field--email'),
+      'user@example.com',
+    );
+    await user.type(screen.getByTestId('form-field--password'), 'abc');
+    await user.type(screen.getByTestId('form-field--confirmPassword'), 'abc');
     await user.click(screen.getByRole('button', { name: /register/i }));
 
     expect(screen.getByRole('alert')).toHaveTextContent(
@@ -66,9 +75,15 @@ describe('RegisterForm', () => {
     const onSubmit = vi.fn();
     render(<RegisterForm isLoading={false} error={null} onSubmit={onSubmit} />);
 
-    await user.type(screen.getByLabelText(/email/i), 'user@example.com');
-    await user.type(screen.getByLabelText(/^password$/i), 'password123');
-    await user.type(screen.getByLabelText(/confirm password/i), 'password123');
+    await user.type(
+      screen.getByTestId('form-field--email'),
+      'user@example.com',
+    );
+    await user.type(screen.getByTestId('form-field--password'), 'password123');
+    await user.type(
+      screen.getByTestId('form-field--confirmPassword'),
+      'password123',
+    );
     await user.click(screen.getByRole('button', { name: /register/i }));
 
     expect(onSubmit).toHaveBeenCalledOnce();
@@ -81,9 +96,9 @@ describe('RegisterForm', () => {
   it('disables inputs and button while loading', () => {
     render(<RegisterForm isLoading={true} error={null} onSubmit={noop} />);
 
-    expect(screen.getByLabelText(/email/i)).toBeDisabled();
-    expect(screen.getByLabelText(/^password$/i)).toBeDisabled();
-    expect(screen.getByLabelText(/confirm password/i)).toBeDisabled();
+    expect(screen.getByTestId('form-field--email')).toBeDisabled();
+    expect(screen.getByTestId('form-field--password')).toBeDisabled();
+    expect(screen.getByTestId('form-field--confirmPassword')).toBeDisabled();
 
     const button = screen.getByRole('button');
     expect(button).toBeDisabled();

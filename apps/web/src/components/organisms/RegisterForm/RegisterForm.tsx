@@ -1,5 +1,7 @@
 import { type FormEvent, useState } from 'react';
-import styles from './RegisterForm.module.css';
+import Button from '../../atoms/Button/Button';
+import Text from '../../atoms/Text/Text';
+import FormField from '../../molecules/FormField/FormField';
 
 export interface RegisterFormValues {
   email: string;
@@ -16,6 +18,7 @@ export interface RegisterFormProps {
 /**
  * Presentational register form component.
  * Accepts all data and callbacks via props – no side effects or API calls.
+ * Composes atoms (Button, Text) and molecules (FormField) from the design system.
  */
 export function RegisterForm({
   isLoading,
@@ -47,73 +50,62 @@ export function RegisterForm({
   const displayError = validationError ?? error;
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit} noValidate>
-      <h1 className={styles.title}>Create an account</h1>
+    <form
+      className="mx-auto flex w-full max-w-sm flex-col gap-5 rounded-lg border border-border bg-bg p-8 shadow-md"
+      onSubmit={handleSubmit}
+      noValidate
+    >
+      <Text variant="heading-2" as="h1">
+        Create an account
+      </Text>
 
       {displayError && (
-        <p role="alert" className={styles.error}>
+        <p
+          role="alert"
+          className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-600"
+        >
           {displayError}
         </p>
       )}
 
-      <div className={styles.field}>
-        <label htmlFor="email" className={styles.label}>
-          Email
-        </label>
-        <input
-          id="email"
-          type="email"
-          className={styles.input}
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          autoComplete="email"
-          required
-          disabled={isLoading}
-        />
-      </div>
-
-      <div className={styles.field}>
-        <label htmlFor="password" className={styles.label}>
-          Password
-        </label>
-        <input
-          id="password"
-          type="password"
-          className={styles.input}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          autoComplete="new-password"
-          required
-          disabled={isLoading}
-          minLength={6}
-        />
-      </div>
-
-      <div className={styles.field}>
-        <label htmlFor="confirmPassword" className={styles.label}>
-          Confirm password
-        </label>
-        <input
-          id="confirmPassword"
-          type="password"
-          className={styles.input}
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          autoComplete="new-password"
-          required
-          disabled={isLoading}
-          minLength={6}
-        />
-      </div>
-
-      <button
-        type="submit"
-        className={styles.button}
+      <FormField
+        id="email"
+        label="Email"
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        autoComplete="email"
+        required
         disabled={isLoading}
-        aria-busy={isLoading}
-      >
+      />
+
+      <FormField
+        id="password"
+        label="Password"
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        autoComplete="new-password"
+        required
+        disabled={isLoading}
+        minLength={6}
+      />
+
+      <FormField
+        id="confirmPassword"
+        label="Confirm password"
+        type="password"
+        value={confirmPassword}
+        onChange={(e) => setConfirmPassword(e.target.value)}
+        autoComplete="new-password"
+        required
+        disabled={isLoading}
+        minLength={6}
+      />
+
+      <Button type="submit" loading={isLoading} className="w-full">
         {isLoading ? 'Creating account…' : 'Register'}
-      </button>
+      </Button>
     </form>
   );
 }

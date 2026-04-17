@@ -32,8 +32,8 @@
     "@biomejs/biome": "latest",
     "@swc/core": "^1.15.21",
     "@vitest/coverage-v8": "4.1.2",
-    "@vitest/ui": "latest",
+    "@vitest/ui": "4.1.2",
     "unplugin-swc": "^1.5.9",
-    "vitest": "latest"
+    "vitest": "4.1.2"
   }
 }

@@ -68,15 +68,19 @@ jobs:
 
       - name: Build workspace packages
         run: |
-          yarn workspace @todos/core build
-          yarn workspace @todos/store build
-          yarn workspace @todos/firebase build
+          yarn build:packages
 
       - name: Run API e2e smoke tests
         run: yarn workspace @todos/api test:e2e:smoke
 
       - name: Run MCP e2e smoke tests
         run: yarn workspace @todos/mcp test:e2e:smoke
+      
+      - name: Run Web e2e smoke tests
+        run: yarn workspace @todos/web test:e2e:smoke
+
+      - name: Run Mobile e2e smoke tests
+        run: yarn workspace @todos/mobile test:e2e:smoke
 
       - name: Upload e2e report artifacts
         if: failure()

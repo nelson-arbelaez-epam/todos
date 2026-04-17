@@ -79,6 +79,7 @@ The legacy `apps/api/test/` and `apps/mcp/test/` directories are preserved for b
 A dedicated `vitest.config.e2e.ts` excludes unit spec files and includes only `e2e/**/*.e2e-spec.ts`.
 
 **Rejected alternatives:**
+
 - Jest — no benefit over Vitest given the existing toolchain; migration cost unjustified.
 - Pactum / k6 — appropriate for contract and load testing, not bootstrapping smoke e2e.
 
@@ -100,10 +101,12 @@ Same rationale as API. The Streamable HTTP transport endpoint (`POST /mcp`, ADR 
 | React compatibility | Full support for React 19 apps |
 
 **Rejected alternatives:**
+
 - Cypress — slower startup, heavier CI resource requirements, no multi-browser parallelisation in the open-source tier.
 - Vitest browser mode — still experimental for full navigation flows; designed for component tests, not multi-page journeys.
 
 Installation (deferred to follow-up PBI):
+
 ```bash
 yarn workspace @todos/web add -D @playwright/test
 yarn playwright install --with-deps chromium
@@ -123,10 +126,12 @@ yarn playwright install --with-deps chromium
 | Expo compatibility | Full support for Expo-built apps on iOS and Android simulators |
 
 **Rejected alternatives:**
+
 - Detox — requires native build setup for each platform; higher CI complexity for Expo managed workflow.
 - Appium — verbose setup; session management overhead not justified for this stage.
 
 Installation (deferred to follow-up PBI):
+
 ```bash
 curl -Ls "https://get.maestro.mobile.dev" | bash
 ```
@@ -144,6 +149,7 @@ The smoke tier runs within the existing `ci.yml` workflow.
 A new `e2e-full.yml` workflow handles the nightly/merge full suite.
 
 Artifacts published on failure:
+
 - JUnit XML test reports (`tools/e2e/reports/junit-*.xml`)
 - Playwright trace files (`apps/web/playwright-report/`)
 - Maestro flow recordings (`apps/mobile/e2e/reports/`)
@@ -153,6 +159,7 @@ Artifacts published on failure:
 E2E tests that need auth or Firestore must target the Firebase emulator, not production.
 
 Environment variables used by the API to switch to emulators:
+
 ```
 FIREBASE_AUTH_EMULATOR_HOST=localhost:9099
 FIRESTORE_EMULATOR_HOST=localhost:8080

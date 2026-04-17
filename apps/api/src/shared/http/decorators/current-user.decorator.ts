@@ -22,8 +22,17 @@ import type {
  * }
  */
 export const CurrentUser = createParamDecorator(
-  (_data: unknown, ctx: ExecutionContext): AuthenticatedPrincipal => {
-    const request = ctx.switchToHttp().getRequest<AuthenticatedRequest>();
-    return request.user;
-  },
+  (_data: unknown, ctx: ExecutionContext): AuthenticatedPrincipal =>
+    extractCurrentUser(ctx),
 );
+
+/**
+ * Helper that extracts the authenticated principal from an ExecutionContext.
+ * Exported for unit tests and small utilities.
+ */
+export function extractCurrentUser(
+  ctx: ExecutionContext,
+): AuthenticatedPrincipal {
+  const request = ctx.switchToHttp().getRequest<AuthenticatedRequest>();
+  return request.user;
+}

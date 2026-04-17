@@ -7,13 +7,18 @@
       "!!**/node_modules",
       "!!**/dist",
       "!!**/build",
-      "!!**/coverage"
+      "!!**/coverage",
+      "!!**/.expo",
+      "!!**/expo-env.d.ts"
     ]
   },
   "linter": {
     "enabled": true,
     "rules": {
       "recommended": true,
+      "suspicious": {
+        "noExplicitAny": "error"
+      },
       "style": {
         "useImportType": "off"
       }

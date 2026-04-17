@@ -305,6 +305,7 @@ describe('My feature (e2e)', () => {
 ### `ECONNREFUSED` on app.getHttpServer()
 
 The NestJS app failed to boot. Check:
+
 - Missing environment variables (e.g., Firebase credentials).
 - Module import errors in `AppModule`.
 

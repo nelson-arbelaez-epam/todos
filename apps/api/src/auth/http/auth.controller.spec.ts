@@ -1,13 +1,17 @@
 import {
   BadRequestException,
   ConflictException,
-  ForbiddenException,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
-import type { ApiTokenResponseDto, CreateApiTokenDto } from '@todos/core/http';
+import type {
+  ApiTokenMetadataDto,
+  ApiTokenResponseDto,
+  RevokeApiTokenResponseDto,
+} from '@todos/core/http';
 import type { DecodedIdToken } from 'firebase-admin/auth';
-import { AuthenticatedPrincipal } from '../../shared/http/guards/firebase-auth.guard';
+import { ApiTokenPrincipal } from 'src/shared/http/guards/firebase-auth.guard';
 import { ApiTokenService } from '../api-token.service';
 import { AuthService } from '../auth.service';
 import { AuthController } from './auth.controller';
@@ -19,6 +23,8 @@ const mockAuthService = {
 
 const mockApiTokenService = {
   createToken: vi.fn(),
+  listTokens: vi.fn(),
+  revokeToken: vi.fn(),
 };
 
 describe('AuthController', () => {
@@ -161,26 +167,137 @@ describe('AuthController', () => {
         'Firestore unavailable',
       );
     });
+  });
 
-    it('should return 403 when user is authenticated via API token (token proliferation check)', async () => {
-      // Per ADR 0022, only Firebase JWT can issue tokens; API tokens cannot create other tokens
-      const apiTokenPrincipal: AuthenticatedPrincipal = {
+  describe('listTokens', () => {
+    const mockUser = { uid: 'firebase-uid-123' } as DecodedIdToken;
+
+    const mockTokenList: ApiTokenMetadataDto[] = [
+      {
+        tokenId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+        label: 'MCP server – production',
+        scopes: ['todos:read', 'todos:write'],
+        createdAt: '2026-04-11T13:00:00.000Z',
+        expiresAt: '2027-04-11T13:00:00.000Z',
+        lastUsedAt: '2026-04-11T14:00:00.000Z',
+        revokedAt: null,
+      },
+    ];
+
+    it('should return the list of tokens for the authenticated user', async () => {
+      mockApiTokenService.listTokens.mockResolvedValue(mockTokenList);
+
+      const result = await authController.listTokens(mockUser);
+
+      expect(result).toEqual(mockTokenList);
+      expect(mockApiTokenService.listTokens).toHaveBeenCalledWith(mockUser.uid);
+    });
+
+    it('should return an empty array when the user has no tokens', async () => {
+      mockApiTokenService.listTokens.mockResolvedValue([]);
+
+      const result = await authController.listTokens(mockUser);
+
+      expect(result).toEqual([]);
+      expect(mockApiTokenService.listTokens).toHaveBeenCalledWith(mockUser.uid);
+    });
+
+    it('should propagate errors from ApiTokenService', async () => {
+      mockApiTokenService.listTokens.mockRejectedValue(
+        new Error('Firestore unavailable'),
+      );
+
+      await expect(authController.listTokens(mockUser)).rejects.toThrow(
+        'Firestore unavailable',
+      );
+    });
+
+    it('should return the list of token metadata', async () => {
+      const expected: ApiTokenMetadataDto[] = [
+        {
+          tokenId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+          label: 'MCP server – production',
+          scopes: ['todos:read', 'todos:write'],
+          createdAt: '2026-04-11T13:00:00.000Z',
+          expiresAt: '2027-04-11T13:00:00.000Z',
+          lastUsedAt: null,
+          revokedAt: null,
+        },
+      ];
+
+      mockApiTokenService.listTokens.mockResolvedValue(expected);
+
+      const result = await authController.listTokens(mockUser);
+
+      expect(result).toEqual(expected);
+      expect(mockApiTokenService.listTokens).toHaveBeenCalledWith(mockUser.uid);
+    });
+
+    it('should return an empty array when no tokens exist', async () => {
+      mockApiTokenService.listTokens.mockResolvedValue([]);
+
+      const result = await authController.listTokens(mockUser);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should propagate errors from ApiTokenService', async () => {
+      mockApiTokenService.listTokens.mockRejectedValue(
+        new Error('Firestore unavailable'),
+      );
+
+      await expect(authController.listTokens(mockUser)).rejects.toThrow(
+        'Firestore unavailable',
+      );
+    });
+  });
+
+  describe('revokeToken', () => {
+    const mockUser = { uid: 'firebase-uid-123' } as DecodedIdToken;
+    const tokenId = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+
+    it('should return RevokeApiTokenResponseDto on successful revocation', async () => {
+      const expected: RevokeApiTokenResponseDto = {
+        tokenId,
+        revokedAt: '2026-04-11T15:00:00.000Z',
+      };
+
+      mockApiTokenService.revokeToken.mockResolvedValue(expected);
+
+      const result = await authController.revokeToken(mockUser, tokenId);
+
+      expect(result).toEqual(expected);
+      expect(mockApiTokenService.revokeToken).toHaveBeenCalledWith(
+        mockUser.uid,
+        tokenId,
+      );
+    });
+
+    it('should propagate NotFoundException when token does not exist', async () => {
+      mockApiTokenService.revokeToken.mockRejectedValue(
+        new NotFoundException(`Token '${tokenId}' not found`),
+      );
+
+      await expect(
+        authController.revokeToken(mockUser, tokenId),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should return 403 when authenticated via API token', async () => {
+      const apiTokenPrincipal: ApiTokenPrincipal = {
         uid: 'firebase-uid-123',
         authProvider: 'api-token',
         apiTokenId: 'existing-token-id',
         scopes: ['todos:read'],
       };
 
-      const dto: CreateApiTokenDto = {
-        label: 'Malicious Token',
-        scopes: ['todos:write'],
-      };
-
       await expect(
-        authController.createToken(apiTokenPrincipal, dto),
-      ).rejects.toThrow(ForbiddenException);
+        authController.revokeToken(apiTokenPrincipal, tokenId),
+      ).rejects.toThrowError(
+        'Token revocation requires Firebase JWT authentication',
+      );
 
-      expect(mockApiTokenService.createToken).not.toHaveBeenCalled();
+      expect(mockApiTokenService.revokeToken).not.toHaveBeenCalled();
     });
   });
 });

@@ -237,7 +237,7 @@ describe('FirebaseAuthGuard', () => {
     it('should authenticate with a valid API token and attach ApiTokenPrincipal', async () => {
       vi.spyOn(reflector, 'getAllAndOverride')
         .mockReturnValueOnce(false) // IS_PUBLIC_KEY
-        .mockReturnValueOnce(undefined); // AUTH_SCOPE_KEY
+        .mockReturnValueOnce(['todos:read', 'todos:write']); // AUTH_SCOPE_KEY — scoped route
 
       mockFindByHash.mockResolvedValue(activeEntity);
 
@@ -309,7 +309,7 @@ describe('FirebaseAuthGuard', () => {
     it('should call updateLastUsedAt after successful API token validation', async () => {
       vi.spyOn(reflector, 'getAllAndOverride')
         .mockReturnValueOnce(false)
-        .mockReturnValueOnce(undefined);
+        .mockReturnValueOnce(['todos:read', 'todos:write']); // scoped route
 
       mockFindByHash.mockResolvedValue(activeEntity);
 
@@ -346,6 +346,51 @@ describe('FirebaseAuthGuard', () => {
       lastUsedAt: null,
       revokedAt: null,
     };
+
+    it('should throw ForbiddenException when API token is used on an unscoped route', async () => {
+      // Routes without @AuthScope are reserved for Firebase JWT callers only
+      vi.spyOn(reflector, 'getAllAndOverride')
+        .mockReturnValueOnce(false) // IS_PUBLIC_KEY
+        .mockReturnValueOnce(undefined); // AUTH_SCOPE_KEY — no scopes declared
+
+      mockFindByHash.mockResolvedValue(readOnlyEntity);
+
+      const requestObj = {
+        headers: { authorization: `Bearer ${rawToken}` },
+        user: undefined,
+      };
+      const context = {
+        switchToHttp: () => ({ getRequest: () => requestObj }),
+        getHandler: vi.fn(),
+        getClass: vi.fn(),
+      };
+
+      await expect(guard.canActivate(context as never)).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('should throw ForbiddenException when API token is used on a route with empty scope array', async () => {
+      vi.spyOn(reflector, 'getAllAndOverride')
+        .mockReturnValueOnce(false) // IS_PUBLIC_KEY
+        .mockReturnValueOnce([]); // AUTH_SCOPE_KEY — empty array
+
+      mockFindByHash.mockResolvedValue(readOnlyEntity);
+
+      const requestObj = {
+        headers: { authorization: `Bearer ${rawToken}` },
+        user: undefined,
+      };
+      const context = {
+        switchToHttp: () => ({ getRequest: () => requestObj }),
+        getHandler: vi.fn(),
+        getClass: vi.fn(),
+      };
+
+      await expect(guard.canActivate(context as never)).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
 
     it('should allow access when token has the required scope', async () => {
       vi.spyOn(reflector, 'getAllAndOverride')
