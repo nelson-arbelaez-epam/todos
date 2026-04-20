@@ -1,0 +1,40 @@
+# Dockerfile.dev
+#
+# Development image for the Todos monorepo.
+#
+# All services in docker-compose.dev.yml share this single image.  The image
+# installs Linux-compatible node_modules so that macOS host binaries are never
+# used inside containers.  Source code is NOT copied here — it is bind-mounted
+# at runtime from the host, so changes propagate without rebuilding the image.
+#
+# Rebuild this image (and recreate the node_modules volume) when you add or
+# update dependencies:
+#
+#   docker compose -f docker-compose.dev.yml down -v
+#   docker compose -f docker-compose.dev.yml up --build
+
+FROM node:22-slim
+
+WORKDIR /workspace
+
+# ── Workspace manifests ──────────────────────────────────────────────────────
+# Copy ONLY the files needed to resolve and install the dependency graph.
+# These layers are cached until a manifest changes, so day-to-day source edits
+# do not trigger an expensive reinstall.
+COPY package.json yarn.lock .yarnrc.yml ./
+
+COPY packages/core/package.json       packages/core/
+COPY packages/store/package.json      packages/store/
+COPY packages/firebase/package.json   packages/firebase/
+COPY packages/branding/package.json   packages/branding/
+
+COPY apps/api/package.json            apps/api/
+COPY apps/mcp/package.json            apps/mcp/
+COPY apps/web/package.json            apps/web/
+COPY apps/mobile/package.json         apps/mobile/
+
+# ── Dependency install ───────────────────────────────────────────────────────
+# Runs inside Linux so all native addons (e.g. @swc/core) are compiled for the
+# container OS.  The resulting /workspace/node_modules is promoted to a named
+# volume in docker-compose.dev.yml, protecting it from the macOS host mount.
+RUN corepack enable && yarn install

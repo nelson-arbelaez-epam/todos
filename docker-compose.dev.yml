@@ -1,0 +1,240 @@
+# docker-compose.dev.yml
+#
+# Docker Compose configuration for local development.
+#
+# Splits the dev stack into focused services:
+#   package-builder  — watches and rebuilds shared packages in the background
+#   api              — NestJS Todos API          (http://localhost:3000)
+#   mcp              — NestJS MCP server         (http://localhost:3010)
+#   web              — Vite React frontend       (http://localhost:5173)
+#
+# Mobile development is NOT containerised; see the README for local mobile
+# instructions.
+#
+# ── macOS / cross-platform note ──────────────────────────────────────────────
+# All services are built from Dockerfile.dev, which installs Linux-compatible
+# node_modules inside the image.  A named volume (`node_modules`) is mounted
+# at /workspace/node_modules in every container, so the Linux binaries are
+# NEVER overridden by the macOS host directory.  Source code is bind-mounted
+# separately; plain .ts/.tsx files are cross-platform and propagate instantly.
+#
+# ── Prerequisites ─────────────────────────────────────────────────────────────
+#   1. Docker Desktop / Docker Engine with Compose plugin ≥ 2.24
+#   2. Copy `.env.example` to `.env` and fill in your Firebase credentials
+#
+# ── First-time start (builds the image and seeds the node_modules volume) ────
+#   docker compose -f docker-compose.dev.yml up --build
+#
+# ── Day-to-day start (image already built) ───────────────────────────────────
+#   docker compose -f docker-compose.dev.yml up
+#
+# ── Auto-rebuild on dependency changes (optional, requires Compose ≥ 2.22) ──
+#   docker compose -f docker-compose.dev.yml watch
+#
+# ── After adding / changing dependencies ─────────────────────────────────────
+#   docker compose -f docker-compose.dev.yml down -v   # remove stale volume
+#   docker compose -f docker-compose.dev.yml up --build
+#
+# ── Tear down ────────────────────────────────────────────────────────────────
+#   docker compose -f docker-compose.dev.yml down
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # package-builder
+  # Runs `yarn dev:packages` to watch and recompile all shared packages
+  # (@todos/core, @todos/store, @todos/firebase, @todos/branding) whenever
+  # their source files change.  API and MCP services depend on this being
+  # healthy (i.e. the initial build has completed) before they start.
+  # ---------------------------------------------------------------------------
+  package-builder:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    working_dir: /workspace
+    command: yarn dev:packages
+    volumes:
+      # Source code — bind-mounted from host; plain .ts files are cross-platform
+      - .:/workspace
+      # Linux node_modules — named volume prevents macOS host binaries from
+      # overriding the Linux binaries installed by Dockerfile.dev
+      - node_modules:/workspace/node_modules
+    environment:
+      NODE_ENV: development
+    restart: on-failure
+    # Gate: api and mcp wait until the initial package compile has completed
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - >-
+          const fs = require('fs');
+          ['packages/core/dist/index.js',
+           'packages/store/dist/index.js',
+           'packages/firebase/dist/index.js']
+          .forEach(p => { if (!fs.existsSync(p)) process.exit(1); });
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 90s
+    # Rebuild the image (and recreate the node_modules volume) when dependencies change
+    develop:
+      watch:
+        - path: package.json
+          target: /workspace/package.json
+          action: rebuild
+        - path: yarn.lock
+          target: /workspace/yarn.lock
+          action: rebuild
+
+  # ---------------------------------------------------------------------------
+  # api
+  # NestJS Todos API in watch mode.  Requires Firebase credentials supplied via
+  # .env / .env.local (see .env.example).
+  # ---------------------------------------------------------------------------
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    working_dir: /workspace
+    command: yarn workspace @todos/api start:dev
+    volumes:
+      - .:/workspace
+      - node_modules:/workspace/node_modules
+    ports:
+      - "${API_PORT:-3000}:3000"
+    env_file:
+      - path: .env
+        required: false
+      - path: .env.local
+        required: false
+    environment:
+      NODE_ENV: development
+      PORT: "3000"
+    depends_on:
+      package-builder:
+        condition: service_healthy
+    restart: on-failure
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - >-
+          require('http').get('http://localhost:3000/api/v1/health',
+            r => process.exit(r.statusCode === 200 ? 0 : 1))
+            .on('error', () => process.exit(1))
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+    develop:
+      watch:
+        - path: package.json
+          target: /workspace/package.json
+          action: rebuild
+        - path: yarn.lock
+          target: /workspace/yarn.lock
+          action: rebuild
+
+  # ---------------------------------------------------------------------------
+  # mcp
+  # NestJS MCP server in watch mode.  Talks to the `api` service over the
+  # internal Docker network; TODOS_API_URL is always overridden to the Docker
+  # service name regardless of what is set in .env.
+  # ---------------------------------------------------------------------------
+  mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    working_dir: /workspace
+    command: yarn workspace @todos/mcp start:dev
+    volumes:
+      - .:/workspace
+      - node_modules:/workspace/node_modules
+    ports:
+      - "${MCP_PORT:-3010}:3010"
+    env_file:
+      - path: .env
+        required: false
+      - path: .env.local
+        required: false
+    environment:
+      NODE_ENV: development
+      PORT: "3010"
+      # Always use the Docker-network service name so MCP can reach the API
+      TODOS_API_URL: "http://api:3000"
+    depends_on:
+      package-builder:
+        condition: service_healthy
+    restart: on-failure
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - >-
+          require('http').get('http://localhost:3010/health',
+            r => process.exit(r.statusCode === 200 ? 0 : 1))
+            .on('error', () => process.exit(1))
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+    develop:
+      watch:
+        - path: package.json
+          target: /workspace/package.json
+          action: rebuild
+        - path: yarn.lock
+          target: /workspace/yarn.lock
+          action: rebuild
+
+  # ---------------------------------------------------------------------------
+  # web
+  # Vite React development server with HMR.  VITE_TODOS_API_URL is set to the
+  # host-facing URL because API calls are made from the browser, not from
+  # within the Docker network.
+  # ---------------------------------------------------------------------------
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    working_dir: /workspace
+    command: yarn workspace @todos/web dev --host 0.0.0.0 --port 5173
+    volumes:
+      - .:/workspace
+      - node_modules:/workspace/node_modules
+    ports:
+      - "${WEB_PORT:-5173}:5173"
+    env_file:
+      - path: .env
+        required: false
+      - path: .env.local
+        required: false
+    environment:
+      NODE_ENV: development
+      # Browser-facing URL — must use localhost, not the Docker network name.
+      # Update manually if you change API_PORT.
+      VITE_TODOS_API_URL: "http://localhost:${API_PORT:-3000}"
+    depends_on:
+      - package-builder
+    restart: on-failure
+    develop:
+      watch:
+        - path: package.json
+          target: /workspace/package.json
+          action: rebuild
+        - path: yarn.lock
+          target: /workspace/yarn.lock
+          action: rebuild
+
+# ── Named volumes ─────────────────────────────────────────────────────────────
+# `node_modules` is seeded from the image layer on first use (Docker copies the
+# directory contents from the built image into the empty volume).  This keeps
+# the Linux binaries installed by Dockerfile.dev isolated from the macOS host
+# directory, preventing binary incompatibility errors.
+volumes:
+  node_modules:
+
