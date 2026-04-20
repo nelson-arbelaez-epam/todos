@@ -8,31 +8,38 @@ The fastest way to run the full backend + frontend stack locally is with Docker
 Compose.  Mobile development is intentionally excluded from containers — see
 [Running mobile locally](#running-mobile-locally).
 
+### How it works
+
+Each service is built from `Dockerfile.dev`, which installs **Linux-compatible
+`node_modules`** inside the image.  A shared named Docker volume (`node_modules`)
+is mounted at `/workspace/node_modules` in every container, so those Linux
+binaries are **never overridden** by the macOS host directory.  Source code
+(plain `.ts`/`.tsx` files) is bind-mounted separately — text files are
+cross-platform and propagate to containers instantly.
+
 ### Prerequisites
 
 | Requirement | Version |
 |---|---|
 | Docker Desktop / Docker Engine | ≥ 24 |
 | Docker Compose plugin | ≥ 2.24 |
-| Node.js + Yarn (host) | Node ≥ 20, Yarn 4 |
 
-> **Why Yarn on the host?**  The workspace `node_modules` directory is
-> bind-mounted into each container.  Running `yarn install` on the host
-> populates it once; containers share the result without reinstalling.
+> **No host `yarn install` needed** — the image handles all dependency
+> installation inside Linux, so macOS binary incompatibilities do not apply.
 
 ### First-time setup
 
 ```bash
-# 1. Enable Corepack and install workspace dependencies on the host
-corepack enable
-yarn install
-
-# 2. Create your local env file from the example
+# 1. Create your local env file from the example
 cp .env.example .env
 # Edit .env and fill in your Firebase credentials (FIREBASE_PROJECT_ID, etc.)
+
+# 2. Build the image and start the stack
+#    (builds Dockerfile.dev and seeds the node_modules named volume)
+docker compose -f docker-compose.dev.yml up --build
 ```
 
-### Start the dev stack
+### Start the dev stack (image already built)
 
 ```bash
 docker compose -f docker-compose.dev.yml up
@@ -47,8 +54,28 @@ This brings up four services in dependency order:
 | `mcp` | <http://localhost:3010> | NestJS MCP server (hot-reload via `nest start --watch`) |
 | `web` | <http://localhost:5173> | Vite React frontend (HMR enabled) |
 
-`api` and `mcp` wait for `package-builder` to finish its initial build before
-starting, so the first `up` takes roughly 60–90 seconds.
+`api` and `mcp` wait for `package-builder` to finish its initial compile before
+starting, so the first `up --build` takes roughly 60–90 seconds.
+
+### Auto-rebuild on dependency changes (optional)
+
+```bash
+# Requires Docker Compose ≥ 2.22
+docker compose -f docker-compose.dev.yml watch
+```
+
+When running in watch mode, any change to `package.json` or `yarn.lock`
+automatically triggers an image rebuild and service restart.
+
+### After adding or changing dependencies
+
+Whenever you modify `package.json` or run `yarn add` / `yarn remove`, rebuild
+the image and recreate the named volume so the containers pick up the new deps:
+
+```bash
+docker compose -f docker-compose.dev.yml down -v
+docker compose -f docker-compose.dev.yml up --build
+```
 
 ### Start a single service
 
@@ -73,11 +100,14 @@ docker compose -f docker-compose.dev.yml logs -f api
 ### Stop and clean up
 
 ```bash
-# Stop all services (preserves containers)
+# Stop all services (preserves containers and the node_modules volume)
 docker compose -f docker-compose.dev.yml stop
 
-# Remove containers
+# Remove containers (preserves the node_modules volume)
 docker compose -f docker-compose.dev.yml down
+
+# Remove containers AND the node_modules volume (full reset)
+docker compose -f docker-compose.dev.yml down -v
 ```
 
 ### Environment variables
@@ -104,7 +134,7 @@ Key variables:
 directly on the host:
 
 ```bash
-# Install dependencies (if not done yet)
+# Install dependencies
 corepack enable && yarn install
 
 # Start the Expo dev server
@@ -118,23 +148,22 @@ Compose or `yarn dev:api`) and the URL is reachable from your device/emulator.
 
 ### Troubleshooting
 
-**Services fail immediately or show `MODULE_NOT_FOUND` errors**
+**Services fail with `MODULE_NOT_FOUND` or binary incompatibility errors**
 
-The container cannot find `node_modules`.  Make sure you ran `yarn install` on
-the host before starting Docker Compose:
+The `node_modules` volume may be missing or stale.  Do a full reset:
 
 ```bash
-yarn install
-docker compose -f docker-compose.dev.yml up
+docker compose -f docker-compose.dev.yml down -v
+docker compose -f docker-compose.dev.yml up --build
 ```
 
-**`api` or `mcp` fail with "package not found" or TypeScript errors**
+**`api` or `mcp` fail with TypeScript errors about missing packages**
 
-The shared packages may not have been built yet.  Restart only the
-`package-builder` service and wait for it to become healthy:
+The shared packages may not have been compiled yet.  Check the
+`package-builder` logs and wait for it to become healthy:
 
 ```bash
-docker compose -f docker-compose.dev.yml restart package-builder
+docker compose -f docker-compose.dev.yml logs -f package-builder
 ```
 
 **Port already in use**
@@ -148,25 +177,20 @@ MCP_PORT=3011
 WEB_PORT=5174
 ```
 
-**Changes to shared packages are not picked up**
+**Changes to shared packages are not picked up by `api` or `mcp`**
 
 `package-builder` watches `packages/*/src` and recompiles automatically.
-Check its logs to confirm a rebuild has happened:
+Confirm a rebuild has happened:
 
 ```bash
 docker compose -f docker-compose.dev.yml logs -f package-builder
 ```
 
-**Native module errors (e.g. on macOS with Apple Silicon)**
+**Image build is slow on first run**
 
-If you see errors about native binaries being incompatible, your host
-`node_modules` may contain macOS-compiled binaries.  Remove and reinstall
-inside a Linux container:
-
-```bash
-docker compose -f docker-compose.dev.yml run --rm api \
-  sh -c "corepack enable && yarn install"
-```
+The image installs all workspace dependencies during build.  Subsequent starts
+reuse the cached image and named volume, so they are fast.  Only a full reset
+(`down -v && up --build`) triggers a reinstall.
 
 ---
 

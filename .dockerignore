@@ -1,0 +1,37 @@
+# .dockerignore
+#
+# Files and directories excluded from the Docker build context.
+# Keeping the context small speeds up builds and prevents host-compiled binaries
+# (e.g. macOS node_modules) from leaking into the Linux image.
+
+# Source control
+.git
+.github
+.githooks
+
+# Host-installed dependencies — the image installs its own Linux-compatible copy
+node_modules
+**/node_modules
+
+# Build outputs — generated inside containers at runtime
+dist
+**/dist
+build
+**/build
+coverage
+
+# Yarn PnP / cache (not used with node-modules linker, but exclude for safety)
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.pnp.*
+
+# Environment files — never bake secrets into an image
+.env
+.env.*
+!.env.example
+
+# Editor / OS noise
+.vscode
+.DS_Store
+*.log
